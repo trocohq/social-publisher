@@ -115,7 +115,9 @@ Google Play Console. Automatic Play Console ingestion, attribution export, and
 credential access are explicitly outside this repository.
 
 Scheduled writes are serialized and disabled unless the repository variable
-`AUTO_PUBLISH` is exactly `true`. Start with the future controlled campaign and
-private YouTube verification described in the
+`AUTO_PUBLISH` is exactly `true`. Public YouTube scheduling has a second,
+independent gate: `YOUTUBE_PUBLICATION_VERIFIED` must also be exactly `true`.
+Both default to false. Start with the future controlled campaign and private
+YouTube verification described in the
 [operations runbook](docs/operations.md). Never activate unattended publishing
 from code completion alone.

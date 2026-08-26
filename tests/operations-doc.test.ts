@@ -9,6 +9,7 @@ test("operations document keeps unattended publication behind verified activatio
   );
   for (const phrase of [
     "AUTO_PUBLISH=false",
+    "YOUTUBE_PUBLICATION_VERIFIED=false",
     "PUBLISH_ONE_CAMPAIGN",
     "Buffer",
     "YouTube",

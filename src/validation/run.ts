@@ -1,12 +1,17 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 import { createReview } from "../dry-run/create-review.js";
 import { verifyPublicAsset } from "../media/verify-public.js";
-import { bufferGraphql } from "../networks/buffer/graphql.js";
+import { runBufferPreflight } from "../networks/buffer/preflight.js";
+import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
 import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
+import {
+  uploadYouTubeVideo,
+  youtubeVideoResource,
+} from "../networks/youtube/upload.js";
 import { sha256 } from "../shared/determinism.js";
 import { listCampaignStates } from "../state/storage.js";
 
@@ -55,26 +60,110 @@ async function validateWorkflowGates(): Promise<void> {
   }
 }
 
-async function validateFakeProviderTransports(): Promise<void> {
-  let bufferBody = "";
-  const buffer = await bufferGraphql<{ viewer: { id: string } }>({
+function jsonResponse(body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status: 200,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+async function validateProductionProviderContracts(
+  root: string,
+): Promise<void> {
+  const bufferFetch: typeof fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body)) as {
+      query: string;
+      variables?: { input?: { organizationId?: string } };
+    };
+    if (request.variables?.input?.organizationId !== "org_validation") {
+      throw new Error("Buffer organization variable validation failed");
+    }
+    if (request.query.includes("TrocoChannels")) {
+      return jsonResponse({
+        data: {
+          channels: [
+            {
+              id: "ig_validation",
+              service: "instagram",
+              organizationId: "org_validation",
+              isQueuePaused: false,
+            },
+            {
+              id: "fb_validation",
+              service: "facebook",
+              organizationId: "org_validation",
+              isQueuePaused: false,
+            },
+            {
+              id: "tt_validation",
+              service: "tiktok",
+              organizationId: "org_validation",
+              isQueuePaused: false,
+            },
+          ],
+        },
+      });
+    }
+    if (request.query.includes("TrocoScheduledPosts")) {
+      return jsonResponse({
+        data: {
+          posts: {
+            edges: [],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+    }
+    if (request.query.includes("TrocoPosts")) {
+      return jsonResponse({
+        data: {
+          posts: {
+            edges: [
+              {
+                node: {
+                  id: "post_validation",
+                  channelId: "ig_validation",
+                  dueAt: "2026-08-26T15:17:00.000Z",
+                  text: "Troco certo",
+                  status: "sent",
+                  assets: [{ source: "https://example.test/slide.jpg" }],
+                },
+              },
+            ],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+    }
+    throw new Error("Unexpected Buffer production operation");
+  };
+  await runBufferPreflight({
     apiKey: "fake-buffer-key",
-    query: "query TrocoValidation($id: ID!) { viewer(id: $id) { id } }",
-    variables: { id: "viewer_1" },
-    fetchImplementation: async (_input, init) => {
-      bufferBody = String(init?.body ?? "");
-      return new Response(
-        JSON.stringify({ data: { viewer: { id: "viewer_1" } } }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      );
+    organizationId: "org_validation",
+    expectedChannelIds: {
+      instagram: "ig_validation",
+      facebook: "fb_validation",
+      tiktok: "tt_validation",
     },
+    requiredSlots: { instagram: 1, facebook: 1, tiktok: 1 },
+    fetchImplementation: bufferFetch,
+  });
+  const reconciliation = await reconcileBufferPost({
+    apiKey: "fake-buffer-key",
+    organizationId: "org_validation",
+    expected: {
+      channelId: "ig_validation",
+      dueAt: "2026-08-26T15:17:00.000Z",
+      text: "Troco certo",
+      mediaUrls: ["https://example.test/slide.jpg"],
+    },
+    fetchImplementation: bufferFetch,
   });
   if (
-    buffer.kind !== "success" ||
-    !JSON.parse(bufferBody).variables?.id ||
-    JSON.parse(bufferBody).query.includes("viewer_1")
+    reconciliation.kind !== "success" ||
+    reconciliation.value?.status !== "published"
   ) {
-    throw new Error("Buffer variables-only transport validation failed");
+    throw new Error("Buffer production reconciliation validation failed");
   }
 
   const bytes = Buffer.from("verified-media");
@@ -113,6 +202,42 @@ async function validateFakeProviderTransports(): Promise<void> {
   ) {
     throw new Error("YouTube in-memory OAuth validation failed");
   }
+
+  const videoPath = join(root, "provider-contract.mp4");
+  await writeFile(videoPath, Buffer.from("provider-contract"));
+  let uploadRequests = 0;
+  const uploaded = await uploadYouTubeVideo({
+    accessToken: "process-local-token",
+    filePath: videoPath,
+    resource: youtubeVideoResource({
+      campaignId: "2026-08-27-quick-calculation-v1-0",
+      title: "Private validation #Shorts",
+      description: "Production upload protocol validation",
+    }),
+    fetchImplementation: async (_input, init) => {
+      const authorization = new Headers(init?.headers).get("authorization");
+      if (authorization !== "Bearer process-local-token") {
+        throw new Error("YouTube production request is not authorized");
+      }
+      if (init?.method === "POST") {
+        return new Response(null, {
+          status: 200,
+          headers: {
+            location:
+              "https://www.googleapis.com/upload/youtube/v3/videos?upload_id=validation",
+          },
+        });
+      }
+      uploadRequests += 1;
+      return jsonResponse({
+        id: "video_validation",
+        status: { uploadStatus: "uploaded", privacyStatus: "private" },
+      });
+    },
+  });
+  if (uploaded.id !== "video_validation" || uploadRequests !== 1) {
+    throw new Error("YouTube production upload protocol validation failed");
+  }
 }
 
 async function validate(): Promise<void> {
@@ -122,7 +247,7 @@ async function validate(): Promise<void> {
     const states = await listCampaignStates(resolve("state"));
     for (const state of states) assertSanitizedState(state);
     await validateWorkflowGates();
-    await validateFakeProviderTransports();
+    await validateProductionProviderContracts(output);
     const review = await createReview({
       localDate: "2026-08-26",
       output,
@@ -135,7 +260,7 @@ async function validate(): Promise<void> {
         : {}),
     });
     process.stdout.write(
-      `${JSON.stringify({ ok: true, campaignId: review.plan.id, trackedCampaigns: states.length, fakeProviders: 3 })}\n`,
+      `${JSON.stringify({ ok: true, campaignId: review.plan.id, trackedCampaigns: states.length, providerContracts: 3 })}\n`,
     );
   } finally {
     await rm(output, { recursive: true, force: true });

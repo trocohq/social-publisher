@@ -1,9 +1,9 @@
 # Social Publisher Operations
 
 This runbook controls the one-time setup, activation, monitoring, and recovery
-of Troco's automated social publication. Keep `AUTO_PUBLISH=false` until every
-activation check below has passed. Code completion alone does not authorize an
-unattended post.
+of Troco's automated social publication. Keep `AUTO_PUBLISH=false` and
+`YOUTUBE_PUBLICATION_VERIFIED=false` until every corresponding activation check
+below has passed. Code completion alone does not authorize an unattended post.
 
 ## One-time account and repository setup
 
@@ -29,6 +29,7 @@ Complete these steps in order.
 6. Add these repository variables:
 
    - `AUTO_PUBLISH=false`
+   - `YOUTUBE_PUBLICATION_VERIFIED=false`
    - `PAGES_ORIGIN`
    - `BUFFER_ORGANIZATION_ID`
    - `BUFFER_INSTAGRAM_CHANNEL_ID`
@@ -56,7 +57,9 @@ Complete these steps in order.
 ## Controlled activation
 
 1. Run the validation workflow. Require formatting, types, all tests, media
-   probing, workflow gates, and the local provider simulations to pass.
+   probing, workflow gates, and the production-adapter contract simulations to
+   pass. These simulations exercise the real Buffer GraphQL and YouTube
+   resumable-upload code without contacting either provider.
 2. Download and inspect the review artifact. Check the canonical logo, all
    image slides, the complete 12-second video, amounts, answer, calls to action,
    and the four final captions. Open every attributed Google Play link.
@@ -68,13 +71,16 @@ Complete these steps in order.
    manually in tracked state; the workflow persists normalized provider IDs.
 5. Confirm that the corresponding YouTube Short exists on the owning channel,
    has the campaign fingerprint tag, and remains private during pre-audit
-   verification. Check title, description, media, and schedule.
+   verification. Check title, description, and media; controlled validation
+   deliberately sets no public schedule.
 6. Run reconciliation for the controlled campaign. It must find the existing
    Buffer and YouTube objects and create zero duplicates.
 7. Confirm that `state/campaigns/YYYY-MM-DD.json` contains provider IDs and no
    credentials, authorization headers, upload-session URLs, or raw payloads.
-8. Only after all checks pass, set `AUTO_PUBLISH=true`. Monitor every run and
-   all four provider queues for the first seven days. Review Google Play Console
+8. Only after Google's audit and the private upload checks pass, set
+   `YOUTUBE_PUBLICATION_VERIFIED=true`. Then set `AUTO_PUBLISH=true`. Both flags
+   are required for unattended publication. Monitor every run and all four
+   provider queues for the first seven days. Review Google Play Console
    acquisition manually; Play Console ingestion is deliberately not automated.
 
 ## Routine operation
@@ -83,7 +89,9 @@ The scheduled workflow runs every three hours and is serialized. It creates a
 rolling D through D+6 plan, publishes public media through GitHub Pages, verifies
 the served bytes, records one intent, performs one provider action, and records
 the result. It reconciles before creating. It never backfills an earlier local
-date, even if a workflow was unavailable that day.
+date, even if a workflow was unavailable that day. An overdue Buffer action is
+sent with `shareNow`, never with a schedule in the past. Scheduled records are
+reconciled again after their due time to record the final published state.
 
 GitHub Pages retains only media from D−2 through D+7 in each deployment. Tracked
 sanitized campaign history remains available for repetition checks and audits.
