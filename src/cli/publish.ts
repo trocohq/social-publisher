@@ -125,6 +125,7 @@ export function providerAdaptersForAction({
       reconcile: () =>
         reconcileBufferPost({
           apiKey,
+          organizationId: environment.buffer.organizationId,
           expected: {
             channelId: input.channelId,
             dueAt: input.dueAt,

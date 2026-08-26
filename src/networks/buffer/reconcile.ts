@@ -1,6 +1,6 @@
 import { normalizeCopy } from "../../shared/determinism.js";
 import type { NormalizedProviderObject, ProviderResult } from "../types.js";
-import { bufferGraphql } from "./graphql.js";
+import { listBufferPosts } from "./list-posts.js";
 import type { ListedBufferPost } from "./posts.js";
 
 export type BufferPostFingerprint = Readonly<{
@@ -37,32 +37,30 @@ export function matchExistingBufferPost(
   return matches[0];
 }
 
-const LIST_POSTS_QUERY = `query TrocoPosts($channelId: ID!, $from: DateTime!, $to: DateTime!) {
-  posts(channelId: $channelId, from: $from, to: $to, statuses: [scheduled, sent]) {
-    id text status dueAt channelId assets { source mimeType }
-  }
-}`;
-
 export async function reconcileBufferPost({
   apiKey,
+  organizationId,
   expected,
   fetchImplementation,
 }: Readonly<{
   apiKey: string;
+  organizationId: string;
   expected: BufferPostFingerprint;
   fetchImplementation?: typeof fetch;
 }>): Promise<ProviderResult<NormalizedProviderObject | undefined>> {
   const dueAt = new Date(expected.dueAt);
   const from = new Date(dueAt.valueOf() - 10 * 60_000).toISOString();
   const to = new Date(dueAt.valueOf() + 10 * 60_000).toISOString();
-  const response = await bufferGraphql<{ posts: ListedBufferPost[] }>({
+  const response = await listBufferPosts({
     apiKey,
-    query: LIST_POSTS_QUERY,
-    variables: { channelId: expected.channelId, from, to },
+    organizationId,
+    channelIds: [expected.channelId],
+    statuses: ["scheduled", "sent"],
+    dueAt: { start: from, end: to },
     ...(fetchImplementation ? { fetchImplementation } : {}),
   });
   if (response.kind !== "success") return response;
-  const match = matchExistingBufferPost(expected, response.value.posts ?? []);
+  const match = matchExistingBufferPost(expected, response.value);
   return {
     kind: "success",
     value: match

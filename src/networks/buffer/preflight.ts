@@ -1,30 +1,30 @@
 import { bufferGraphql } from "./graphql.js";
+import { listBufferPosts } from "./list-posts.js";
 
 export type BufferChannelCapability = Readonly<{
   id: string;
   service: "instagram" | "facebook" | "tiktok";
-  paused: boolean;
-  scheduledPostCount: number;
+  organizationId: string;
+  isQueuePaused: boolean;
 }>;
 
 export function assertBufferPreflight({
   organizationId,
-  returnedOrganizationId,
   expectedChannelIds,
   channels,
-  planningWindow = 7,
+  scheduledPostCounts,
+  requiredSlots,
 }: Readonly<{
   organizationId: string;
-  returnedOrganizationId: string;
   expectedChannelIds: Readonly<
     Record<"instagram" | "facebook" | "tiktok", string>
   >;
   channels: readonly BufferChannelCapability[];
-  planningWindow?: number;
+  scheduledPostCounts: Readonly<
+    Record<"instagram" | "facebook" | "tiktok", number>
+  >;
+  requiredSlots: Readonly<Record<"instagram" | "facebook" | "tiktok", number>>;
 }>): void {
-  if (organizationId !== returnedOrganizationId) {
-    throw new Error("Buffer organization mismatch");
-  }
   if (channels.length !== 3)
     throw new Error("Buffer must return exactly three channels");
   for (const service of ["instagram", "facebook", "tiktok"] as const) {
@@ -36,8 +36,12 @@ export function assertBufferPreflight({
     if (matches.length !== 1)
       throw new Error(`Buffer ${service} channel mismatch`);
     const channel = matches[0]!;
-    if (channel.paused) throw new Error(`Buffer ${service} channel is paused`);
-    if (channel.scheduledPostCount + planningWindow > 10) {
+    if (channel.organizationId !== organizationId) {
+      throw new Error("Buffer organization mismatch");
+    }
+    if (channel.isQueuePaused)
+      throw new Error(`Buffer ${service} channel is paused`);
+    if (scheduledPostCounts[service] + requiredSlots[service] > 10) {
       throw new Error(
         `Buffer ${service} queue would exceed 10 scheduled posts`,
       );
@@ -45,10 +49,9 @@ export function assertBufferPreflight({
   }
 }
 
-const PREFLIGHT_QUERY = `query TrocoPreflight($organizationId: ID!) {
-  organization(id: $organizationId) {
-    id
-    channels { id service paused scheduledPostCount }
+const CHANNELS_QUERY = `query TrocoChannels($input: ChannelsInput!) {
+  channels(input: $input) {
+    id service organizationId isQueuePaused
   }
 }`;
 
@@ -56,6 +59,7 @@ export async function runBufferPreflight({
   apiKey,
   organizationId,
   expectedChannelIds,
+  requiredSlots = { instagram: 0, facebook: 0, tiktok: 0 },
   fetchImplementation,
 }: Readonly<{
   apiKey: string;
@@ -63,23 +67,48 @@ export async function runBufferPreflight({
   expectedChannelIds: Readonly<
     Record<"instagram" | "facebook" | "tiktok", string>
   >;
+  requiredSlots?: Readonly<Record<"instagram" | "facebook" | "tiktok", number>>;
   fetchImplementation?: typeof fetch;
 }>): Promise<void> {
-  const response = await bufferGraphql<{
-    organization: { id: string; channels: BufferChannelCapability[] };
+  const channelResponse = await bufferGraphql<{
+    channels: BufferChannelCapability[];
   }>({
     apiKey,
-    query: PREFLIGHT_QUERY,
-    variables: { organizationId },
+    query: CHANNELS_QUERY,
+    variables: { input: { organizationId } },
     ...(fetchImplementation ? { fetchImplementation } : {}),
   });
-  if (response.kind !== "success") {
-    throw Object.assign(new Error(response.message), response);
+  if (channelResponse.kind !== "success") {
+    throw Object.assign(new Error(channelResponse.message), channelResponse);
   }
+  const channelIds = Object.values(expectedChannelIds);
+  const postResponse = await listBufferPosts({
+    apiKey,
+    organizationId,
+    channelIds,
+    statuses: ["scheduled"],
+    operationName: "TrocoScheduledPosts",
+    ...(fetchImplementation ? { fetchImplementation } : {}),
+  });
+  if (postResponse.kind !== "success") {
+    throw Object.assign(new Error(postResponse.message), postResponse);
+  }
+  const scheduledPostCounts = {
+    instagram: postResponse.value.filter(
+      (post) => post.channelId === expectedChannelIds.instagram,
+    ).length,
+    facebook: postResponse.value.filter(
+      (post) => post.channelId === expectedChannelIds.facebook,
+    ).length,
+    tiktok: postResponse.value.filter(
+      (post) => post.channelId === expectedChannelIds.tiktok,
+    ).length,
+  };
   assertBufferPreflight({
     organizationId,
-    returnedOrganizationId: response.value.organization.id,
     expectedChannelIds,
-    channels: response.value.organization.channels,
+    channels: channelResponse.value.channels,
+    scheduledPostCounts,
+    requiredSlots,
   });
 }

@@ -13,6 +13,24 @@ import { transitionMedia, transitionProvider } from "../state/transitions.js";
 import { parsePublishRequest, type PublishMode } from "./publish.js";
 
 const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
+const bufferChannels = ["instagram", "facebook", "tiktok"] as const;
+
+export function bufferSlotsNeeded(
+  states: readonly CampaignState[],
+): Readonly<Record<(typeof bufferChannels)[number], number>> {
+  return Object.freeze(
+    Object.fromEntries(
+      bufferChannels.map((channel) => [
+        channel,
+        states.filter((state) =>
+          ["deploying", "media_verified", "retryable"].includes(
+            state.channels[channel].stage,
+          ),
+        ).length,
+      ]),
+    ) as Record<(typeof bufferChannels)[number], number>,
+  );
+}
 
 function valueAfter(args: readonly string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
@@ -83,10 +101,19 @@ async function run(args: readonly string[]): Promise<void> {
     ...(confirmation ? { confirmation } : {}),
   });
   const environment = parseEnvironment(process.env, "provider");
+  const stateRoot = resolve(valueAfter(args, "--state-root") ?? "state");
+  const states = await listCampaignStates(stateRoot);
+  const operationStates = campaignId
+    ? states.filter((state) => state.plan.id === campaignId)
+    : states;
+  if (campaignId && operationStates.length !== 1) {
+    throw new Error("Controlled campaign was not found in state");
+  }
   await runBufferPreflight({
     apiKey: environment.buffer.apiKey!,
     organizationId: environment.buffer.organizationId,
     expectedChannelIds: environment.buffer.channelIds,
+    requiredSlots: bufferSlotsNeeded(operationStates),
   });
   const tokenProvider = createYouTubeAccessTokenProvider({
     clientId: environment.youtube.clientId!,
@@ -98,14 +125,9 @@ async function run(args: readonly string[]): Promise<void> {
     environment.youtube.channelId,
   );
 
-  const stateRoot = resolve(valueAfter(args, "--state-root") ?? "state");
-  const states = await listCampaignStates(stateRoot);
   const selected = campaignId
-    ? states.filter((state) => state.plan.id === campaignId)
+    ? operationStates
     : states.filter((state) => state.media.stage === "deploying");
-  if (campaignId && selected.length !== 1) {
-    throw new Error("Controlled campaign was not found in state");
-  }
   let verified = 0;
   for (const state of selected) {
     if (
