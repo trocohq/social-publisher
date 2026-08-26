@@ -142,6 +142,16 @@ jobs:
         working-directory: publisher
         run: 'scripts/commit-state.sh "chore(state): record campaign plans [skip ci]"'
 
+      - name: Expire stale publication retries
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        run: npm run expire
+
+      - name: Commit expired publication state
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        run: 'scripts/commit-state.sh "chore(state): expire stale publication retries [skip ci]"'
+
       - name: Upload Pages media
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0

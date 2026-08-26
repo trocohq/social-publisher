@@ -23,6 +23,7 @@ test("production workflow is serialized, disabled by default, and runs every thr
   assert.match(workflow, /publish_status=\$\?/);
   assert.match(workflow, /reconcile_status=\$\?/);
   assert.match(workflow, /npm run health/);
+  assert.match(workflow, /npm run expire/);
   assert.doesNotMatch(workflow, /pull_request:/);
 });
 

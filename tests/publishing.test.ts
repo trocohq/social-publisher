@@ -7,6 +7,7 @@ import {
   reconcilePublication,
 } from "../src/publishing/execute.js";
 import { assertPublisherHealthy } from "../src/publishing/health.js";
+import { expireRetryablePublications } from "../src/publishing/expire.js";
 import { nextPublicationAction } from "../src/publishing/next-action.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
 
@@ -151,5 +152,22 @@ test("an overdue scheduled record missing from its provider becomes retryable", 
   assert.equal(
     result.state.channels.instagram.lastError?.category,
     "provider_reconciliation_missing",
+  );
+});
+
+test("retryable publications expire after the Sao Paulo day changes", async () => {
+  const persisted: string[] = [];
+  const [expired] = await expireRetryablePublications({
+    states: [campaignStateFixture({ instagram: "retryable" })],
+    now: new Date("2026-08-27T03:01:00Z"),
+    persist: async (state) => {
+      persisted.push(state.plan.id);
+    },
+  });
+  assert.equal(expired?.channels.instagram.stage, "skipped_expired");
+  assert.equal(expired?.channels.facebook.stage, "media_verified");
+  assert.equal(persisted.length, 1);
+  assert.doesNotThrow(() =>
+    assertPublisherHealthy([expired!], new Date("2026-08-27T03:01:00Z")),
   );
 });
