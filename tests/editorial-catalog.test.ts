@@ -7,6 +7,7 @@ import {
   facts,
   hooks,
   recipes,
+  usableFactsForCampaign,
 } from "../src/editorial/catalog.js";
 
 test("the catalog has one complete recipe and four hooks for every family", () => {
@@ -39,4 +40,46 @@ test("calendar moments influence only matching dates and families", () => {
     undefined,
   );
   assert.equal(calendarMomentForDate("2026-05-02", "safe_checkout"), undefined);
+  assert.equal(
+    calendarMomentForDate("2027-05-01", "safe_checkout", [
+      {
+        id: "calendar.expired",
+        statement: "Momento vencido",
+        source: "repo://calendar",
+        reviewedOn: "2026-01-01",
+        expiresOn: "2026-12-31",
+        monthDay: "05-01",
+        families: ["safe_checkout"],
+      },
+    ]),
+    undefined,
+  );
+});
+
+test("campaign fact selection excludes expired catalog entries", () => {
+  const values = usableFactsForCampaign(
+    [
+      {
+        id: "fact.expired",
+        statement: "Expirado",
+        source: "repo://facts",
+        reviewedOn: "2026-01-01",
+        expiresOn: "2026-08-25",
+        families: ["safe_checkout"],
+      },
+      {
+        id: "fact.current",
+        statement: "Atual",
+        source: "repo://facts",
+        reviewedOn: "2026-01-01",
+        families: ["safe_checkout"],
+      },
+    ],
+    "2026-08-26",
+    "safe_checkout",
+  );
+  assert.deepEqual(
+    values.map((fact) => fact.id),
+    ["fact.current"],
+  );
 });

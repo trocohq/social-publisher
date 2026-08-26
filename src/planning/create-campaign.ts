@@ -5,6 +5,7 @@ import {
   facts,
   hooks,
   recipeForFamily,
+  usableFactsForCampaign,
 } from "../editorial/catalog.js";
 import { createCampaignCopy } from "../editorial/copy.js";
 import { createScenario } from "../editorial/scenario.js";
@@ -61,8 +62,11 @@ function deepFreeze<T>(value: T): T {
   return value;
 }
 
-function compatibleFacts(family: CampaignPlan["family"]): readonly Fact[] {
-  const values = facts.filter((fact) => fact.families.includes(family));
+function compatibleFacts(
+  family: CampaignPlan["family"],
+  localDate: string,
+): readonly Fact[] {
+  const values = usableFactsForCampaign(facts, localDate, family);
   if (values.length === 0) throw new Error(`Missing fact for ${family}`);
   return values;
 }
@@ -84,7 +88,7 @@ export function createCampaign({
   const recipe = recipeForFamily(family);
   const seed = `${localDate}:${family}:v${recipe.version}`;
   const campaignTargetAt = targetAt(localDate, publishTime);
-  const familyFacts = compatibleFacts(family);
+  const familyFacts = compatibleFacts(family, localDate);
   const calendarMoment = calendarMomentForDate(localDate, family);
 
   const selected = selectCandidate({

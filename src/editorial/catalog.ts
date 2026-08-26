@@ -6,6 +6,7 @@ import calendarMomentValues from "../../assets/facts/calendar-moments.json" with
 import { campaignFamilies, type CampaignFamily } from "../config/schedule.js";
 import {
   calendarMomentSchema,
+  assertFactUsable,
   ctaKinds,
   factSchema,
   palettes,
@@ -140,12 +141,29 @@ export function recipeForFamily(family: CampaignFamily): Recipe {
 export function calendarMomentForDate(
   localDate: string,
   family: CampaignFamily,
+  moments: readonly CalendarMoment[] = calendarMoments,
 ): CalendarMoment | undefined {
   const monthDay = localDate.slice(5);
-  return calendarMoments.find(
+  return moments.find(
     (moment) =>
-      moment.monthDay === monthDay && moment.families.includes(family),
+      moment.monthDay === monthDay &&
+      moment.families.includes(family) &&
+      (!moment.expiresOn || moment.expiresOn >= localDate),
   );
+}
+
+export function usableFactsForCampaign(
+  values: readonly Fact[],
+  localDate: string,
+  family: CampaignFamily,
+): readonly Fact[] {
+  const usable = values.filter(
+    (fact) =>
+      fact.families.includes(family) &&
+      (!fact.expiresOn || fact.expiresOn >= localDate),
+  );
+  for (const fact of usable) assertFactUsable(fact, localDate, family);
+  return Object.freeze(usable);
 }
 
 if (recipes.length !== campaignFamilies.length) {
