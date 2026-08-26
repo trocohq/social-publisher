@@ -155,6 +155,16 @@ test("an overdue scheduled record missing from its provider becomes retryable", 
   );
 });
 
+test("an overdue publishing record missing from its provider becomes retryable", async () => {
+  const result = await reconcilePublication({
+    state: campaignStateFixture({ instagram: "publishing" }),
+    channel: "instagram",
+    reconcile: async () => undefined,
+    now: new Date("2026-08-26T16:00:00Z"),
+  });
+  assert.equal(result.state.channels.instagram.stage, "retryable");
+});
+
 test("retryable publications expire after the Sao Paulo day changes", async () => {
   const persisted: string[] = [];
   const [expired] = await expireRetryablePublications({

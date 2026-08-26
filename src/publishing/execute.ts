@@ -167,10 +167,7 @@ export async function reconcilePublication({
   try {
     const existing = unwrap(await reconcile());
     if (!existing) {
-      if (
-        activeStage !== "scheduled" ||
-        !isPublicationOverdue(state, channel, now)
-      ) {
+      if (!isPublicationOverdue(state, channel, now)) {
         return Object.freeze({ state, matched: false });
       }
       throw Object.assign(
