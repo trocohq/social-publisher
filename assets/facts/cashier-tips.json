@@ -1,0 +1,23 @@
+[
+  {
+    "id": "cashier.check-before-completing",
+    "statement": "Confira os valores e as cédulas antes de concluir cada operação.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "safe_checkout", "save_this_rule"]
+  },
+  {
+    "id": "cashier.confirm-received",
+    "statement": "Confirme o valor da compra e o valor recebido antes de calcular o troco.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "checkout_situation", "save_this_rule"]
+  },
+  {
+    "id": "cashier.count-breakdown",
+    "statement": "Use a combinação de notas e moedas como conferência antes de entregar o troco.",
+    "source": "repo://core/src/denominations.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "checkout_situation"]
+  }
+]

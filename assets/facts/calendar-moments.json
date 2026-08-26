@@ -1,0 +1,18 @@
+[
+  {
+    "id": "calendar.labour-day",
+    "statement": "O Dia do Trabalho é celebrado em 1º de maio no Brasil.",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l662.htm",
+    "reviewedOn": "2026-08-26",
+    "monthDay": "05-01",
+    "families": ["safe_checkout", "checkout_situation", "save_this_rule"]
+  },
+  {
+    "id": "calendar.christmas",
+    "statement": "O Natal é celebrado em 25 de dezembro no Brasil.",
+    "source": "https://www.planalto.gov.br/ccivil_03/leis/l662.htm",
+    "reviewedOn": "2026-08-26",
+    "monthDay": "12-25",
+    "families": ["safe_checkout", "checkout_situation", "save_this_rule"]
+  }
+]

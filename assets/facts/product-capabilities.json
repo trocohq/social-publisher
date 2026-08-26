@@ -1,0 +1,44 @@
+[
+  {
+    "id": "product.change-calculation",
+    "statement": "O Troco calcula a diferença entre o valor da compra e o valor recebido.",
+    "source": "repo://core/src/money.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["change_challenge", "troco_explains", "quick_calculation", "checkout_situation"]
+  },
+  {
+    "id": "product.denomination-breakdown",
+    "statement": "O Troco mostra uma combinação de notas e moedas para montar o valor calculado.",
+    "source": "repo://core/src/denominations.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "troco_explains", "save_this_rule"]
+  },
+  {
+    "id": "product.supported-currencies",
+    "statement": "O Troco oferece cálculo em real brasileiro, dólar americano e euro.",
+    "source": "repo://core/src/currency-codes.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["troco_explains"]
+  },
+  {
+    "id": "product.no-account",
+    "statement": "O Troco pode ser usado sem criar uma conta.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["troco_explains", "save_this_rule"]
+  },
+  {
+    "id": "product.web-calculator",
+    "statement": "A calculadora web do Troco está disponível em troco.net/calculate.",
+    "source": "repo://frontend/app/calculate/page.tsx",
+    "reviewedOn": "2026-08-26",
+    "families": ["quick_calculation", "troco_explains"]
+  },
+  {
+    "id": "product.android-download",
+    "statement": "O aplicativo completo do Troco está disponível para Android na Google Play.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["change_challenge", "cashier_shortcut", "troco_explains", "quick_calculation", "safe_checkout", "checkout_situation", "save_this_rule"]
+  }
+]
