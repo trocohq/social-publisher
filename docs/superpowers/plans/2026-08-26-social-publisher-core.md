@@ -112,7 +112,7 @@ test("the publisher is a public ESM package with deterministic validation script
     "@types/node": "24.10.0",
     "prettier": "3.9.0",
     "tsx": "4.20.6",
-    "typescript": "6.0.0"
+    "typescript": "6.0.3"
   }
 }
 ```
@@ -151,8 +151,6 @@ test("the publisher is a public ESM package with deterministic validation script
 ```ini
 # .npmrc
 @trocohq:registry=https://npm.pkg.github.com
-//npm.pkg.github.com/:_authToken=${NODE_AUTH_TOKEN}
-always-auth=true
 ```
 
 Set `.env.example` to these non-secret defaults:

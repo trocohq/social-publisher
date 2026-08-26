@@ -1,0 +1,35 @@
+{
+  "name": "@trocohq/social-publisher",
+  "version": "1.0.0",
+  "description": "Deterministic daily social publishing for Troco.",
+  "type": "module",
+  "private": false,
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.19.4"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "typecheck": "tsc -p tsconfig.build.json --noEmit",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --import tsx --test tests/*.test.ts",
+    "dry-run": "node --import tsx src/cli/dry-run.ts",
+    "validate": "node --import tsx src/validation/run.ts",
+    "check": "npm run format:check && npm run typecheck && npm test"
+  },
+  "dependencies": {
+    "@trocohq/core": "0.7.3",
+    "@trocohq/design-tokens": "0.1.2",
+    "ffmpeg-static": "5.3.0",
+    "ffprobe-static": "3.1.0",
+    "sharp": "0.35.3",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.0",
+    "prettier": "3.9.0",
+    "tsx": "4.20.6",
+    "typescript": "6.0.3"
+  }
+}
