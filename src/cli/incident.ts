@@ -42,29 +42,42 @@ async function run(args: readonly string[]): Promise<void> {
           (record.stage === "failed" || record.stage === "retryable") &&
           record.lastError,
       );
-    if (!failure?.record.lastError) {
-      throw new Error("No sanitized failed campaign state is available");
-    }
     const observedAt = new Date().toISOString();
-    const firstObservedAt =
-      failure.record.transitions.find(
-        (transition) =>
-          transition.to === "failed" || transition.to === "retryable",
-      )?.at ?? observedAt;
     const runId = process.env.GITHUB_RUN_ID;
     if (!runId || !/^\d+$/.test(runId)) {
       throw new Error("GITHUB_RUN_ID is required for incident reporting");
     }
-    context = {
-      campaignId: failure.state.plan.id,
-      channel: failure.channel satisfies PublicationChannel,
-      stage: failure.record.stage,
-      error: failure.record.lastError,
-      firstObservedAt,
-      lastObservedAt: observedAt,
-      attempts: failure.record.attempts,
-      actionsRunUrl: `https://github.com/${repository}/actions/runs/${runId}`,
-    };
+    if (failure?.record.lastError) {
+      const firstObservedAt =
+        failure.record.transitions.find(
+          (transition) =>
+            transition.to === "failed" || transition.to === "retryable",
+        )?.at ?? observedAt;
+      context = {
+        campaignId: failure.state.plan.id,
+        channel: failure.channel satisfies PublicationChannel,
+        stage: failure.record.stage,
+        error: failure.record.lastError,
+        firstObservedAt,
+        lastObservedAt: observedAt,
+        attempts: failure.record.attempts,
+        actionsRunUrl: `https://github.com/${repository}/actions/runs/${runId}`,
+      };
+    } else {
+      context = {
+        campaignId: `workflow-run-${runId}`,
+        channel: "workflow",
+        stage: "failed",
+        error: {
+          category: "workflow_failure",
+          message: "Workflow failed before a provider error was persisted",
+        },
+        firstObservedAt: observedAt,
+        lastObservedAt: observedAt,
+        attempts: 0,
+        actionsRunUrl: `https://github.com/${repository}/actions/runs/${runId}`,
+      };
+    }
   }
 
   const result = await syncGithubIncident({

@@ -1,0 +1,81 @@
+name: Validate social publisher
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Check out publisher
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          path: publisher
+          persist-credentials: false
+
+      - name: Check out canonical frontend
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: trocohq/frontend
+          ref: 298381c8e6c3220cde11a8109ddb727a28223d7c
+          token: ${{ secrets.SOURCE_READ_TOKEN }}
+          path: publisher/dependencies/frontend
+          persist-credentials: false
+
+      - name: Check out canonical design tokens
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: trocohq/design-tokens
+          ref: 1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d
+          token: ${{ secrets.SOURCE_READ_TOKEN }}
+          path: publisher/dependencies/design-tokens
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.14.1
+          cache: npm
+          cache-dependency-path: publisher/package-lock.json
+          registry-url: https://npm.pkg.github.com
+          scope: "@trocohq"
+
+      - name: Install exact dependencies
+        working-directory: publisher
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
+        run: npm ci
+
+      - name: Compare design-token source and package
+        working-directory: publisher
+        run: cmp dependencies/design-tokens/src/tokens.css node_modules/@trocohq/design-tokens/src/tokens.css
+
+      - name: Check source, types, and tests
+        working-directory: publisher
+        env:
+          BRAND_ROOT: dependencies/frontend/public
+        run: npm run check
+
+      - name: Validate generated media
+        working-directory: publisher
+        env:
+          BRAND_ROOT: dependencies/frontend/public
+        run: npm run validate
+
+      - name: Create review artifact
+        working-directory: publisher
+        run: npm run dry-run -- --date 2026-08-26 --brand-root dependencies/frontend/public --output .tmp/review
+
+      - name: Upload review artifact
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: social-review
+          path: publisher/.tmp/review
+          retention-days: 3
+          if-no-files-found: error

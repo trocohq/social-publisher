@@ -1,0 +1,232 @@
+name: Publish Troco social campaigns
+
+on:
+  schedule:
+    - cron: "17 */3 * * *"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: Execution mode
+        type: choice
+        options: [dry-run, controlled, scheduled]
+        default: dry-run
+      campaign_id:
+        description: Exact future campaign ID for controlled mode
+        type: string
+        required: false
+      confirmation:
+        description: Type PUBLISH_ONE_CAMPAIGN for controlled mode
+        type: string
+        required: false
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+  issues: write
+
+concurrency:
+  group: troco-social-publication
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    if: github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    env:
+      AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'false' }}
+      PUBLICATION_TIME_ZONE: America/Sao_Paulo
+      PUBLISH_TIME: "12:17"
+      PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN }}
+      PLAY_STORE_URL: https://play.google.com/store/apps/details?id=trocofacil.app
+      BRAND_ROOT: dependencies/frontend/public
+      BRAND_SOURCE_SHA: 298381c8e6c3220cde11a8109ddb727a28223d7c
+      DESIGN_TOKENS_SOURCE_SHA: 1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d
+      BUFFER_ORGANIZATION_ID: ${{ vars.BUFFER_ORGANIZATION_ID }}
+      BUFFER_INSTAGRAM_CHANNEL_ID: ${{ vars.BUFFER_INSTAGRAM_CHANNEL_ID }}
+      BUFFER_FACEBOOK_CHANNEL_ID: ${{ vars.BUFFER_FACEBOOK_CHANNEL_ID }}
+      BUFFER_TIKTOK_CHANNEL_ID: ${{ vars.BUFFER_TIKTOK_CHANNEL_ID }}
+      YOUTUBE_CHANNEL_ID: ${{ vars.YOUTUBE_CHANNEL_ID }}
+
+    steps:
+      - name: Check out publisher
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          path: publisher
+          fetch-depth: 0
+
+      - name: Check out canonical frontend
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: trocohq/frontend
+          ref: 298381c8e6c3220cde11a8109ddb727a28223d7c
+          token: ${{ secrets.SOURCE_READ_TOKEN }}
+          path: publisher/dependencies/frontend
+          persist-credentials: false
+
+      - name: Check out canonical design tokens
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          repository: trocohq/design-tokens
+          ref: 1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d
+          token: ${{ secrets.SOURCE_READ_TOKEN }}
+          path: publisher/dependencies/design-tokens
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.14.1
+          cache: npm
+          cache-dependency-path: publisher/package-lock.json
+          registry-url: https://npm.pkg.github.com
+          scope: "@trocohq"
+
+      - name: Install exact dependencies
+        working-directory: publisher
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.PACKAGES_READ_TOKEN }}
+        run: npm ci
+
+      - name: Resolve and gate mode
+        id: mode
+        working-directory: publisher
+        env:
+          REQUESTED_MODE: ${{ github.event_name == 'schedule' && 'scheduled' || inputs.mode }}
+          CAMPAIGN_ID: ${{ inputs.campaign_id }}
+          CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          mode="${REQUESTED_MODE:-dry-run}"
+          if [[ "$mode" == "scheduled" && "$AUTO_PUBLISH" != "true" ]]; then
+            echo "Scheduled publication is disabled" >&2
+            exit 1
+          fi
+          if [[ "$mode" == "controlled" ]]; then
+            [[ "$CONFIRMATION" == "PUBLISH_ONE_CAMPAIGN" ]]
+            [[ "$CAMPAIGN_ID" =~ ^[0-9]{4}-[0-9]{2}-[0-9]{2}-[a-z0-9-]+-v[0-9]+-[0-9]+$ ]]
+            today="$(TZ=America/Sao_Paulo date +%F)"
+            [[ "${CAMPAIGN_ID:0:10}" > "$today" ]]
+          fi
+          echo "value=$mode" >> "$GITHUB_OUTPUT"
+
+      - name: Create dry-run review
+        if: steps.mode.outputs.value == 'dry-run'
+        working-directory: publisher
+        run: |
+          date_value="$(TZ=America/Sao_Paulo date +%F)"
+          npm run dry-run -- --date "$date_value" --brand-root dependencies/frontend/public --output .tmp/review
+
+      - name: Upload dry-run review
+        if: steps.mode.outputs.value == 'dry-run'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: controlled-social-review
+          path: publisher/.tmp/review
+          retention-days: 3
+          if-no-files-found: error
+
+      - name: Plan rolling campaigns
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        run: npm run plan
+
+      - name: Commit campaign plans
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        run: 'scripts/commit-state.sh "chore(state): record campaign plans [skip ci]"'
+
+      - name: Upload Pages media
+        if: steps.mode.outputs.value != 'dry-run'
+        uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+        with:
+          path: publisher/.tmp/pages
+
+      - name: Deploy Pages media
+        if: steps.mode.outputs.value != 'dry-run'
+        id: deployment
+        uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
+
+      - name: Verify accounts, queues, and public media
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          if [[ "${{ steps.mode.outputs.value }}" == "controlled" ]]; then
+            npm run preflight -- --mode controlled --campaign "${{ inputs.campaign_id }}" --confirm "${{ inputs.confirmation }}"
+          else
+            npm run preflight -- --mode scheduled
+          fi
+
+      - name: Commit public-media verification
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        run: 'scripts/commit-state.sh "chore(state): verify public social media [skip ci]"'
+
+      - name: Publish one isolated action at a time
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: |
+          set -euo pipefail
+          mode="${{ steps.mode.outputs.value }}"
+          extra=()
+          if [[ "$mode" == "controlled" ]]; then
+            extra=(--confirm "${{ inputs.confirmation }}")
+          fi
+          for iteration in {1..28}; do
+            if [[ "$mode" == "controlled" ]]; then
+              action="$(npm run --silent next-action -- --campaign "${{ inputs.campaign_id }}")"
+            else
+              action="$(npm run --silent next-action)"
+            fi
+            if [[ "$action" == "none" ]]; then break; fi
+            env -u BUFFER_API_KEY -u YOUTUBE_CLIENT_ID -u YOUTUBE_CLIENT_SECRET -u YOUTUBE_REFRESH_TOKEN \
+              node --import tsx src/cli/publish.ts --phase intent --action "$action" --mode "$mode" "${extra[@]}"
+            scripts/commit-state.sh "chore(state): record publication intent [skip ci]"
+            node --import tsx src/cli/publish.ts --phase execute --action "$action" --mode "$mode" "${extra[@]}"
+            scripts/commit-state.sh "chore(state): record publication result [skip ci]"
+          done
+
+      - name: Reconcile active intents
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
+          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
+          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
+        run: npm run reconcile
+
+      - name: Commit reconciled state
+        if: steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        run: 'scripts/commit-state.sh "chore(state): record reconciled publication [skip ci]"'
+
+      - name: Close recovered incident
+        if: success() && steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run incident -- recovery
+
+      - name: Report sanitized incident
+        if: failure() && steps.mode.outputs.value != 'dry-run'
+        working-directory: publisher
+        env:
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: npm run incident -- failure

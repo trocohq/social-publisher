@@ -3,38 +3,75 @@ import { fileURLToPath } from "node:url";
 
 import { parseEnvironment } from "../config/environment.js";
 import { reconcilePublication } from "../publishing/execute.js";
-import { readCampaignState, writeCampaignState } from "../state/storage.js";
+import type { CampaignState, PublicationChannel } from "../state/schema.js";
+import {
+  listCampaignStates,
+  readCampaignState,
+  writeCampaignState,
+} from "../state/storage.js";
 import { parseAction, providerAdaptersForAction } from "./publish.js";
 
 async function run(args: readonly string[]): Promise<void> {
   const actionIndex = args.indexOf("--action");
-  const action = parseAction(args[actionIndex + 1] ?? "");
   const stateRootIndex = args.indexOf("--state-root");
   const renderRootIndex = args.indexOf("--render-root");
   const stateRoot = resolve(
     stateRootIndex >= 0 ? (args[stateRootIndex + 1] ?? "") : "state",
   );
-  const state = await readCampaignState(stateRoot, action.localDate);
-  if (state.plan.id !== action.campaignId)
-    throw new Error("Action campaign does not match state");
+  const renderRoot = resolve(
+    renderRootIndex >= 0 ? (args[renderRootIndex + 1] ?? "") : ".tmp/render",
+  );
   const environment = parseEnvironment(process.env, "provider");
-  const adapters = providerAdaptersForAction({
-    state,
-    channel: action.channel,
-    environment,
-    renderRoot: resolve(
-      renderRootIndex >= 0 ? (args[renderRootIndex + 1] ?? "") : ".tmp/render",
-    ),
-  });
-  const result = await reconcilePublication({
-    state,
-    channel: action.channel,
-    reconcile: adapters.reconcile,
-    now: new Date(),
-    persist: (value) => writeCampaignState(stateRoot, value),
-  });
+  const targets: { state: CampaignState; channel: PublicationChannel }[] = [];
+
+  if (actionIndex >= 0) {
+    const action = parseAction(args[actionIndex + 1] ?? "");
+    const state = await readCampaignState(stateRoot, action.localDate);
+    if (state.plan.id !== action.campaignId) {
+      throw new Error("Action campaign does not match state");
+    }
+    targets.push({ state, channel: action.channel });
+  } else {
+    for (const state of await listCampaignStates(stateRoot)) {
+      for (const channel of [
+        "instagram",
+        "facebook",
+        "tiktok",
+        "youtube",
+      ] as const) {
+        if (
+          state.channels[channel].stage === "scheduling" ||
+          state.channels[channel].stage === "publishing"
+        ) {
+          targets.push({ state, channel });
+        }
+      }
+    }
+  }
+
+  let matched = 0;
+  for (const target of targets) {
+    const latest = await readCampaignState(
+      stateRoot,
+      target.state.plan.localDate,
+    );
+    const adapters = providerAdaptersForAction({
+      state: latest,
+      channel: target.channel,
+      environment,
+      renderRoot,
+    });
+    const result = await reconcilePublication({
+      state: latest,
+      channel: target.channel,
+      reconcile: adapters.reconcile,
+      now: new Date(),
+      persist: (value) => writeCampaignState(stateRoot, value),
+    });
+    if (result.matched) matched += 1;
+  }
   process.stdout.write(
-    `${JSON.stringify({ ok: true, campaignId: action.campaignId, channel: action.channel, matched: result.matched })}\n`,
+    `${JSON.stringify({ ok: true, checked: targets.length, matched })}\n`,
   );
 }
 

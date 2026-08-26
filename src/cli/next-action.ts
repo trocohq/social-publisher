@@ -8,8 +8,14 @@ async function run(args: readonly string[]): Promise<void> {
   const stateRoot = resolve(
     stateRootIndex >= 0 ? (args[stateRootIndex + 1] ?? "") : "state",
   );
+  const campaignIndex = args.indexOf("--campaign");
+  const campaignId =
+    campaignIndex >= 0 ? (args[campaignIndex + 1] ?? "") : undefined;
+  const states = await listCampaignStates(stateRoot);
   const action = nextPublicationAction(
-    await listCampaignStates(stateRoot),
+    campaignId
+      ? states.filter((state) => state.plan.id === campaignId)
+      : states,
     new Date(),
   );
   process.stdout.write(
