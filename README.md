@@ -99,3 +99,23 @@ npm run validate
 
 The validation exits nonzero if facts, typography, brand hashes, image
 dimensions, video codecs, duration, frame rate, or file-size limits fail.
+
+## Automated delivery
+
+The production boundary stores a sanitized campaign state before and after each
+external action. GitHub Pages serves the verified rolling media. Buffer
+schedules Instagram, Facebook, and TikTok; YouTube receives the local MP4 using
+an OAuth resumable upload. Every execution reconciles the campaign fingerprint,
+channel, due time, normalized copy, and ordered media before it creates
+anything.
+
+Each channel receives its own Google Play URL with `utm_source`, `utm_medium`,
+`utm_campaign`, and `utm_content`. Download growth is evaluated manually in
+Google Play Console. Automatic Play Console ingestion, attribution export, and
+credential access are explicitly outside this repository.
+
+Scheduled writes are serialized and disabled unless the repository variable
+`AUTO_PUBLISH` is exactly `true`. Start with the future controlled campaign and
+private YouTube verification described in the
+[operations runbook](docs/operations.md). Never activate unattended publishing
+from code completion alone.
