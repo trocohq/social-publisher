@@ -16,14 +16,7 @@ const httpsUrl = z.string().refine((value) => {
     return false;
   }
 });
-const timeZoneSchema = z.string().refine((value) => {
-  try {
-    new Intl.DateTimeFormat("en", { timeZone: value }).format();
-    return true;
-  } catch {
-    return false;
-  }
-});
+const timeZoneSchema = z.literal("America/Sao_Paulo");
 
 const environmentSchema = z.object({
   AUTO_PUBLISH: z

@@ -36,6 +36,14 @@ test("automatic publishing defaults false and accepts only allowlisted HTTPS ori
     () => parseEnvironment({ ...valid, PUBLICATION_TIME_ZONE: "Mars/Olympus" }),
     /PUBLICATION_TIME_ZONE/,
   );
+  assert.throws(
+    () =>
+      parseEnvironment({
+        ...valid,
+        PUBLICATION_TIME_ZONE: "America/New_York",
+      }),
+    /PUBLICATION_TIME_ZONE/,
+  );
   assert.equal(
     parseEnvironment({ ...valid, YOUTUBE_PUBLICATION_VERIFIED: "true" }).youtube
       .publicationVerified,
