@@ -104,8 +104,9 @@ jobs:
           set -euo pipefail
           mode="${REQUESTED_MODE:-dry-run}"
           if [[ "$mode" == "scheduled" && "$AUTO_PUBLISH" != "true" ]]; then
-            echo "Scheduled publication is disabled" >&2
-            exit 1
+            echo "Scheduled publication is disabled"
+            echo "value=disabled" >> "$GITHUB_OUTPUT"
+            exit 0
           fi
           if [[ "$mode" == "controlled" ]]; then
             [[ "$CONFIRMATION" == "PUBLISH_ONE_CAMPAIGN" ]]
@@ -132,28 +133,28 @@ jobs:
           if-no-files-found: error
 
       - name: Plan rolling campaigns
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: npm run plan
 
       - name: Commit campaign plans
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: 'scripts/commit-state.sh "chore(state): record campaign plans [skip ci]"'
 
       - name: Upload Pages media
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: publisher/.tmp/pages
 
       - name: Deploy Pages media
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         id: deployment
         uses: actions/deploy-pages@cd2ce8fcbc39b97be8ca5fce6e763baed58fa128 # v5.0.0
 
       - name: Verify accounts, queues, and public media
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
@@ -168,12 +169,12 @@ jobs:
           fi
 
       - name: Commit public-media verification
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: 'scripts/commit-state.sh "chore(state): verify public social media [skip ci]"'
 
       - name: Publish one isolated action at a time
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
@@ -197,12 +198,16 @@ jobs:
             env -u BUFFER_API_KEY -u YOUTUBE_CLIENT_ID -u YOUTUBE_CLIENT_SECRET -u YOUTUBE_REFRESH_TOKEN \
               node --import tsx src/cli/publish.ts --phase intent --action "$action" --mode "$mode" "${extra[@]}"
             scripts/commit-state.sh "chore(state): record publication intent [skip ci]"
+            set +e
             node --import tsx src/cli/publish.ts --phase execute --action "$action" --mode "$mode" "${extra[@]}"
+            publish_status=$?
+            set -e
             scripts/commit-state.sh "chore(state): record publication result [skip ci]"
+            if (( publish_status != 0 )); then exit "$publish_status"; fi
           done
 
       - name: Reconcile active intents
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
@@ -212,12 +217,17 @@ jobs:
         run: npm run reconcile
 
       - name: Commit reconciled state
-        if: steps.mode.outputs.value != 'dry-run'
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: 'scripts/commit-state.sh "chore(state): record reconciled publication [skip ci]"'
 
+      - name: Verify publication health
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        run: npm run health
+
       - name: Close recovered incident
-        if: success() && steps.mode.outputs.value != 'dry-run'
+        if: success() && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
         working-directory: publisher
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}
@@ -225,7 +235,7 @@ jobs:
         run: npm run incident -- recovery
 
       - name: Report sanitized incident
-        if: failure() && steps.mode.outputs.value != 'dry-run'
+        if: failure() && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
         working-directory: publisher
         env:
           GITHUB_REPOSITORY: ${{ github.repository }}

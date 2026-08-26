@@ -39,9 +39,13 @@ async function run(args: readonly string[]): Promise<void> {
         "tiktok",
         "youtube",
       ] as const) {
+        const record = state.channels[channel];
+        const dueAt = record.scheduledAt ?? state.plan.targetAt;
         if (
-          state.channels[channel].stage === "scheduling" ||
-          state.channels[channel].stage === "publishing"
+          record.stage === "scheduling" ||
+          record.stage === "publishing" ||
+          (record.stage === "scheduled" &&
+            new Date(dueAt).valueOf() <= Date.now())
         ) {
           targets.push({ state, channel });
         }

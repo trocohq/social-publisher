@@ -16,6 +16,16 @@ export type AdapterOutcome =
   | undefined
   | ProviderResult<NormalizedProviderObject | undefined>;
 
+export function assertPublicationSucceeded(
+  state: CampaignState,
+  channel: PublicationChannel,
+): void {
+  const stage = state.channels[channel].stage;
+  if (stage === "retryable" || stage === "failed") {
+    throw new Error(`Provider execution ended in ${stage}`);
+  }
+}
+
 function isProviderResult(
   value: AdapterOutcome,
 ): value is ProviderResult<NormalizedProviderObject | undefined> {
@@ -146,7 +156,11 @@ export async function reconcilePublication({
   persist?: (state: CampaignState) => Promise<void>;
 }>): Promise<Readonly<{ state: CampaignState; matched: boolean }>> {
   const activeStage = state.channels[channel].stage;
-  if (activeStage !== "scheduling" && activeStage !== "publishing") {
+  if (
+    activeStage !== "scheduling" &&
+    activeStage !== "scheduled" &&
+    activeStage !== "publishing"
+  ) {
     throw new Error("Reconciliation requires a persisted active intent");
   }
   const existing = unwrap(await reconcile());

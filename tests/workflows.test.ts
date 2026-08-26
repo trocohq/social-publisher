@@ -18,6 +18,10 @@ test("production workflow is serialized, disabled by default, and runs every thr
     workflow,
     /YOUTUBE_PUBLICATION_VERIFIED: \$\{\{ vars\.YOUTUBE_PUBLICATION_VERIFIED \|\| 'false' \}\}/,
   );
+  assert.match(workflow, /echo "value=disabled"/);
+  assert.doesNotMatch(workflow, /steps\.mode\.outputs\.value != 'dry-run'/);
+  assert.match(workflow, /publish_status=\$\?/);
+  assert.match(workflow, /npm run health/);
   assert.doesNotMatch(workflow, /pull_request:/);
 });
 

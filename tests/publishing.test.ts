@@ -1,7 +1,12 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { executePublication } from "../src/publishing/execute.js";
+import {
+  assertPublicationSucceeded,
+  executePublication,
+  reconcilePublication,
+} from "../src/publishing/execute.js";
+import { assertPublisherHealthy } from "../src/publishing/health.js";
 import { nextPublicationAction } from "../src/publishing/next-action.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
 
@@ -63,4 +68,44 @@ test("a retryable provider failure changes only the active channel", async () =>
   });
   assert.equal(result.channels.instagram.stage, "retryable");
   assert.equal(result.channels.youtube.stage, "published");
+  assert.throws(
+    () => assertPublicationSucceeded(result, "instagram"),
+    /retryable/,
+  );
+});
+
+test("health rejects unresolved provider failures before incident recovery", () => {
+  assert.throws(
+    () =>
+      assertPublisherHealthy([
+        campaignStateFixture({ instagram: "retryable" }),
+      ]),
+    /unresolved publication failure/i,
+  );
+  assert.doesNotThrow(() =>
+    assertPublisherHealthy([
+      campaignStateFixture({
+        instagram: "scheduled",
+        facebook: "published",
+        tiktok: "scheduled",
+        youtube: "published",
+      }),
+    ]),
+  );
+});
+
+test("scheduled provider records reconcile to published after their due time", async () => {
+  const state = campaignStateFixture({ instagram: "scheduled" });
+  const result = await reconcilePublication({
+    state,
+    channel: "instagram",
+    reconcile: async () => ({
+      id: "post_1",
+      status: "published",
+      dueAt: state.plan.targetAt,
+    }),
+    now: new Date("2026-08-26T16:00:00Z"),
+  });
+  assert.equal(result.matched, true);
+  assert.equal(result.state.channels.instagram.stage, "published");
 });

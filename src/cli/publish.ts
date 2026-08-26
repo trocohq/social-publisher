@@ -20,6 +20,7 @@ import {
   youtubeVideoResource,
 } from "../networks/youtube/upload.js";
 import {
+  assertPublicationSucceeded,
   executePublication,
   type AdapterOutcome,
 } from "../publishing/execute.js";
@@ -280,6 +281,7 @@ async function run(args: readonly string[]): Promise<void> {
     now,
     persist: (value) => writeCampaignState(stateRoot, value),
   });
+  assertPublicationSucceeded(completed, action.channel);
   process.stdout.write(
     `${JSON.stringify({ ok: true, phase, campaignId: action.campaignId, channel: action.channel, stage: completed.channels[action.channel].stage })}\n`,
   );
