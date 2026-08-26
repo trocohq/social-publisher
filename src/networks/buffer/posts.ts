@@ -16,6 +16,7 @@ type BufferAsset =
 type BufferPostBase = Readonly<{
   channelId: string;
   text: string;
+  schedulingType: "automatic";
   needsApproval: false;
   aiAssisted: false;
   assets: readonly BufferAsset[];
@@ -32,7 +33,6 @@ type BufferPostBase = Readonly<{
 export type BufferPostInput = BufferPostBase &
   (
     | Readonly<{
-        schedulingType: "automatic";
         mode: "customScheduled";
         dueAt: string;
       }>
@@ -116,9 +116,9 @@ export function createBufferPostInput({
   return Object.freeze({
     channelId,
     text,
+    schedulingType: "automatic",
     ...(phase === "scheduling"
       ? {
-          schedulingType: "automatic" as const,
           mode: "customScheduled" as const,
           dueAt: parsedDueAt.toISOString(),
         }

@@ -61,7 +61,7 @@ test("Buffer sends overdue posts now instead of scheduling them in the past", ()
   });
   assert.equal(input.mode, "shareNow");
   assert.equal("dueAt" in input, false);
-  assert.equal("schedulingType" in input, false);
+  assert.equal(input.schedulingType, "automatic");
 });
 
 test("Buffer typed mutation errors become sanitized retry classes", () => {
