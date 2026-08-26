@@ -83,14 +83,25 @@ test("health rejects unresolved provider failures before incident recovery", () 
     /unresolved publication failure/i,
   );
   assert.doesNotThrow(() =>
-    assertPublisherHealthy([
-      campaignStateFixture({
-        instagram: "scheduled",
-        facebook: "published",
-        tiktok: "scheduled",
-        youtube: "published",
-      }),
-    ]),
+    assertPublisherHealthy(
+      [
+        campaignStateFixture({
+          instagram: "scheduled",
+          facebook: "published",
+          tiktok: "scheduled",
+          youtube: "published",
+        }),
+      ],
+      new Date("2026-08-26T14:00:00Z"),
+    ),
+  );
+  assert.throws(
+    () =>
+      assertPublisherHealthy(
+        [campaignStateFixture({ instagram: "scheduled" })],
+        new Date("2026-08-26T16:00:00Z"),
+      ),
+    /overdue publication/i,
   );
 });
 
@@ -108,4 +119,37 @@ test("scheduled provider records reconcile to published after their due time", a
   });
   assert.equal(result.matched, true);
   assert.equal(result.state.channels.instagram.stage, "published");
+});
+
+test("reconciliation persists asynchronous provider failures", async () => {
+  let persistedStage = "";
+  const result = await reconcilePublication({
+    state: campaignStateFixture({ instagram: "scheduled" }),
+    channel: "instagram",
+    reconcile: async () => ({
+      kind: "permanent_error",
+      category: "buffer_async_failure",
+      message: "Buffer reported an asynchronous delivery failure",
+    }),
+    now: new Date("2026-08-26T16:00:00Z"),
+    persist: async (state) => {
+      persistedStage = state.channels.instagram.stage;
+    },
+  });
+  assert.equal(result.state.channels.instagram.stage, "failed");
+  assert.equal(persistedStage, "failed");
+});
+
+test("an overdue scheduled record missing from its provider becomes retryable", async () => {
+  const result = await reconcilePublication({
+    state: campaignStateFixture({ instagram: "scheduled" }),
+    channel: "instagram",
+    reconcile: async () => undefined,
+    now: new Date("2026-08-26T16:00:00Z"),
+  });
+  assert.equal(result.state.channels.instagram.stage, "retryable");
+  assert.equal(
+    result.state.channels.instagram.lastError?.category,
+    "provider_reconciliation_missing",
+  );
 });

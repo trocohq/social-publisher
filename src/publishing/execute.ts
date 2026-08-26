@@ -10,6 +10,7 @@ import {
   type Stage,
 } from "../state/schema.js";
 import { transitionProvider } from "../state/transitions.js";
+import { isPublicationOverdue } from "./timing.js";
 
 export type AdapterOutcome =
   | NormalizedProviderObject
@@ -163,9 +164,40 @@ export async function reconcilePublication({
   ) {
     throw new Error("Reconciliation requires a persisted active intent");
   }
-  const existing = unwrap(await reconcile());
-  if (!existing) return Object.freeze({ state, matched: false });
-  const completed = applyProviderObject(state, channel, existing, now);
-  await persist?.(completed);
-  return Object.freeze({ state: completed, matched: true });
+  try {
+    const existing = unwrap(await reconcile());
+    if (!existing) {
+      if (
+        activeStage !== "scheduled" ||
+        !isPublicationOverdue(state, channel, now)
+      ) {
+        return Object.freeze({ state, matched: false });
+      }
+      throw Object.assign(
+        new Error("Provider object is missing after its publication deadline"),
+        {
+          category: "provider_reconciliation_missing",
+          retryable: true,
+        },
+      );
+    }
+    const completed = applyProviderObject(state, channel, existing, now);
+    await persist?.(completed);
+    return Object.freeze({ state: completed, matched: true });
+  } catch (error) {
+    const target = errorIsRetryable(error) ? "retryable" : "failed";
+    const transitioned = transitionProvider(state, channel, target, now);
+    const failed = campaignStateSchema.parse({
+      ...transitioned,
+      channels: {
+        ...transitioned.channels,
+        [channel]: {
+          ...transitioned.channels[channel],
+          lastError: sanitizeError(error),
+        },
+      },
+    });
+    await persist?.(failed);
+    return Object.freeze({ state: failed, matched: false });
+  }
 }

@@ -35,7 +35,7 @@ const providerTransitions: Readonly<Record<Stage, readonly Stage[]>> = {
     "skipped_expired",
   ],
   scheduling: ["scheduled", "publishing", "retryable", "failed"],
-  scheduled: ["published"],
+  scheduled: ["publishing", "published", "retryable", "failed"],
   publishing: ["published", "retryable", "failed"],
   retryable: ["scheduling", "publishing", "skipped_expired"],
   published: [],

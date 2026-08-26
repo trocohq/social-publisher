@@ -55,18 +55,30 @@ export async function reconcileBufferPost({
     apiKey,
     organizationId,
     channelIds: [expected.channelId],
-    statuses: ["scheduled", "sent"],
+    statuses: ["scheduled", "sending", "sent", "error"],
     dueAt: { start: from, end: to },
     ...(fetchImplementation ? { fetchImplementation } : {}),
   });
   if (response.kind !== "success") return response;
   const match = matchExistingBufferPost(expected, response.value);
+  if (match?.status === "error") {
+    return {
+      kind: "permanent_error",
+      category: "buffer_async_failure",
+      message: "Buffer reported an asynchronous delivery failure",
+    };
+  }
   return {
     kind: "success",
     value: match
       ? {
           id: match.id,
-          status: match.status === "sent" ? "published" : "scheduled",
+          status:
+            match.status === "sent"
+              ? "published"
+              : match.status === "sending"
+                ? "publishing"
+                : "scheduled",
           ...(match.dueAt ? { dueAt: match.dueAt } : {}),
         }
       : undefined,

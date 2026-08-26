@@ -8,6 +8,8 @@ import { createYouTubeAccessTokenProvider } from "../src/networks/youtube/oauth.
 import {
   campaignTag,
   matchYouTubeUpload,
+  youtubeReconciliationResult,
+  reconcileYouTubeUpload,
 } from "../src/networks/youtube/reconcile.js";
 import {
   uploadYouTubeVideo,
@@ -135,4 +137,39 @@ test("temporary OAuth failures keep retry metadata", async () => {
       record.statusCode === 503
     );
   });
+});
+
+test("YouTube reconciliation exposes terminal asynchronous upload states", () => {
+  assert.deepEqual(
+    youtubeReconciliationResult(
+      {
+        id: "video_failed",
+        status: { uploadStatus: "rejected", privacyStatus: "private" },
+      },
+      "2026-08-27T15:17:00.000Z",
+    ),
+    {
+      kind: "permanent_error",
+      category: "youtube_async_failure",
+      message: "YouTube reported a terminal upload failure",
+    },
+  );
+});
+
+test("YouTube reconciliation preserves retry metadata for transient requests", async () => {
+  await assert.rejects(
+    reconcileYouTubeUpload({
+      campaignId: "2026-08-27-quick-calculation-v1-0",
+      accessToken: "access-token",
+      fetchImplementation: async () => new Response(null, { status: 503 }),
+    }),
+    (error: unknown) => {
+      const record = error as Record<string, unknown>;
+      return (
+        record.retryable === true &&
+        record.category === "youtube_reconciliation_server" &&
+        record.statusCode === 503
+      );
+    },
+  );
 });

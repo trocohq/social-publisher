@@ -2,7 +2,10 @@ import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { parseEnvironment } from "../config/environment.js";
-import { reconcilePublication } from "../publishing/execute.js";
+import {
+  assertPublicationSucceeded,
+  reconcilePublication,
+} from "../publishing/execute.js";
 import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import {
   listCampaignStates,
@@ -74,6 +77,7 @@ async function run(args: readonly string[]): Promise<void> {
       now: new Date(),
       persist: (value) => writeCampaignState(stateRoot, value),
     });
+    assertPublicationSucceeded(result.state, target.channel);
     if (result.matched) matched += 1;
   }
   process.stdout.write(

@@ -207,6 +207,7 @@ jobs:
           done
 
       - name: Reconcile active intents
+        id: reconciliation
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         env:
@@ -214,12 +215,25 @@ jobs:
           YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
           YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
           YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
-        run: npm run reconcile
+        run: |
+          set -euo pipefail
+          set +e
+          npm run reconcile
+          reconcile_status=$?
+          set -e
+          echo "status=$reconcile_status" >> "$GITHUB_OUTPUT"
 
       - name: Commit reconciled state
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: 'scripts/commit-state.sh "chore(state): record reconciled publication [skip ci]"'
+
+      - name: Fail on reconciliation error
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        run: |
+          reconcile_status="${{ steps.reconciliation.outputs.status }}"
+          if (( reconcile_status != 0 )); then exit "$reconcile_status"; fi
 
       - name: Verify publication health
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'

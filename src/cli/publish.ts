@@ -12,9 +12,11 @@ import {
   createBufferPostInput,
 } from "../networks/buffer/posts.js";
 import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
-import type { NormalizedProviderObject } from "../networks/types.js";
 import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
-import { reconcileYouTubeUpload } from "../networks/youtube/reconcile.js";
+import {
+  reconcileYouTubeUpload,
+  youtubeReconciliationResult,
+} from "../networks/youtube/reconcile.js";
 import {
   uploadYouTubeVideo,
   youtubeVideoResource,
@@ -170,19 +172,16 @@ export function providerAdaptersForAction({
     refreshToken,
   });
   return {
-    reconcile: async (): Promise<NormalizedProviderObject | undefined> => {
+    reconcile: async (): Promise<AdapterOutcome> => {
       const match = await reconcileYouTubeUpload({
         campaignId: state.plan.id,
         accessToken: await tokenProvider.getAccessToken(),
       });
       if (!match) return undefined;
-      return {
-        id: match.id,
-        status:
-          match.status?.privacyStatus === "public" ? "published" : "scheduled",
-        ...(mode === "scheduled" ? { dueAt } : {}),
-        permalink: `https://www.youtube.com/watch?v=${encodeURIComponent(match.id)}`,
-      };
+      return youtubeReconciliationResult(
+        match,
+        mode === "scheduled" ? dueAt : undefined,
+      );
     },
     create: async () => {
       if (mode === "scheduled" && !environment.youtube.publicationVerified) {

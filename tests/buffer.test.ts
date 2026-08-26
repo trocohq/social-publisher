@@ -245,6 +245,51 @@ test("Buffer reconciliation paginates the current posts connection", async () =>
   assert.deepEqual(cursors, [null, "page-2"]);
 });
 
+test("Buffer reconciliation exposes asynchronous delivery errors", async () => {
+  let statuses: unknown;
+  const result = await reconcileBufferPost({
+    apiKey: "buffer-key",
+    organizationId: "org_1",
+    expected: {
+      channelId: "ig_1",
+      dueAt: "2026-08-26T15:17:00.000Z",
+      text: "Troco certo",
+      mediaUrls: ["https://example.test/slide.jpg"],
+    },
+    fetchImplementation: async (_input, init) => {
+      const request = JSON.parse(String(init?.body)) as {
+        variables: { input: { filter: { status: unknown } } };
+      };
+      statuses = request.variables.input.filter.status;
+      return jsonResponse({
+        data: {
+          posts: {
+            edges: [
+              {
+                node: {
+                  id: "post_error",
+                  channelId: "ig_1",
+                  dueAt: "2026-08-26T15:17:00.000Z",
+                  text: "Troco certo",
+                  status: "error",
+                  assets: [{ source: "https://example.test/slide.jpg" }],
+                },
+              },
+            ],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+    },
+  });
+  assert.deepEqual(statuses, ["scheduled", "sending", "sent", "error"]);
+  assert.deepEqual(result, {
+    kind: "permanent_error",
+    category: "buffer_async_failure",
+    message: "Buffer reported an asynchronous delivery failure",
+  });
+});
+
 test("Buffer queue capacity counts only channel posts still needing creation", () => {
   assert.deepEqual(
     bufferSlotsNeeded([

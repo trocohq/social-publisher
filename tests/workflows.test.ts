@@ -21,6 +21,7 @@ test("production workflow is serialized, disabled by default, and runs every thr
   assert.match(workflow, /echo "value=disabled"/);
   assert.doesNotMatch(workflow, /steps\.mode\.outputs\.value != 'dry-run'/);
   assert.match(workflow, /publish_status=\$\?/);
+  assert.match(workflow, /reconcile_status=\$\?/);
   assert.match(workflow, /npm run health/);
   assert.doesNotMatch(workflow, /pull_request:/);
 });

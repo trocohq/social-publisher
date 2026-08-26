@@ -29,7 +29,7 @@ export async function listBufferPosts({
   apiKey: string;
   organizationId: string;
   channelIds: readonly string[];
-  statuses: readonly ("scheduled" | "sent")[];
+  statuses: readonly ("scheduled" | "sending" | "sent" | "error")[];
   dueAt?: Readonly<{ start: string; end: string }>;
   operationName?: "TrocoPosts" | "TrocoScheduledPosts";
   fetchImplementation?: typeof fetch;
