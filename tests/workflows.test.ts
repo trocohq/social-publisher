@@ -14,6 +14,10 @@ test("production workflow is serialized, disabled by default, and runs every thr
     workflow,
     /AUTO_PUBLISH: \$\{\{ vars\.AUTO_PUBLISH \|\| 'false' \}\}/,
   );
+  assert.match(
+    workflow,
+    /YOUTUBE_PUBLICATION_VERIFIED: \$\{\{ vars\.YOUTUBE_PUBLICATION_VERIFIED \|\| 'false' \}\}/,
+  );
   assert.doesNotMatch(workflow, /pull_request:/);
 });
 

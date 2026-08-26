@@ -39,6 +39,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     env:
       AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'false' }}
+      YOUTUBE_PUBLICATION_VERIFIED: ${{ vars.YOUTUBE_PUBLICATION_VERIFIED || 'false' }}
       PUBLICATION_TIME_ZONE: America/Sao_Paulo
       PUBLISH_TIME: "12:17"
       PAGES_ORIGIN: ${{ vars.PAGES_ORIGIN }}

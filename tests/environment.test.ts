@@ -22,6 +22,7 @@ const valid = {
 test("automatic publishing defaults false and accepts only allowlisted HTTPS origins", () => {
   const environment = parseEnvironment(valid);
   assert.equal(environment.autoPublish, false);
+  assert.equal(environment.youtube.publicationVerified, false);
   assert.equal(environment.origins.buffer, "https://api.buffer.com");
   assert.throws(
     () => parseEnvironment({ ...valid, AUTO_PUBLISH: "yes" }),
@@ -34,6 +35,15 @@ test("automatic publishing defaults false and accepts only allowlisted HTTPS ori
   assert.throws(
     () => parseEnvironment({ ...valid, PUBLICATION_TIME_ZONE: "Mars/Olympus" }),
     /PUBLICATION_TIME_ZONE/,
+  );
+  assert.equal(
+    parseEnvironment({ ...valid, YOUTUBE_PUBLICATION_VERIFIED: "true" }).youtube
+      .publicationVerified,
+    true,
+  );
+  assert.throws(
+    () => parseEnvironment({ ...valid, YOUTUBE_PUBLICATION_VERIFIED: "yes" }),
+    /YOUTUBE_PUBLICATION_VERIFIED/,
   );
 });
 

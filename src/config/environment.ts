@@ -30,6 +30,10 @@ const environmentSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((value) => value === "true"),
+  YOUTUBE_PUBLICATION_VERIFIED: z
+    .enum(["true", "false"])
+    .default("false")
+    .transform((value) => value === "true"),
   PUBLICATION_TIME_ZONE: timeZoneSchema,
   PUBLISH_TIME: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/),
   PAGES_ORIGIN: httpsUrl,
@@ -90,6 +94,7 @@ export type PublisherEnvironment = Readonly<{
   }>;
   youtube: Readonly<{
     channelId: string;
+    publicationVerified: boolean;
     clientId?: string;
     clientSecret?: string;
     refreshToken?: string;
@@ -165,6 +170,7 @@ export function parseEnvironment(
     }),
     youtube: Object.freeze({
       channelId: parsed.YOUTUBE_CHANNEL_ID,
+      publicationVerified: parsed.YOUTUBE_PUBLICATION_VERIFIED,
       ...(parsed.YOUTUBE_CLIENT_ID
         ? { clientId: parsed.YOUTUBE_CLIENT_ID }
         : {}),

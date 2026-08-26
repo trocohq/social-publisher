@@ -41,13 +41,32 @@ export function createYouTubeAccessTokenProvider({
           signal: AbortSignal.timeout(20_000),
         });
       } catch {
-        throw new Error("YouTube OAuth endpoint could not be reached");
+        throw Object.assign(
+          new Error("YouTube OAuth endpoint could not be reached"),
+          {
+            category: "youtube_oauth_network",
+            retryable: true,
+          },
+        );
       }
       if (!response.ok) {
-        throw new Error(
-          response.status === 400 || response.status === 401
-            ? "YouTube OAuth credentials were rejected"
-            : "YouTube OAuth failed temporarily",
+        const credentialsRejected =
+          response.status === 400 || response.status === 401;
+        throw Object.assign(
+          new Error(
+            credentialsRejected
+              ? "YouTube OAuth credentials were rejected"
+              : "YouTube OAuth failed temporarily",
+          ),
+          {
+            category: credentialsRejected
+              ? "youtube_oauth_credentials"
+              : "youtube_oauth_server",
+            statusCode: response.status,
+            retryable:
+              !credentialsRejected &&
+              (response.status === 429 || response.status >= 500),
+          },
         );
       }
       const payload = (await response.json()) as {

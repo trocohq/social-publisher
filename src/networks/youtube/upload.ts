@@ -29,13 +29,11 @@ export function youtubeVideoResource({
   title,
   description,
   publishAt,
-  controlledImmediatePublic = false,
 }: Readonly<{
   campaignId: string;
   title: string;
   description: string;
-  publishAt: string;
-  controlledImmediatePublic?: boolean;
+  publishAt?: string;
 }>): YouTubeVideoResource {
   if (!campaignId || !title.trim() || title.length > 100) {
     throw new Error("YouTube title or campaign ID is invalid");
@@ -43,9 +41,12 @@ export function youtubeVideoResource({
   if (!description.trim() || description.length > 5_000) {
     throw new Error("YouTube description is invalid");
   }
-  const target = new Date(publishAt);
-  if (Number.isNaN(target.valueOf()) || !publishAt.endsWith("Z")) {
-    throw new Error("YouTube publishAt must be a UTC date-time");
+  let target: Date | undefined;
+  if (publishAt !== undefined) {
+    target = new Date(publishAt);
+    if (Number.isNaN(target.valueOf()) || !publishAt.endsWith("Z")) {
+      throw new Error("YouTube publishAt must be a UTC date-time");
+    }
   }
   return Object.freeze({
     snippet: Object.freeze({
@@ -63,10 +64,8 @@ export function youtubeVideoResource({
       ]),
     }),
     status: Object.freeze({
-      privacyStatus: controlledImmediatePublic ? "public" : "private",
-      ...(!controlledImmediatePublic
-        ? { publishAt: target.toISOString() }
-        : {}),
+      privacyStatus: "private",
+      ...(target ? { publishAt: target.toISOString() } : {}),
       selfDeclaredMadeForKids: false,
       embeddable: true,
       license: "youtube",
@@ -109,16 +108,45 @@ function providerFailure(status: number): Error {
   );
 }
 
+function waitFor(milliseconds: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+function nextOffset(response: Response): number {
+  const range = /bytes=0-(\d+)/.exec(response.headers.get("range") ?? "");
+  return range ? Number(range[1]) + 1 : 0;
+}
+
+async function normalizedUpload(
+  response: Response,
+  resource: YouTubeVideoResource,
+): Promise<NormalizedProviderObject> {
+  const payload = (await response.json()) as {
+    id?: string;
+    status?: { uploadStatus?: string; privacyStatus?: string };
+  };
+  if (!payload.id) throw new Error("YouTube upload response has no video ID");
+  return Object.freeze({
+    id: payload.id,
+    status:
+      payload.status?.privacyStatus === "public" ? "published" : "scheduled",
+    ...(resource.status.publishAt ? { dueAt: resource.status.publishAt } : {}),
+    permalink: `https://www.youtube.com/watch?v=${encodeURIComponent(payload.id)}`,
+  });
+}
+
 export async function uploadYouTubeVideo({
   accessToken,
   filePath,
   resource,
   fetchImplementation = fetch,
+  wait = waitFor,
 }: Readonly<{
   accessToken: string;
   filePath: string;
   resource: YouTubeVideoResource;
   fetchImplementation?: typeof fetch;
+  wait?: (milliseconds: number) => Promise<void>;
 }>): Promise<NormalizedProviderObject> {
   const bytes = await readFile(filePath);
   if (bytes.length === 0 || bytes.length > 50_000_000) {
@@ -148,50 +176,56 @@ export async function uploadYouTubeVideo({
   const sessionUrl = requireSessionLocation(sessionResponse);
 
   let offset = 0;
+  let querySession = false;
   for (let attempt = 0; attempt < 10; attempt += 1) {
     let response: Response;
     try {
-      const body = bytes.subarray(offset);
-      response = await fetchImplementation(sessionUrl, {
-        method: "PUT",
-        headers: {
-          "content-type": "video/mp4",
-          "content-length": String(body.length),
-          "content-range": `bytes ${offset}-${bytes.length - 1}/${bytes.length}`,
-        },
-        body,
-        redirect: "error",
-        signal: AbortSignal.timeout(120_000),
-      });
+      if (querySession) {
+        response = await fetchImplementation(sessionUrl, {
+          method: "PUT",
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+            "content-length": "0",
+            "content-range": `bytes */${bytes.length}`,
+          },
+          redirect: "error",
+          signal: AbortSignal.timeout(30_000),
+        });
+      } else {
+        const body = bytes.subarray(offset);
+        response = await fetchImplementation(sessionUrl, {
+          method: "PUT",
+          headers: {
+            authorization: `Bearer ${accessToken}`,
+            "content-type": "video/mp4",
+            "content-length": String(body.length),
+            "content-range": `bytes ${offset}-${bytes.length - 1}/${bytes.length}`,
+          },
+          body,
+          redirect: "error",
+          signal: AbortSignal.timeout(120_000),
+        });
+      }
     } catch {
-      throw Object.assign(new Error("YouTube upload was interrupted"), {
-        category: "youtube_network",
-        retryable: true,
-      });
+      querySession = true;
+      await wait(Math.min(1_000 * 2 ** attempt, 16_000));
+      continue;
     }
     if (response.status === 308) {
-      const range = /bytes=0-(\d+)/.exec(response.headers.get("range") ?? "");
-      offset = range ? Number(range[1]) + 1 : offset;
+      offset = nextOffset(response);
+      querySession = false;
       if (offset >= bytes.length) {
-        throw new Error("YouTube upload completion response is missing");
+        querySession = true;
       }
       continue;
     }
-    if (!response.ok) throw providerFailure(response.status);
-    const payload = (await response.json()) as {
-      id?: string;
-      status?: { uploadStatus?: string; privacyStatus?: string };
-    };
-    if (!payload.id) throw new Error("YouTube upload response has no video ID");
-    return Object.freeze({
-      id: payload.id,
-      status:
-        payload.status?.privacyStatus === "public" ? "published" : "scheduled",
-      ...(resource.status.publishAt
-        ? { dueAt: resource.status.publishAt }
-        : {}),
-      permalink: `https://www.youtube.com/watch?v=${encodeURIComponent(payload.id)}`,
-    });
+    if (response.ok) return normalizedUpload(response, resource);
+    if (response.status === 429 || response.status >= 500) {
+      querySession = true;
+      await wait(Math.min(1_000 * 2 ** attempt, 16_000));
+      continue;
+    }
+    throw providerFailure(response.status);
   }
   throw Object.assign(new Error("YouTube upload exceeded resume attempts"), {
     category: "youtube_resume_exhausted",
