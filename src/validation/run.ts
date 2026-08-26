@@ -98,6 +98,9 @@ async function validateProductionProviderContracts(
                   : input.mode === "shareNow"
                     ? "sending"
                     : "scheduled",
+              ...(input.mode === "shareNow"
+                ? { dueAt: "2026-08-26T16:01:00.000Z" }
+                : {}),
             },
           },
         },
@@ -143,16 +146,23 @@ async function validateProductionProviderContracts(
       });
     }
     if (request.query.includes("TrocoPosts")) {
+      const filter = request.variables?.input?.filter as
+        Record<string, unknown> | undefined;
+      const immediate = !filter?.dueAt;
       return jsonResponse({
         data: {
           posts: {
             edges: [
               {
                 node: {
-                  id: "post_validation",
-                  channelId: "ig_validation",
-                  dueAt: "2026-08-26T15:17:00.000Z",
-                  text: "Troco certo",
+                  id: immediate
+                    ? "post_immediate_validation"
+                    : "post_validation",
+                  channelId: immediate ? "fb_validation" : "ig_validation",
+                  dueAt: immediate
+                    ? "2026-08-26T16:01:00.000Z"
+                    : "2026-08-26T15:17:00.000Z",
+                  text: immediate ? "Immediate validation" : "Troco certo",
                   status: "sent",
                   assets: [{ source: "https://example.test/slide.jpg" }],
                 },
@@ -192,6 +202,24 @@ async function validateProductionProviderContracts(
     reconciliation.value?.status !== "published"
   ) {
     throw new Error("Buffer production reconciliation validation failed");
+  }
+  const immediateReconciliation = await reconcileBufferPost({
+    apiKey: "fake-buffer-key",
+    organizationId: "org_validation",
+    expected: {
+      channelId: "fb_validation",
+      attemptedAt: ["2026-08-26T16:00:00.000Z"],
+      text: "Immediate validation",
+      mediaUrls: ["https://example.test/slide.jpg"],
+    },
+    fetchImplementation: bufferFetch,
+  });
+  if (
+    immediateReconciliation.kind !== "success" ||
+    immediateReconciliation.value?.id !== "post_immediate_validation" ||
+    immediateReconciliation.value.status !== "published"
+  ) {
+    throw new Error("Buffer immediate reconciliation validation failed");
   }
   const commonBufferInput = {
     channel: "facebook" as const,

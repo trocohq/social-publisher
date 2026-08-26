@@ -11,7 +11,10 @@ import {
   createBufferPost,
   createBufferPostInput,
 } from "../networks/buffer/posts.js";
-import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
+import {
+  reconcileBufferPost,
+  type BufferPostFingerprint,
+} from "../networks/buffer/reconcile.js";
 import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
 import {
   reconcileYouTubeUpload,
@@ -106,6 +109,49 @@ function channelText(
   return state.plan.copy.channels.youtube.description;
 }
 
+export function bufferFingerprintForAction({
+  state,
+  channel,
+  channelId,
+  phase,
+  dueAt,
+  text,
+  mediaUrls,
+}: Readonly<{
+  state: CampaignState;
+  channel: Exclude<PublicationChannel, "youtube">;
+  channelId: string;
+  phase: PublicationAction["phase"];
+  dueAt: string;
+  text: string;
+  mediaUrls: readonly string[];
+}>): BufferPostFingerprint {
+  const record = state.channels[channel];
+  if (phase === "scheduling") {
+    return {
+      channelId,
+      ...(record.providerId ? { providerId: record.providerId } : {}),
+      dueAt,
+      text,
+      mediaUrls,
+    };
+  }
+
+  const attemptedAt = record.transitions
+    .filter((transition) => transition.to === "publishing")
+    .map((transition) => transition.at);
+  if (!record.providerId && attemptedAt.length === 0) {
+    throw new Error("Immediate Buffer intent has no persisted attempt time");
+  }
+  return {
+    channelId,
+    ...(record.providerId ? { providerId: record.providerId } : {}),
+    attemptedAt,
+    text,
+    mediaUrls,
+  };
+}
+
 export function providerAdaptersForAction({
   state,
   channel,
@@ -131,12 +177,13 @@ export function providerAdaptersForAction({
   if (channel !== "youtube") {
     const apiKey = environment.buffer.apiKey;
     if (!apiKey) throw new Error("Buffer provider credentials are unavailable");
+    const channelId = environment.buffer.channelIds[channel];
     const mediaKind =
       state.plan.mediaKind === "video" ? "video" : state.plan.mediaKind;
     const mediaUrls = mediaKind === "video" ? [urls.video] : urls.feed;
     const input = createBufferPostInput({
       channel,
-      channelId: environment.buffer.channelIds[channel],
+      channelId,
       text: channelText(state, channel),
       dueAt,
       phase,
@@ -151,12 +198,15 @@ export function providerAdaptersForAction({
         reconcileBufferPost({
           apiKey,
           organizationId: environment.buffer.organizationId,
-          expected: {
-            channelId: input.channelId,
+          expected: bufferFingerprintForAction({
+            state,
+            channel,
+            channelId,
+            phase,
             dueAt,
             text: input.text,
             mediaUrls,
-          },
+          }),
         }),
       create: () => createBufferPost({ apiKey, input }),
     };

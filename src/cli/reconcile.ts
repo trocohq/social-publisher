@@ -66,7 +66,10 @@ async function run(args: readonly string[]): Promise<void> {
       state: latest,
       channel: target.channel,
       mode: "controlled",
-      phase: "scheduling",
+      phase:
+        latest.channels[target.channel].stage === "publishing"
+          ? "publishing"
+          : "scheduling",
       environment,
       renderRoot,
     });

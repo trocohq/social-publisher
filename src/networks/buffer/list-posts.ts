@@ -23,6 +23,7 @@ export async function listBufferPosts({
   channelIds,
   statuses,
   dueAt,
+  sortDirection = "asc",
   operationName = "TrocoPosts",
   fetchImplementation,
 }: Readonly<{
@@ -31,6 +32,7 @@ export async function listBufferPosts({
   channelIds: readonly string[];
   statuses: readonly ("scheduled" | "sending" | "sent" | "error")[];
   dueAt?: Readonly<{ start: string; end: string }>;
+  sortDirection?: "asc" | "desc";
   operationName?: "TrocoPosts" | "TrocoScheduledPosts";
   fetchImplementation?: typeof fetch;
 }>): Promise<ProviderResult<readonly ListedBufferPost[]>> {
@@ -53,7 +55,7 @@ export async function listBufferPosts({
               channelIds,
               ...(dueAt ? { dueAt } : {}),
             },
-            sort: [{ field: "dueAt", direction: "asc" }],
+            sort: [{ field: "dueAt", direction: sortDirection }],
           },
         },
         ...(fetchImplementation ? { fetchImplementation } : {}),

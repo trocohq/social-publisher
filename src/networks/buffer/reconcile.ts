@@ -5,7 +5,9 @@ import type { ListedBufferPost } from "./posts.js";
 
 export type BufferPostFingerprint = Readonly<{
   channelId: string;
-  dueAt: string;
+  providerId?: string;
+  dueAt?: string;
+  attemptedAt?: readonly string[];
   text: string;
   mediaUrls: readonly string[];
 }>;
@@ -17,15 +19,37 @@ function sameDueAt(left: string | undefined, right: string): boolean {
   return Number.isFinite(leftTime) && leftTime === rightTime;
 }
 
+function closeToAttempt(
+  dueAt: string | undefined,
+  attempts: readonly string[],
+): boolean {
+  if (!dueAt) return true;
+  const actual = new Date(dueAt).valueOf();
+  return (
+    Number.isFinite(actual) &&
+    attempts.some((attempt) => {
+      const expected = new Date(attempt).valueOf();
+      return (
+        Number.isFinite(expected) && Math.abs(actual - expected) <= 30 * 60_000
+      );
+    })
+  );
+}
+
 export function matchExistingBufferPost(
   expected: BufferPostFingerprint,
   posts: readonly ListedBufferPost[],
 ): ListedBufferPost | undefined {
   const matches = posts.filter((post) => {
+    if (post.channelId !== expected.channelId) return false;
+    if (expected.providerId) return post.id === expected.providerId;
     const urls = post.assets?.map((asset) => asset.source ?? "") ?? [];
     return (
-      post.channelId === expected.channelId &&
-      sameDueAt(post.dueAt, expected.dueAt) &&
+      (expected.dueAt
+        ? sameDueAt(post.dueAt, expected.dueAt)
+        : expected.attemptedAt?.length
+          ? closeToAttempt(post.dueAt, expected.attemptedAt)
+          : false) &&
       normalizeCopy(post.text ?? "") === normalizeCopy(expected.text) &&
       urls.length === expected.mediaUrls.length &&
       urls.every((url, index) => url === expected.mediaUrls[index])
@@ -48,15 +72,34 @@ export async function reconcileBufferPost({
   expected: BufferPostFingerprint;
   fetchImplementation?: typeof fetch;
 }>): Promise<ProviderResult<NormalizedProviderObject | undefined>> {
-  const dueAt = new Date(expected.dueAt);
-  const from = new Date(dueAt.valueOf() - 10 * 60_000).toISOString();
-  const to = new Date(dueAt.valueOf() + 10 * 60_000).toISOString();
+  if (
+    !expected.providerId &&
+    !expected.dueAt &&
+    !expected.attemptedAt?.length
+  ) {
+    return {
+      kind: "permanent_error",
+      category: "buffer_reconciliation_identity",
+      message: "Buffer reconciliation identity is incomplete",
+    };
+  }
+  const dueAt =
+    !expected.providerId && expected.dueAt
+      ? new Date(expected.dueAt)
+      : undefined;
+  const range = dueAt
+    ? {
+        start: new Date(dueAt.valueOf() - 10 * 60_000).toISOString(),
+        end: new Date(dueAt.valueOf() + 10 * 60_000).toISOString(),
+      }
+    : undefined;
   const response = await listBufferPosts({
     apiKey,
     organizationId,
     channelIds: [expected.channelId],
     statuses: ["scheduled", "sending", "sent", "error"],
-    dueAt: { start: from, end: to },
+    ...(range ? { dueAt: range } : {}),
+    sortDirection: range ? "asc" : "desc",
     ...(fetchImplementation ? { fetchImplementation } : {}),
   });
   if (response.kind !== "success") return response;

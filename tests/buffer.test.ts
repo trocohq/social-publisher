@@ -12,6 +12,9 @@ import {
   reconcileBufferPost,
 } from "../src/networks/buffer/reconcile.js";
 import { bufferSlotsNeeded } from "../src/cli/preflight.js";
+import { bufferFingerprintForAction } from "../src/cli/publish.js";
+import { executePublication } from "../src/publishing/execute.js";
+import { transitionProvider } from "../src/state/transitions.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
 
 function jsonResponse(body: unknown): Response {
@@ -177,6 +180,113 @@ test("reconciliation matches channel, due time, normalized copy, and media", () 
     ],
   );
   assert.equal(match?.id, "post_1");
+});
+
+test("immediate reconciliation uses persisted attempt times and prevents a duplicate create", async () => {
+  const state = transitionProvider(
+    campaignStateFixture(),
+    "instagram",
+    "publishing",
+    new Date("2026-08-26T16:00:00Z"),
+  );
+  const expected = bufferFingerprintForAction({
+    state,
+    channel: "instagram",
+    channelId: "ig_1",
+    phase: "publishing",
+    dueAt: state.plan.targetAt,
+    text: "Troco certo",
+    mediaUrls: ["https://example.test/slide.jpg"],
+  });
+  assert.deepEqual(expected.attemptedAt, ["2026-08-26T16:00:00.000Z"]);
+  assert.equal(expected.dueAt, undefined);
+
+  let createCalls = 0;
+  const result = await executePublication({
+    state,
+    channel: "instagram",
+    reconcile: () =>
+      reconcileBufferPost({
+        apiKey: "buffer-key",
+        organizationId: "org_1",
+        expected,
+        fetchImplementation: async (_input, init) => {
+          const request = JSON.parse(String(init?.body)) as {
+            variables: {
+              input: { filter: { dueAt?: unknown } };
+            };
+          };
+          assert.equal(request.variables.input.filter.dueAt, undefined);
+          return jsonResponse({
+            data: {
+              posts: {
+                edges: [
+                  {
+                    node: {
+                      id: "post_now",
+                      channelId: "ig_1",
+                      dueAt: "2026-08-26T16:01:00.000Z",
+                      text: "Troco certo",
+                      status: "sent",
+                      assets: [{ source: "https://example.test/slide.jpg" }],
+                    },
+                  },
+                ],
+                pageInfo: { hasNextPage: false, endCursor: null },
+              },
+            },
+          });
+        },
+      }),
+    create: async () => {
+      createCalls += 1;
+      return undefined;
+    },
+    now: new Date("2026-08-26T16:02:00Z"),
+  });
+  assert.equal(createCalls, 0);
+  assert.equal(result.channels.instagram.providerId, "post_now");
+  assert.equal(result.channels.instagram.stage, "published");
+});
+
+test("reconciliation prefers a persisted Buffer provider ID", async () => {
+  const result = await reconcileBufferPost({
+    apiKey: "buffer-key",
+    organizationId: "org_1",
+    expected: {
+      channelId: "ig_1",
+      providerId: "post_exact",
+      dueAt: "2026-08-26T15:17:00.000Z",
+      attemptedAt: ["2026-08-26T16:00:00.000Z"],
+      text: "Original copy",
+      mediaUrls: ["https://example.test/original.jpg"],
+    },
+    fetchImplementation: async (_input, init) => {
+      const request = JSON.parse(String(init?.body)) as {
+        variables: { input: { filter: { dueAt?: unknown } } };
+      };
+      assert.equal(request.variables.input.filter.dueAt, undefined);
+      return jsonResponse({
+        data: {
+          posts: {
+            edges: [
+              {
+                node: {
+                  id: "post_exact",
+                  channelId: "ig_1",
+                  dueAt: "2026-08-26T17:00:00.000Z",
+                  status: "sending",
+                },
+              },
+            ],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+    },
+  });
+  assert.equal(result.kind, "success");
+  assert.equal(result.kind === "success" && result.value?.id, "post_exact");
 });
 
 test("Buffer preflight uses current channel and paginated post inputs", async () => {
