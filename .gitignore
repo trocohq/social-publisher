@@ -8,3 +8,9 @@ coverage/
 .env
 .env.*
 !.env.example
+
+# Generated review and delivery media must never enter Git.
+*.jpg
+*.jpeg
+*.mp4
+*.wav

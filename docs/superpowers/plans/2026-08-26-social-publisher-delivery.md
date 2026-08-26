@@ -50,6 +50,7 @@ All paths below are relative to the `social-publisher` repository.
 ## Task 1: Parse production configuration and fail closed
 
 **Files:**
+
 - Create: `src/config/environment.ts`
 - Create: `tests/environment.test.ts`
 - Modify: `.env.example`
@@ -63,18 +64,31 @@ import test from "node:test";
 import { parseEnvironment } from "../src/config/environment.js";
 
 const valid = {
-  AUTO_PUBLISH: "false", PUBLICATION_TIME_ZONE: "America/Sao_Paulo", PUBLISH_TIME: "12:17",
-  PAGES_ORIGIN: "https://trocohq.github.io/social-publisher", BUFFER_ORGANIZATION_ID: "org_1",
-  BUFFER_INSTAGRAM_CHANNEL_ID: "ig_1", BUFFER_FACEBOOK_CHANNEL_ID: "fb_1", BUFFER_TIKTOK_CHANNEL_ID: "tt_1",
-  YOUTUBE_CHANNEL_ID: "UC123", PLAY_STORE_URL: "https://play.google.com/store/apps/details?id=trocofacil.app",
+  AUTO_PUBLISH: "false",
+  PUBLICATION_TIME_ZONE: "America/Sao_Paulo",
+  PUBLISH_TIME: "12:17",
+  PAGES_ORIGIN: "https://trocohq.github.io/social-publisher",
+  BUFFER_ORGANIZATION_ID: "org_1",
+  BUFFER_INSTAGRAM_CHANNEL_ID: "ig_1",
+  BUFFER_FACEBOOK_CHANNEL_ID: "fb_1",
+  BUFFER_TIKTOK_CHANNEL_ID: "tt_1",
+  YOUTUBE_CHANNEL_ID: "UC123",
+  PLAY_STORE_URL:
+    "https://play.google.com/store/apps/details?id=trocofacil.app",
   BRAND_SOURCE_SHA: "298381c8e6c3220cde11a8109ddb727a28223d7c",
   DESIGN_TOKENS_SOURCE_SHA: "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d",
 };
 
 test("automatic publishing defaults false and accepts only allowlisted HTTPS origins", () => {
   assert.equal(parseEnvironment(valid).autoPublish, false);
-  assert.throws(() => parseEnvironment({ ...valid, AUTO_PUBLISH: "yes" }), /AUTO_PUBLISH/);
-  assert.throws(() => parseEnvironment({ ...valid, PAGES_ORIGIN: "http://example.com" }), /PAGES_ORIGIN/);
+  assert.throws(
+    () => parseEnvironment({ ...valid, AUTO_PUBLISH: "yes" }),
+    /AUTO_PUBLISH/,
+  );
+  assert.throws(
+    () => parseEnvironment({ ...valid, PAGES_ORIGIN: "http://example.com" }),
+    /PAGES_ORIGIN/,
+  );
 });
 
 test("production secrets are required only for provider execution", () => {
@@ -111,6 +125,7 @@ git commit -m "feat: validate publisher production configuration"
 ## Task 2: Add sanitized durable campaign state and legal transitions
 
 **Files:**
+
 - Create: `src/state/schema.ts`
 - Create: `src/state/transitions.ts`
 - Create: `src/state/sanitize.ts`
@@ -134,21 +149,44 @@ import { campaignStateFixture } from "./support/state-fixture.js";
 
 test("provider transitions reject illegal skips and retain sibling success", () => {
   const state = campaignStateFixture();
-  assert.throws(() => transitionProvider(state, "instagram", "published", new Date("2026-08-26T10:00:00Z")), /Illegal transition/);
-  const scheduled = transitionProvider(state, "instagram", "scheduling", new Date("2026-08-26T10:00:00Z"));
+  assert.throws(
+    () =>
+      transitionProvider(
+        state,
+        "instagram",
+        "published",
+        new Date("2026-08-26T10:00:00Z"),
+      ),
+    /Illegal transition/,
+  );
+  const scheduled = transitionProvider(
+    state,
+    "instagram",
+    "scheduling",
+    new Date("2026-08-26T10:00:00Z"),
+  );
   assert.equal(scheduled.channels.youtube.stage, state.channels.youtube.stage);
 });
 
 test("tracked errors reject secret-bearing keys and values", () => {
-  assert.deepEqual(sanitizeError({ message: "Bearer abc123", response: { authorization: "secret" } }), {
-    category: "redacted_provider_error", message: "Provider error contained sensitive data",
-  });
+  assert.deepEqual(
+    sanitizeError({
+      message: "Bearer abc123",
+      response: { authorization: "secret" },
+    }),
+    {
+      category: "redacted_provider_error",
+      message: "Provider error contained sensitive data",
+    },
+  );
 });
 
 test("campaign state is atomically written as validated JSON", async () => {
   const root = await mkdtemp(join(tmpdir(), "troco-state-"));
   await writeCampaignState(root, campaignStateFixture());
-  const saved = JSON.parse(await readFile(join(root, "campaigns/2026-08-26.json"), "utf8"));
+  const saved = JSON.parse(
+    await readFile(join(root, "campaigns/2026-08-26.json"), "utf8"),
+  );
   assert.equal(saved.schemaVersion, 1);
 });
 ```
@@ -165,8 +203,18 @@ Define the shared stage enum exactly as:
 
 ```ts
 export const stageSchema = z.enum([
-  "planned", "rendered", "deploying", "media_verified", "scheduling", "scheduled",
-  "publishing", "published", "retryable", "failed", "skipped_disabled", "skipped_expired",
+  "planned",
+  "rendered",
+  "deploying",
+  "media_verified",
+  "scheduling",
+  "scheduled",
+  "publishing",
+  "published",
+  "retryable",
+  "failed",
+  "skipped_disabled",
+  "skipped_expired",
 ]);
 ```
 
@@ -192,6 +240,7 @@ git commit -m "feat: add durable publication state"
 ## Task 3: Build and verify the rolling GitHub Pages payload
 
 **Files:**
+
 - Create: `src/media/manifest.ts`
 - Create: `src/media/pages.ts`
 - Create: `src/media/verify-public.ts`
@@ -210,19 +259,38 @@ import { sha256 } from "../src/shared/determinism.js";
 
 test("Pages keeps two past and seven future dates", () => {
   assert.deepEqual(datesInPagesPayload("2026-08-26"), [
-    "2026-08-24", "2026-08-25", "2026-08-26", "2026-08-27", "2026-08-28",
-    "2026-08-29", "2026-08-30", "2026-08-31", "2026-09-01", "2026-09-02",
+    "2026-08-24",
+    "2026-08-25",
+    "2026-08-26",
+    "2026-08-27",
+    "2026-08-28",
+    "2026-08-29",
+    "2026-08-30",
+    "2026-08-31",
+    "2026-09-01",
+    "2026-09-02",
   ]);
 });
 
 test("public verification rejects a byte-hash mismatch", async (context) => {
-  const server = createServer((_request, response) => { response.setHeader("content-type", "image/jpeg"); response.end("wrong"); });
+  const server = createServer((_request, response) => {
+    response.setHeader("content-type", "image/jpeg");
+    response.end("wrong");
+  });
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
   context.after(() => server.close());
   const address = server.address();
-  if (!address || typeof address === "string") throw new Error("Missing fake-server address");
-  await assert.rejects(verifyPublicAsset({ url: `http://127.0.0.1:${address.port}/slide.jpg`,
-    expectedHash: sha256("right"), expectedContentType: "image/jpeg", allowHttpForTest: true }), /hash mismatch/);
+  if (!address || typeof address === "string")
+    throw new Error("Missing fake-server address");
+  await assert.rejects(
+    verifyPublicAsset({
+      url: `http://127.0.0.1:${address.port}/slide.jpg`,
+      expectedHash: sha256("right"),
+      expectedContentType: "image/jpeg",
+      allowHttpForTest: true,
+    }),
+    /hash mismatch/,
+  );
 });
 ```
 
@@ -263,6 +331,7 @@ git commit -m "feat: stage and verify rolling public media"
 ## Task 4: Add Buffer GraphQL scheduling, preflight, and reconciliation
 
 **Files:**
+
 - Create: `src/networks/types.ts`
 - Create: `src/networks/buffer/graphql.ts`
 - Create: `src/networks/buffer/preflight.ts`
@@ -276,31 +345,68 @@ git commit -m "feat: stage and verify rolling public media"
 // tests/buffer.test.ts
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createBufferPostInput, normalizeBufferCreateResponse } from "../src/networks/buffer/posts.js";
+import {
+  createBufferPostInput,
+  normalizeBufferCreateResponse,
+} from "../src/networks/buffer/posts.js";
 import { matchExistingBufferPost } from "../src/networks/buffer/reconcile.js";
 
 test("Buffer uses custom scheduling and ordered public image assets", () => {
-  const input = createBufferPostInput({ channel: "instagram", channelId: "ig_1", text: "Legenda",
-    dueAt: "2026-08-26T15:17:00.000Z", mediaKind: "carousel",
-    mediaUrls: ["https://trocohq.github.io/social-publisher/media/a.jpg", "https://trocohq.github.io/social-publisher/media/b.jpg"] });
+  const input = createBufferPostInput({
+    channel: "instagram",
+    channelId: "ig_1",
+    text: "Legenda",
+    dueAt: "2026-08-26T15:17:00.000Z",
+    mediaKind: "carousel",
+    mediaUrls: [
+      "https://trocohq.github.io/social-publisher/media/a.jpg",
+      "https://trocohq.github.io/social-publisher/media/b.jpg",
+    ],
+  });
   assert.deepEqual(input.assets, [
-    { image: { url: "https://trocohq.github.io/social-publisher/media/a.jpg" } },
-    { image: { url: "https://trocohq.github.io/social-publisher/media/b.jpg" } },
+    {
+      image: { url: "https://trocohq.github.io/social-publisher/media/a.jpg" },
+    },
+    {
+      image: { url: "https://trocohq.github.io/social-publisher/media/b.jpg" },
+    },
   ]);
   assert.equal(input.mode, "customScheduled");
   assert.equal(input.metadata.instagram.type, "post");
 });
 
 test("Buffer typed mutation errors become sanitized retry classes", () => {
-  assert.deepEqual(normalizeBufferCreateResponse({ data: { createPost: { message: "Rate limit exceeded" } } }),
-    { kind: "retryable_error", category: "buffer_rate_limit", message: "Buffer temporarily rejected the post" });
+  assert.deepEqual(
+    normalizeBufferCreateResponse({
+      data: { createPost: { message: "Rate limit exceeded" } },
+    }),
+    {
+      kind: "retryable_error",
+      category: "buffer_rate_limit",
+      message: "Buffer temporarily rejected the post",
+    },
+  );
 });
 
 test("reconciliation matches channel, due time, normalized copy, and media", () => {
-  const match = matchExistingBufferPost({ channelId: "ig_1", dueAt: "2026-08-26T15:17:00.000Z",
-    text: "Troco certo", mediaUrls: ["https://example.test/slide.jpg"] }, [{ id: "post_1", channelId: "ig_1",
-    dueAt: "2026-08-26T15:17:00.000Z", text: " Troco  certo ", status: "scheduled",
-    assets: [{ source: "https://example.test/slide.jpg" }] }]);
+  const match = matchExistingBufferPost(
+    {
+      channelId: "ig_1",
+      dueAt: "2026-08-26T15:17:00.000Z",
+      text: "Troco certo",
+      mediaUrls: ["https://example.test/slide.jpg"],
+    },
+    [
+      {
+        id: "post_1",
+        channelId: "ig_1",
+        dueAt: "2026-08-26T15:17:00.000Z",
+        text: " Troco  certo ",
+        status: "scheduled",
+        assets: [{ source: "https://example.test/slide.jpg" }],
+      },
+    ],
+  );
   assert.equal(match?.id, "post_1");
 });
 ```
@@ -320,8 +426,22 @@ Use this mutation:
 ```graphql
 mutation CreateTrocoPost($input: CreatePostInput!) {
   createPost(input: $input) {
-    ... on PostActionSuccess { post { id text status dueAt channelId assets { source mimeType } } }
-    ... on MutationError { message }
+    ... on PostActionSuccess {
+      post {
+        id
+        text
+        status
+        dueAt
+        channelId
+        assets {
+          source
+          mimeType
+        }
+      }
+    }
+    ... on MutationError {
+      message
+    }
   }
 }
 ```
@@ -346,6 +466,7 @@ git commit -m "feat: add idempotent Buffer scheduling"
 ## Task 5: Add YouTube OAuth, resumable upload, and duplicate lookup
 
 **Files:**
+
 - Create: `src/networks/youtube/oauth.ts`
 - Create: `src/networks/youtube/upload.ts`
 - Create: `src/networks/youtube/reconcile.ts`
@@ -358,21 +479,39 @@ git commit -m "feat: add idempotent Buffer scheduling"
 import assert from "node:assert/strict";
 import test from "node:test";
 import { youtubeVideoResource } from "../src/networks/youtube/upload.js";
-import { campaignTag, matchYouTubeUpload } from "../src/networks/youtube/reconcile.js";
+import {
+  campaignTag,
+  matchYouTubeUpload,
+} from "../src/networks/youtube/reconcile.js";
 
 test("YouTube schedules a private upload with campaign fingerprint metadata", () => {
-  const resource = youtubeVideoResource({ campaignId: "2026-08-26-troco-explains-v1-0",
-    title: "Troco certo em segundos #Shorts", description: "Descrição", publishAt: "2026-08-26T15:17:00.000Z" });
+  const resource = youtubeVideoResource({
+    campaignId: "2026-08-26-troco-explains-v1-0",
+    title: "Troco certo em segundos #Shorts",
+    description: "Descrição",
+    publishAt: "2026-08-26T15:17:00.000Z",
+  });
   assert.equal(resource.status.privacyStatus, "private");
   assert.equal(resource.status.publishAt, "2026-08-26T15:17:00.000Z");
   assert.equal(resource.status.selfDeclaredMadeForKids, false);
-  assert.ok(resource.snippet.tags.includes(campaignTag("2026-08-26-troco-explains-v1-0")));
+  assert.ok(
+    resource.snippet.tags.includes(
+      campaignTag("2026-08-26-troco-explains-v1-0"),
+    ),
+  );
 });
 
 test("YouTube reconciliation finds one authenticated upload by campaign tag", () => {
-  assert.equal(matchYouTubeUpload("campaign-a", [
-    { id: "video_1", snippet: { tags: [campaignTag("campaign-a")] }, status: { uploadStatus: "uploaded", privacyStatus: "private" } },
-  ])?.id, "video_1");
+  assert.equal(
+    matchYouTubeUpload("campaign-a", [
+      {
+        id: "video_1",
+        snippet: { tags: [campaignTag("campaign-a")] },
+        status: { uploadStatus: "uploaded", privacyStatus: "private" },
+      },
+    ])?.id,
+    "video_1",
+  );
 });
 ```
 
@@ -408,6 +547,7 @@ git commit -m "feat: add idempotent YouTube Shorts delivery"
 ## Task 6: Orchestrate one safely persisted provider action at a time
 
 **Files:**
+
 - Create: `src/publishing/next-action.ts`
 - Create: `src/publishing/intent.ts`
 - Create: `src/publishing/execute.ts`
@@ -424,17 +564,39 @@ import { executePublication } from "../src/publishing/execute.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
 
 test("the next action skips successful siblings and selects one retryable channel", () => {
-  const state = campaignStateFixture({ instagram: "scheduled", facebook: "retryable", tiktok: "scheduled", youtube: "scheduled" });
-  assert.deepEqual(nextPublicationAction([state], new Date("2026-08-26T10:00:00Z")), {
-    campaignId: state.plan.id, localDate: "2026-08-26", channel: "facebook", phase: "scheduling",
+  const state = campaignStateFixture({
+    instagram: "scheduled",
+    facebook: "retryable",
+    tiktok: "scheduled",
+    youtube: "scheduled",
   });
+  assert.deepEqual(
+    nextPublicationAction([state], new Date("2026-08-26T10:00:00Z")),
+    {
+      campaignId: state.plan.id,
+      localDate: "2026-08-26",
+      channel: "facebook",
+      phase: "scheduling",
+    },
+  );
 });
 
 test("execution records a reconciled provider object without creating another", async () => {
   let createCalls = 0;
-  const result = await executePublication({ state: campaignStateFixture({ instagram: "scheduling" }), channel: "instagram",
-    reconcile: async () => ({ id: "existing_1", dueAt: "2026-08-26T15:17:00Z", status: "scheduled" }),
-    create: async () => { createCalls += 1; throw new Error("must not create"); }, now: new Date("2026-08-26T10:00:00Z") });
+  const result = await executePublication({
+    state: campaignStateFixture({ instagram: "scheduling" }),
+    channel: "instagram",
+    reconcile: async () => ({
+      id: "existing_1",
+      dueAt: "2026-08-26T15:17:00Z",
+      status: "scheduled",
+    }),
+    create: async () => {
+      createCalls += 1;
+      throw new Error("must not create");
+    },
+    now: new Date("2026-08-26T10:00:00Z"),
+  });
   assert.equal(createCalls, 0);
   assert.equal(result.channels.instagram.providerId, "existing_1");
   assert.equal(result.channels.instagram.stage, "scheduled");
@@ -469,6 +631,7 @@ git commit -m "feat: orchestrate isolated social publication"
 ## Task 7: Add workflow CLIs and controlled activation gates
 
 **Files:**
+
 - Create: `src/cli/plan.ts`
 - Create: `src/cli/next-action.ts`
 - Create: `src/cli/publish.ts`
@@ -486,15 +649,32 @@ import test from "node:test";
 import { parsePublishRequest } from "../src/cli/publish.js";
 
 test("scheduled provider writes remain disabled until AUTO_PUBLISH is true", () => {
-  assert.throws(() => parsePublishRequest({ mode: "scheduled", autoPublish: false }), /disabled/);
+  assert.throws(
+    () => parsePublishRequest({ mode: "scheduled", autoPublish: false }),
+    /disabled/,
+  );
 });
 
 test("controlled execution requires an exact campaign and confirmation", () => {
-  assert.deepEqual(parsePublishRequest({ mode: "controlled", autoPublish: false,
-    campaignId: "2026-08-27-quick-calculation-v1-0", confirmation: "PUBLISH_ONE_CAMPAIGN" }),
-    { mode: "controlled", campaignId: "2026-08-27-quick-calculation-v1-0" });
-  assert.throws(() => parsePublishRequest({ mode: "controlled", autoPublish: false,
-    campaignId: "2026-08-27-quick-calculation-v1-0", confirmation: "publish" }), /PUBLISH_ONE_CAMPAIGN/);
+  assert.deepEqual(
+    parsePublishRequest({
+      mode: "controlled",
+      autoPublish: false,
+      campaignId: "2026-08-27-quick-calculation-v1-0",
+      confirmation: "PUBLISH_ONE_CAMPAIGN",
+    }),
+    { mode: "controlled", campaignId: "2026-08-27-quick-calculation-v1-0" },
+  );
+  assert.throws(
+    () =>
+      parsePublishRequest({
+        mode: "controlled",
+        autoPublish: false,
+        campaignId: "2026-08-27-quick-calculation-v1-0",
+        confirmation: "publish",
+      }),
+    /PUBLISH_ONE_CAMPAIGN/,
+  );
 });
 ```
 
@@ -537,6 +717,7 @@ git commit -m "feat: add controlled publication commands"
 ## Task 8: Maintain one sanitized GitHub incident through recovery
 
 **Files:**
+
 - Create: `src/incidents/github.ts`
 - Create: `src/cli/incident.ts`
 - Create: `tests/incidents.test.ts`
@@ -550,9 +731,19 @@ import test from "node:test";
 import { incidentMutation } from "../src/incidents/github.js";
 
 test("a repeated failure updates one labeled incident and recovery closes it", () => {
-  const active = { number: 17, state: "open", labels: [{ name: "social-publisher-incident" }] };
-  assert.deepEqual(incidentMutation("failure", active), { kind: "update", issueNumber: 17 });
-  assert.deepEqual(incidentMutation("recovery", active), { kind: "close", issueNumber: 17 });
+  const active = {
+    number: 17,
+    state: "open",
+    labels: [{ name: "social-publisher-incident" }],
+  };
+  assert.deepEqual(incidentMutation("failure", active), {
+    kind: "update",
+    issueNumber: 17,
+  });
+  assert.deepEqual(incidentMutation("recovery", active), {
+    kind: "close",
+    issueNumber: 17,
+  });
   assert.deepEqual(incidentMutation("recovery", undefined), { kind: "none" });
 });
 ```
@@ -583,6 +774,7 @@ git commit -m "feat: report publisher incidents"
 ## Task 9: Add conflict-aware state commits and pinned GitHub workflows
 
 **Files:**
+
 - Create: `scripts/commit-state.sh`
 - Create: `.github/workflows/validate.yml`
 - Create: `.github/workflows/publish.yml`
@@ -597,19 +789,30 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("production workflow is serialized, disabled by default, and runs every three hours", async () => {
-  const workflow = await readFile(new URL("../.github/workflows/publish.yml", import.meta.url), "utf8");
+  const workflow = await readFile(
+    new URL("../.github/workflows/publish.yml", import.meta.url),
+    "utf8",
+  );
   assert.match(workflow, /cron: ['"]17 \*\/3 \* \* \*['"]/);
   assert.match(workflow, /group: troco-social-publication/);
   assert.match(workflow, /cancel-in-progress: false/);
-  assert.match(workflow, /AUTO_PUBLISH: \$\{\{ vars\.AUTO_PUBLISH \|\| 'false' \}\}/);
+  assert.match(
+    workflow,
+    /AUTO_PUBLISH: \$\{\{ vars\.AUTO_PUBLISH \|\| 'false' \}\}/,
+  );
   assert.doesNotMatch(workflow, /pull_request:/);
 });
 
 test("every third-party action is pinned to a full commit SHA", async () => {
   const files = ["validate.yml", "publish.yml"];
   for (const file of files) {
-    const workflow = await readFile(new URL(`../.github/workflows/${file}`, import.meta.url), "utf8");
-    for (const line of workflow.split("\n").filter((value) => value.includes("uses:"))) {
+    const workflow = await readFile(
+      new URL(`../.github/workflows/${file}`, import.meta.url),
+      "utf8",
+    );
+    for (const line of workflow
+      .split("\n")
+      .filter((value) => value.includes("uses:"))) {
       assert.match(line, /@[0-9a-f]{40}(?:\s|$)/);
     }
   }
@@ -680,6 +883,7 @@ git commit -m "ci: automate daily social publication"
 ## Task 10: Document controlled activation and verify the production boundary
 
 **Files:**
+
 - Create: `docs/operations.md`
 - Modify: `README.md`
 - Modify: `src/validation/run.ts`
@@ -694,9 +898,21 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("operations document keeps unattended publication behind verified activation", async () => {
-  const document = await readFile(new URL("../docs/operations.md", import.meta.url), "utf8");
-  for (const phrase of ["AUTO_PUBLISH=false", "PUBLISH_ONE_CAMPAIGN", "Buffer", "YouTube", "GitHub Pages",
-    "private", "verification", "token rotation", "never backfills"]) {
+  const document = await readFile(
+    new URL("../docs/operations.md", import.meta.url),
+    "utf8",
+  );
+  for (const phrase of [
+    "AUTO_PUBLISH=false",
+    "PUBLISH_ONE_CAMPAIGN",
+    "Buffer",
+    "YouTube",
+    "GitHub Pages",
+    "private",
+    "verification",
+    "token rotation",
+    "never backfills",
+  ]) {
     assert.match(document, new RegExp(phrase, "i"));
   }
 });

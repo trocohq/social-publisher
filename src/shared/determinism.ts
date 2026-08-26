@@ -30,7 +30,8 @@ export function chooseSeeded<T>(
   }
 
   const index =
-    Number.parseInt(sha256(`${seed}:${offset}`).slice(0, 8), 16) % values.length;
+    Number.parseInt(sha256(`${seed}:${offset}`).slice(0, 8), 16) %
+    values.length;
   return values[index]!;
 }
 

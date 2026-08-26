@@ -1,7 +1,4 @@
-import {
-  buildDenominationBreakdown,
-  calculateChange,
-} from "@trocohq/core";
+import { buildDenominationBreakdown, calculateChange } from "@trocohq/core";
 
 import { scenarioSchema, type Scenario } from "./schema.js";
 

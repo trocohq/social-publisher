@@ -27,6 +27,7 @@ Run every command in `../frontend` from the `social-publisher` repository. Prese
 ## Task 1: Centralize the four exact official profile URLs
 
 **Files:**
+
 - Modify: `lib/constants/site.ts`
 - Modify: `tests/site-contract.test.mjs`
 
@@ -51,7 +52,10 @@ test("the site keeps the four official Troco social profiles in one typed consta
     assert.match(site, new RegExp(`label:\\s*["']${label}["']`));
     assert.match(site, new RegExp(href.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
     const currentIndex = site.indexOf(href);
-    assert.ok(currentIndex > previousIndex, `${label} must remain in the approved order`);
+    assert.ok(
+      currentIndex > previousIndex,
+      `${label} must remain in the approved order`,
+    );
     previousIndex = currentIndex;
   }
 });
@@ -84,10 +88,22 @@ export type SocialProfile = Readonly<{
 }>;
 
 export const SOCIAL_PROFILES = [
-  { id: "instagram", label: "Instagram", href: "https://www.instagram.com/trocohq" },
-  { id: "tiktok", label: "TikTok", href: "https://www.tiktok.com/@trocofacil.app" },
+  {
+    id: "instagram",
+    label: "Instagram",
+    href: "https://www.instagram.com/trocohq",
+  },
+  {
+    id: "tiktok",
+    label: "TikTok",
+    href: "https://www.tiktok.com/@trocofacil.app",
+  },
   { id: "youtube", label: "YouTube", href: "https://www.youtube.com/@trocohq" },
-  { id: "facebook", label: "Facebook", href: "https://www.facebook.com/trocohq" },
+  {
+    id: "facebook",
+    label: "Facebook",
+    href: "https://www.facebook.com/trocohq",
+  },
 ] as const satisfies readonly SocialProfile[];
 ```
 
@@ -107,6 +123,7 @@ git commit -m "feat: add official social profile constants"
 ## Task 2: Build the accessible social-link component with trusted icons
 
 **Files:**
+
 - Modify: `package.json`
 - Modify: `package-lock.json`
 - Create: `components/social-links/index.tsx`
@@ -137,14 +154,20 @@ describe("SocialLinks", () => {
     ] as const;
 
     const links = screen.getAllByRole("link");
-    expect(screen.getByRole("navigation", { name: "Troco social media" })).toBeTruthy();
+    expect(
+      screen.getByRole("navigation", { name: "Troco social media" }),
+    ).toBeTruthy();
     expect(links).toHaveLength(4);
-    expect(links.map((link) => link.getAttribute("aria-label"))).toEqual(expected.map(([label]) => label));
+    expect(links.map((link) => link.getAttribute("aria-label"))).toEqual(
+      expected.map(([label]) => label),
+    );
     expected.forEach(([label, href], index) => {
       expect(links[index]).toHaveAttribute("href", href);
       expect(links[index]).toHaveAttribute("target", "_blank");
       expect(links[index]).toHaveAttribute("rel", "noopener noreferrer");
-      expect(screen.getByRole("link", { name: label }).querySelector("svg")).not.toBeNull();
+      expect(
+        screen.getByRole("link", { name: label }).querySelector("svg"),
+      ).not.toBeNull();
     });
   });
 });
@@ -171,7 +194,9 @@ const icons = {
   facebook: SiFacebook,
 } satisfies Readonly<Record<SocialProfileId, IconType>>;
 
-export function SocialLinks({ label }: Readonly<{ label: string }>): React.ReactNode {
+export function SocialLinks({
+  label,
+}: Readonly<{ label: string }>): React.ReactNode {
   return (
     <nav aria-label={label}>
       <ul className="flex flex-wrap items-center gap-2">
@@ -213,6 +238,7 @@ git commit -m "feat: add accessible social footer links"
 ## Task 3: Integrate social links before footer preference controls
 
 **Files:**
+
 - Modify: `components/site-footer/index.tsx`
 - Modify: `lib/i18n/messages/pt-br.ts`
 - Modify: `lib/i18n/messages/en.ts`
@@ -226,11 +252,18 @@ Append to `tests/site-contract.test.mjs`:
 ```js
 test("the footer renders social links before language and appearance controls", async () => {
   const footer = await source("components/site-footer/index.tsx");
-  assert.match(footer, /import\s*{\s*SocialLinks\s*}\s*from\s*["']@\/components\/social-links["']/);
+  assert.match(
+    footer,
+    /import\s*{\s*SocialLinks\s*}\s*from\s*["']@\/components\/social-links["']/,
+  );
   const socialIndex = footer.indexOf("<SocialLinks label={m.social} />");
   const languageIndex = footer.indexOf("<LanguageSelector />");
   const themeIndex = footer.indexOf("<ThemeToggle />");
-  assert.ok(socialIndex >= 0 && socialIndex < languageIndex && languageIndex < themeIndex);
+  assert.ok(
+    socialIndex >= 0 &&
+      socialIndex < languageIndex &&
+      languageIndex < themeIndex,
+  );
 });
 ```
 

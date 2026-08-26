@@ -21,7 +21,9 @@ const history: readonly HistoryEntry[] = [
   },
 ];
 
-function candidate(overrides: Partial<CandidateIdentity> = {}): CandidateIdentity {
+function candidate(
+  overrides: Partial<CandidateIdentity> = {},
+): CandidateIdentity {
   return {
     localDate: "2026-08-26",
     recipeId: "other-v1",
@@ -38,7 +40,11 @@ function candidate(overrides: Partial<CandidateIdentity> = {}): CandidateIdentit
 test("the same recipe and scenario are rejected within 90 days", () => {
   assert.equal(
     rejectReason(
-      candidate({ recipeId: "quick-v1", purchaseMinor: 8265, receivedMinor: 10000 }),
+      candidate({
+        recipeId: "quick-v1",
+        purchaseMinor: 8265,
+        receivedMinor: 10000,
+      }),
       history,
     ),
     "recipe_scenario_within_90_days",
@@ -47,7 +53,10 @@ test("the same recipe and scenario are rejected within 90 days", () => {
 
 test("scenario pairs and annual copy fingerprints are rejected", () => {
   assert.equal(
-    rejectReason(candidate({ purchaseMinor: 8265, receivedMinor: 10000 }), history),
+    rejectReason(
+      candidate({ purchaseMinor: 8265, receivedMinor: 10000 }),
+      history,
+    ),
     "scenario_within_90_days",
   );
   assert.equal(
@@ -78,7 +87,9 @@ test("selection advances deterministically until it finds a valid candidate", ()
     history,
     maximumCandidates: 3,
     createCandidate: (index) =>
-      candidate(index === 0 ? { headlineFingerprint: "same" } : { candidate: index }),
+      candidate(
+        index === 0 ? { headlineFingerprint: "same" } : { candidate: index },
+      ),
   });
   assert.equal(result.candidate, 1);
 });

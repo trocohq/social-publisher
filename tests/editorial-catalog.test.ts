@@ -21,11 +21,22 @@ test("the catalog has one complete recipe and four hooks for every family", () =
 
 test("the reviewed catalog contains product, cashier, and safety sources", () => {
   assert.ok(facts.length >= 13);
-  assert.ok(facts.every(({ source }) => source.startsWith("repo://") || source.startsWith("https://")));
+  assert.ok(
+    facts.every(
+      ({ source }) =>
+        source.startsWith("repo://") || source.startsWith("https://"),
+    ),
+  );
 });
 
 test("calendar moments influence only matching dates and families", () => {
-  assert.equal(calendarMomentForDate("2026-05-01", "safe_checkout")?.id, "calendar.labour-day");
-  assert.equal(calendarMomentForDate("2026-05-01", "troco_explains"), undefined);
+  assert.equal(
+    calendarMomentForDate("2026-05-01", "safe_checkout")?.id,
+    "calendar.labour-day",
+  );
+  assert.equal(
+    calendarMomentForDate("2026-05-01", "troco_explains"),
+    undefined,
+  );
   assert.equal(calendarMomentForDate("2026-05-02", "safe_checkout"), undefined);
 });

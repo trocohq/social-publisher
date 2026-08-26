@@ -4,7 +4,12 @@
     "statement": "O Troco calcula a diferença entre o valor da compra e o valor recebido.",
     "source": "repo://core/src/money.ts",
     "reviewedOn": "2026-08-26",
-    "families": ["change_challenge", "troco_explains", "quick_calculation", "checkout_situation"]
+    "families": [
+      "change_challenge",
+      "troco_explains",
+      "quick_calculation",
+      "checkout_situation"
+    ]
   },
   {
     "id": "product.denomination-breakdown",
@@ -39,6 +44,14 @@
     "statement": "O aplicativo completo do Troco está disponível para Android na Google Play.",
     "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
     "reviewedOn": "2026-08-26",
-    "families": ["change_challenge", "cashier_shortcut", "troco_explains", "quick_calculation", "safe_checkout", "checkout_situation", "save_this_rule"]
+    "families": [
+      "change_challenge",
+      "cashier_shortcut",
+      "troco_explains",
+      "quick_calculation",
+      "safe_checkout",
+      "checkout_situation",
+      "save_this_rule"
+    ]
   }
 ]

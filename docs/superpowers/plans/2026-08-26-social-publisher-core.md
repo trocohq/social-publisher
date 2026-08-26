@@ -49,6 +49,7 @@ All paths below are relative to the `social-publisher` repository.
 ## Task 1: Bootstrap the standalone TypeScript package
 
 **Files:**
+
 - Create: `AGENTS.md`
 - Create: `.npmrc`
 - Create: `.env.example`
@@ -68,13 +69,21 @@ import { readFile } from "node:fs/promises";
 import test from "node:test";
 
 test("the publisher is a public ESM package with deterministic validation scripts", async () => {
-  const packageJson = JSON.parse(await readFile(new URL("../package.json", import.meta.url), "utf8"));
+  const packageJson = JSON.parse(
+    await readFile(new URL("../package.json", import.meta.url), "utf8"),
+  );
 
   assert.equal(packageJson.private, false);
   assert.equal(packageJson.type, "module");
   assert.equal(packageJson.engines.node, ">=20.19.4");
-  assert.equal(packageJson.scripts.test, "node --import tsx --test tests/*.test.ts");
-  assert.equal(packageJson.scripts.validate, "node --import tsx src/validation/run.ts");
+  assert.equal(
+    packageJson.scripts.test,
+    "node --import tsx --test tests/*.test.ts",
+  );
+  assert.equal(
+    packageJson.scripts.validate,
+    "node --import tsx src/validation/run.ts",
+  );
 });
 ```
 
@@ -188,6 +197,7 @@ git commit -m "chore: bootstrap social publisher"
 ## Task 2: Add deterministic time, identity, and schedule primitives
 
 **Files:**
+
 - Create: `src/config/schedule.ts`
 - Create: `src/shared/determinism.ts`
 - Create: `src/shared/time.ts`
@@ -209,8 +219,13 @@ test("Monday selects the change challenge family", () => {
 
 test("the rolling window contains today and six future São Paulo dates", () => {
   assert.deepEqual(rollingLocalDates(new Date("2026-08-26T16:00:00Z"), 7), [
-    "2026-08-26", "2026-08-27", "2026-08-28", "2026-08-29",
-    "2026-08-30", "2026-08-31", "2026-09-01",
+    "2026-08-26",
+    "2026-08-27",
+    "2026-08-28",
+    "2026-08-29",
+    "2026-08-30",
+    "2026-08-31",
+    "2026-09-01",
   ]);
 });
 ```
@@ -219,12 +234,25 @@ test("the rolling window contains today and six future São Paulo dates", () => 
 // tests/determinism.test.ts
 import assert from "node:assert/strict";
 import test from "node:test";
-import { campaignId, chooseSeeded, fingerprintCopy } from "../src/shared/determinism.js";
+import {
+  campaignId,
+  chooseSeeded,
+  fingerprintCopy,
+} from "../src/shared/determinism.js";
 
 test("the same campaign inputs always produce the same identity and choice", () => {
-  assert.equal(campaignId("2026-08-26", "troco_explains", 1, 0), "2026-08-26-troco-explains-v1-0");
-  assert.equal(chooseSeeded(["a", "b", "c"], "2026-08-26:1", 0), chooseSeeded(["a", "b", "c"], "2026-08-26:1", 0));
-  assert.equal(fingerprintCopy("  Troco  CERTO! "), fingerprintCopy("troco certo"));
+  assert.equal(
+    campaignId("2026-08-26", "troco_explains", 1, 0),
+    "2026-08-26-troco-explains-v1-0",
+  );
+  assert.equal(
+    chooseSeeded(["a", "b", "c"], "2026-08-26:1", 0),
+    chooseSeeded(["a", "b", "c"], "2026-08-26:1", 0),
+  );
+  assert.equal(
+    fingerprintCopy("  Troco  CERTO! "),
+    fingerprintCopy("troco certo"),
+  );
 });
 ```
 
@@ -239,14 +267,23 @@ Expected: FAIL because `schedule.ts`, `time.ts`, and `determinism.ts` do not exi
 ```ts
 // src/config/schedule.ts
 export const campaignFamilies = [
-  "change_challenge", "cashier_shortcut", "troco_explains", "quick_calculation",
-  "safe_checkout", "checkout_situation", "save_this_rule",
+  "change_challenge",
+  "cashier_shortcut",
+  "troco_explains",
+  "quick_calculation",
+  "safe_checkout",
+  "checkout_situation",
+  "save_this_rule",
 ] as const;
 export type CampaignFamily = (typeof campaignFamilies)[number];
 
 const familyByUtcWeekday: Readonly<Record<number, CampaignFamily>> = {
-  0: "save_this_rule", 1: "change_challenge", 2: "cashier_shortcut",
-  3: "troco_explains", 4: "quick_calculation", 5: "safe_checkout",
+  0: "save_this_rule",
+  1: "change_challenge",
+  2: "cashier_shortcut",
+  3: "troco_explains",
+  4: "quick_calculation",
+  5: "safe_checkout",
   6: "checkout_situation",
 };
 
@@ -264,16 +301,34 @@ export function sha256(value: string | Buffer): string {
   return createHash("sha256").update(value).digest("hex");
 }
 export function normalizeCopy(value: string): string {
-  return value.normalize("NFKD").replace(/[\u0300-\u036f]/g, "").toLowerCase()
-    .replace(/[^a-z0-9]+/g, " ").trim();
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
 }
-export function fingerprintCopy(value: string): string { return sha256(normalizeCopy(value)); }
-export function chooseSeeded<T>(values: readonly T[], seed: string, offset: number): T {
-  if (values.length === 0) throw new Error("Cannot choose from an empty collection");
-  const index = Number.parseInt(sha256(`${seed}:${offset}`).slice(0, 8), 16) % values.length;
+export function fingerprintCopy(value: string): string {
+  return sha256(normalizeCopy(value));
+}
+export function chooseSeeded<T>(
+  values: readonly T[],
+  seed: string,
+  offset: number,
+): T {
+  if (values.length === 0)
+    throw new Error("Cannot choose from an empty collection");
+  const index =
+    Number.parseInt(sha256(`${seed}:${offset}`).slice(0, 8), 16) %
+    values.length;
   return values[index]!;
 }
-export function campaignId(date: string, family: string, version: number, candidate: number): string {
+export function campaignId(
+  date: string,
+  family: string,
+  version: number,
+  candidate: number,
+): string {
   return `${date}-${family.replaceAll("_", "-")}-v${version}-${candidate}`;
 }
 ```
@@ -296,6 +351,7 @@ git commit -m "feat: add deterministic campaign schedule"
 ## Task 3: Model reviewed editorial sources and campaign plans
 
 **Files:**
+
 - Create: `src/editorial/schema.ts`
 - Create: `src/editorial/catalog.ts`
 - Create: `assets/facts/product-capabilities.json`
@@ -313,17 +369,45 @@ import test from "node:test";
 import { factSchema, campaignPlanSchema } from "../src/editorial/schema.js";
 
 test("facts require a source and reject expired use", () => {
-  assert.throws(() => factSchema.parse({ id: "unsafe", statement: "Invented", families: ["safe_checkout"], reviewedOn: "2026-08-26" }));
+  assert.throws(() =>
+    factSchema.parse({
+      id: "unsafe",
+      statement: "Invented",
+      families: ["safe_checkout"],
+      reviewedOn: "2026-08-26",
+    }),
+  );
 });
 
 test("campaign plans reject markup in public copy", () => {
-  assert.throws(() => campaignPlanSchema.parse({
-    schemaVersion: 1, id: "x", localDate: "2026-08-26", targetAt: "2026-08-26T12:17:00-03:00",
-    family: "troco_explains", recipeVersion: 1, candidate: 0, palette: "green",
-    scenario: { purchaseMinor: 8265, receivedMinor: 10000, resultMinor: 1735, outcome: "change_due", breakdown: [] },
-    copy: { headline: "<script>", answer: "R$ 17,35", explanation: "Certo", cta: "Baixe o Troco", channels: {} },
-    sourceIds: ["core.change"], fingerprints: { headline: "a", caption: "b" },
-  }));
+  assert.throws(() =>
+    campaignPlanSchema.parse({
+      schemaVersion: 1,
+      id: "x",
+      localDate: "2026-08-26",
+      targetAt: "2026-08-26T12:17:00-03:00",
+      family: "troco_explains",
+      recipeVersion: 1,
+      candidate: 0,
+      palette: "green",
+      scenario: {
+        purchaseMinor: 8265,
+        receivedMinor: 10000,
+        resultMinor: 1735,
+        outcome: "change_due",
+        breakdown: [],
+      },
+      copy: {
+        headline: "<script>",
+        answer: "R$ 17,35",
+        explanation: "Certo",
+        cta: "Baixe o Troco",
+        channels: {},
+      },
+      sourceIds: ["core.change"],
+      fingerprints: { headline: "a", caption: "b" },
+    }),
+  );
 });
 ```
 
@@ -338,11 +422,18 @@ Expected: FAIL because `src/editorial/schema.ts` is absent.
 Use Zod enums derived from `campaignFamilies`. Define:
 
 ```ts
-const safePublicText = z.string().min(1).max(2_200).refine((value) => !/[<>]/.test(value), "Markup is forbidden");
+const safePublicText = z
+  .string()
+  .min(1)
+  .max(2_200)
+  .refine((value) => !/[<>]/.test(value), "Markup is forbidden");
 export const factSchema = z.object({
   id: z.string().regex(/^[a-z0-9._-]+$/),
   statement: safePublicText,
-  source: z.string().url().or(z.string().regex(/^repo:\/\//)),
+  source: z
+    .string()
+    .url()
+    .or(z.string().regex(/^repo:\/\//)),
   reviewedOn: z.iso.date(),
   expiresOn: z.iso.date().optional(),
   families: z.array(z.enum(campaignFamilies)).min(1),
@@ -351,9 +442,16 @@ export const calendarMomentSchema = factSchema.extend({
   monthDay: z.string().regex(/^(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/),
 });
 export const scenarioSchema = z.object({
-  purchaseMinor: z.number().int().nonnegative(), receivedMinor: z.number().int().nonnegative(),
-  resultMinor: z.number().int().nonnegative(), outcome: z.enum(["change_due", "exact_amount", "insufficient_amount"]),
-  breakdown: z.array(z.object({ denominationMinor: z.number().int().positive(), quantity: z.number().int().positive() })),
+  purchaseMinor: z.number().int().nonnegative(),
+  receivedMinor: z.number().int().nonnegative(),
+  resultMinor: z.number().int().nonnegative(),
+  outcome: z.enum(["change_due", "exact_amount", "insufficient_amount"]),
+  breakdown: z.array(
+    z.object({
+      denominationMinor: z.number().int().positive(),
+      quantity: z.number().int().positive(),
+    }),
+  ),
 });
 ```
 
@@ -363,20 +461,87 @@ Populate the four JSON catalogs only with reviewed statements and real source re
 
 ```json
 [
-  { "id": "product.change-calculation", "statement": "O Troco calcula a diferença entre o valor da compra e o valor recebido.", "source": "repo://core/src/money.ts", "reviewedOn": "2026-08-26", "families": ["change_challenge", "troco_explains", "quick_calculation", "checkout_situation"] },
-  { "id": "product.denomination-breakdown", "statement": "O Troco mostra uma combinação de notas e moedas para montar o valor calculado.", "source": "repo://core/src/denominations.ts", "reviewedOn": "2026-08-26", "families": ["cashier_shortcut", "troco_explains", "save_this_rule"] },
-  { "id": "product.supported-currencies", "statement": "O Troco oferece cálculo em real brasileiro, dólar americano e euro.", "source": "repo://core/src/currency-codes.ts", "reviewedOn": "2026-08-26", "families": ["troco_explains"] },
-  { "id": "product.no-account", "statement": "O Troco pode ser usado sem criar uma conta.", "source": "repo://frontend/lib/i18n/messages/pt-br.ts", "reviewedOn": "2026-08-26", "families": ["troco_explains", "save_this_rule"] },
-  { "id": "product.web-calculator", "statement": "A calculadora web do Troco está disponível em troco.net/calculate.", "source": "repo://frontend/app/calculate/page.tsx", "reviewedOn": "2026-08-26", "families": ["quick_calculation", "troco_explains"] },
-  { "id": "product.android-download", "statement": "O aplicativo completo do Troco está disponível para Android na Google Play.", "source": "repo://frontend/lib/i18n/messages/pt-br.ts", "reviewedOn": "2026-08-26", "families": ["change_challenge", "cashier_shortcut", "troco_explains", "quick_calculation", "safe_checkout", "checkout_situation", "save_this_rule"] }
+  {
+    "id": "product.change-calculation",
+    "statement": "O Troco calcula a diferença entre o valor da compra e o valor recebido.",
+    "source": "repo://core/src/money.ts",
+    "reviewedOn": "2026-08-26",
+    "families": [
+      "change_challenge",
+      "troco_explains",
+      "quick_calculation",
+      "checkout_situation"
+    ]
+  },
+  {
+    "id": "product.denomination-breakdown",
+    "statement": "O Troco mostra uma combinação de notas e moedas para montar o valor calculado.",
+    "source": "repo://core/src/denominations.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "troco_explains", "save_this_rule"]
+  },
+  {
+    "id": "product.supported-currencies",
+    "statement": "O Troco oferece cálculo em real brasileiro, dólar americano e euro.",
+    "source": "repo://core/src/currency-codes.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["troco_explains"]
+  },
+  {
+    "id": "product.no-account",
+    "statement": "O Troco pode ser usado sem criar uma conta.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["troco_explains", "save_this_rule"]
+  },
+  {
+    "id": "product.web-calculator",
+    "statement": "A calculadora web do Troco está disponível em troco.net/calculate.",
+    "source": "repo://frontend/app/calculate/page.tsx",
+    "reviewedOn": "2026-08-26",
+    "families": ["quick_calculation", "troco_explains"]
+  },
+  {
+    "id": "product.android-download",
+    "statement": "O aplicativo completo do Troco está disponível para Android na Google Play.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": [
+      "change_challenge",
+      "cashier_shortcut",
+      "troco_explains",
+      "quick_calculation",
+      "safe_checkout",
+      "checkout_situation",
+      "save_this_rule"
+    ]
+  }
 ]
 ```
 
 ```json
 [
-  { "id": "cashier.check-before-completing", "statement": "Confira os valores e as cédulas antes de concluir cada operação.", "source": "repo://frontend/lib/i18n/messages/pt-br.ts", "reviewedOn": "2026-08-26", "families": ["cashier_shortcut", "safe_checkout", "save_this_rule"] },
-  { "id": "cashier.confirm-received", "statement": "Confirme o valor da compra e o valor recebido antes de calcular o troco.", "source": "repo://frontend/lib/i18n/messages/pt-br.ts", "reviewedOn": "2026-08-26", "families": ["cashier_shortcut", "checkout_situation", "save_this_rule"] },
-  { "id": "cashier.count-breakdown", "statement": "Use a combinação de notas e moedas como conferência antes de entregar o troco.", "source": "repo://core/src/denominations.ts", "reviewedOn": "2026-08-26", "families": ["cashier_shortcut", "checkout_situation"] }
+  {
+    "id": "cashier.check-before-completing",
+    "statement": "Confira os valores e as cédulas antes de concluir cada operação.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "safe_checkout", "save_this_rule"]
+  },
+  {
+    "id": "cashier.confirm-received",
+    "statement": "Confirme o valor da compra e o valor recebido antes de calcular o troco.",
+    "source": "repo://frontend/lib/i18n/messages/pt-br.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "checkout_situation", "save_this_rule"]
+  },
+  {
+    "id": "cashier.count-breakdown",
+    "statement": "Use a combinação de notas e moedas como conferência antes de entregar o troco.",
+    "source": "repo://core/src/denominations.ts",
+    "reviewedOn": "2026-08-26",
+    "families": ["cashier_shortcut", "checkout_situation"]
+  }
 ]
 ```
 
@@ -384,10 +549,34 @@ Populate `safety-rules.json` with these exact reviewed records:
 
 ```json
 [
-  { "id": "safety.confirm-pix-credit", "statement": "Print não confirma pagamento. Sem crédito confirmado na conta recebedora, não libere produto, serviço ou devolução.", "source": "repo://frontend/lib/blog/articles.ts#falso-comprovante-pix-5-sinais", "reviewedOn": "2026-08-26", "families": ["safe_checkout", "save_this_rule"] },
-  { "id": "safety.refund-original-transaction", "statement": "Se o recebimento for legítimo, use a função de devolução vinculada à própria transação. Não envie para outra chave indicada por mensagem.", "source": "repo://frontend/lib/blog/articles.ts#golpe-do-estorno", "reviewedOn": "2026-08-26", "families": ["safe_checkout", "save_this_rule"] },
-  { "id": "safety.verify-qr-recipient", "statement": "Leia o nome exibido pelo seu banco, confira o valor e observe se existe adesivo ou código sobreposto no ponto de pagamento.", "source": "repo://frontend/lib/blog/articles.ts#qr-code-trocado-teste-3-segundos", "reviewedOn": "2026-08-26", "families": ["safe_checkout", "checkout_situation"] },
-  { "id": "safety.verify-terminal-amount", "statement": "Veja o valor completo no visor. Se a tela estiver danificada, escondida ou ilegível, peça outra máquina ou outro meio de pagamento.", "source": "repo://frontend/lib/blog/articles.ts#maquininha-adulterada-checklist", "reviewedOn": "2026-08-26", "families": ["safe_checkout", "save_this_rule"] }
+  {
+    "id": "safety.confirm-pix-credit",
+    "statement": "Print não confirma pagamento. Sem crédito confirmado na conta recebedora, não libere produto, serviço ou devolução.",
+    "source": "repo://frontend/lib/blog/articles.ts#falso-comprovante-pix-5-sinais",
+    "reviewedOn": "2026-08-26",
+    "families": ["safe_checkout", "save_this_rule"]
+  },
+  {
+    "id": "safety.refund-original-transaction",
+    "statement": "Se o recebimento for legítimo, use a função de devolução vinculada à própria transação. Não envie para outra chave indicada por mensagem.",
+    "source": "repo://frontend/lib/blog/articles.ts#golpe-do-estorno",
+    "reviewedOn": "2026-08-26",
+    "families": ["safe_checkout", "save_this_rule"]
+  },
+  {
+    "id": "safety.verify-qr-recipient",
+    "statement": "Leia o nome exibido pelo seu banco, confira o valor e observe se existe adesivo ou código sobreposto no ponto de pagamento.",
+    "source": "repo://frontend/lib/blog/articles.ts#qr-code-trocado-teste-3-segundos",
+    "reviewedOn": "2026-08-26",
+    "families": ["safe_checkout", "checkout_situation"]
+  },
+  {
+    "id": "safety.verify-terminal-amount",
+    "statement": "Veja o valor completo no visor. Se a tela estiver danificada, escondida ou ilegível, peça outra máquina ou outro meio de pagamento.",
+    "source": "repo://frontend/lib/blog/articles.ts#maquininha-adulterada-checklist",
+    "reviewedOn": "2026-08-26",
+    "families": ["safe_checkout", "save_this_rule"]
+  }
 ]
 ```
 
@@ -411,6 +600,7 @@ git commit -m "feat: add reviewed editorial contracts"
 ## Task 4: Generate valid BRL scenarios and enforce anti-repetition
 
 **Files:**
+
 - Create: `src/editorial/scenario.ts`
 - Create: `src/editorial/select.ts`
 - Create: `tests/scenario.test.ts`
@@ -426,10 +616,15 @@ import { createScenario } from "../src/editorial/scenario.js";
 
 test("a BRL scenario comes from shared integer-money contracts", () => {
   assert.deepEqual(createScenario(8265, 10000), {
-    purchaseMinor: 8265, receivedMinor: 10000, resultMinor: 1735, outcome: "change_due",
+    purchaseMinor: 8265,
+    receivedMinor: 10000,
+    resultMinor: 1735,
+    outcome: "change_due",
     breakdown: [
-      { denominationMinor: 1000, quantity: 1 }, { denominationMinor: 500, quantity: 1 },
-      { denominationMinor: 200, quantity: 1 }, { denominationMinor: 25, quantity: 1 },
+      { denominationMinor: 1000, quantity: 1 },
+      { denominationMinor: 500, quantity: 1 },
+      { denominationMinor: 200, quantity: 1 },
+      { denominationMinor: 25, quantity: 1 },
       { denominationMinor: 10, quantity: 1 },
     ],
   });
@@ -443,15 +638,50 @@ import test from "node:test";
 import { rejectReason } from "../src/editorial/select.js";
 
 test("recent scenario pairs and annual copy fingerprints are rejected", () => {
-  const history = [{ localDate: "2026-08-20", recipeId: "quick-v1", purchaseMinor: 8265,
-    receivedMinor: 10000, headlineFingerprint: "same", captionFingerprint: "same-caption",
-    palette: "green", cta: "download" }] as const;
-  assert.equal(rejectReason({ localDate: "2026-08-26", recipeId: "quick-v1", purchaseMinor: 8265,
-    receivedMinor: 10000, headlineFingerprint: "new", captionFingerprint: "new-caption",
-    palette: "purple", cta: "save_share" }, history), "scenario_within_90_days");
-  assert.equal(rejectReason({ localDate: "2026-08-26", recipeId: "other", purchaseMinor: 1290,
-    receivedMinor: 2000, headlineFingerprint: "same", captionFingerprint: "other",
-    palette: "purple", cta: "save_share" }, history), "headline_within_365_days");
+  const history = [
+    {
+      localDate: "2026-08-20",
+      recipeId: "quick-v1",
+      purchaseMinor: 8265,
+      receivedMinor: 10000,
+      headlineFingerprint: "same",
+      captionFingerprint: "same-caption",
+      palette: "green",
+      cta: "download",
+    },
+  ] as const;
+  assert.equal(
+    rejectReason(
+      {
+        localDate: "2026-08-26",
+        recipeId: "quick-v1",
+        purchaseMinor: 8265,
+        receivedMinor: 10000,
+        headlineFingerprint: "new",
+        captionFingerprint: "new-caption",
+        palette: "purple",
+        cta: "save_share",
+      },
+      history,
+    ),
+    "scenario_within_90_days",
+  );
+  assert.equal(
+    rejectReason(
+      {
+        localDate: "2026-08-26",
+        recipeId: "other",
+        purchaseMinor: 1290,
+        receivedMinor: 2000,
+        headlineFingerprint: "same",
+        captionFingerprint: "other",
+        palette: "purple",
+        cta: "save_share",
+      },
+      history,
+    ),
+    "headline_within_365_days",
+  );
 });
 ```
 
@@ -468,14 +698,27 @@ Expected: FAIL because scenario and selection modules are missing.
 import { buildDenominationBreakdown, calculateChange } from "@trocohq/core";
 import { scenarioSchema, type Scenario } from "./schema.js";
 
-export function createScenario(purchaseMinor: number, receivedMinor: number): Scenario {
+export function createScenario(
+  purchaseMinor: number,
+  receivedMinor: number,
+): Scenario {
   const result = calculateChange({ purchaseMinor, receivedMinor });
-  const breakdown = result.outcome === "change_due"
-    ? buildDenominationBreakdown(result.resultMinor, "BRL").map(({ denomination, quantity }) => ({
-        denominationMinor: denomination.valueMinor, quantity,
-      }))
-    : [];
-  return scenarioSchema.parse({ purchaseMinor, receivedMinor, resultMinor: result.resultMinor, outcome: result.outcome, breakdown });
+  const breakdown =
+    result.outcome === "change_due"
+      ? buildDenominationBreakdown(result.resultMinor, "BRL").map(
+          ({ denomination, quantity }) => ({
+            denominationMinor: denomination.valueMinor,
+            quantity,
+          }),
+        )
+      : [];
+  return scenarioSchema.parse({
+    purchaseMinor,
+    receivedMinor,
+    resultMinor: result.resultMinor,
+    outcome: result.outcome,
+    breakdown,
+  });
 }
 ```
 
@@ -497,6 +740,7 @@ git commit -m "feat: generate non-repeating BRL campaigns"
 ## Task 5: Compose immutable campaign plans and the rolling window
 
 **Files:**
+
 - Create: `src/editorial/copy.ts`
 - Create: `src/planning/create-campaign.ts`
 - Create: `src/planning/rolling-window.ts`
@@ -512,7 +756,11 @@ import test from "node:test";
 import { createCampaign } from "../src/planning/create-campaign.js";
 
 test("a Wednesday campaign is immutable, attributed, and complete for four channels", () => {
-  const plan = createCampaign({ localDate: "2026-08-26", publishTime: "12:17", history: [] });
+  const plan = createCampaign({
+    localDate: "2026-08-26",
+    publishTime: "12:17",
+    history: [],
+  });
   assert.equal(plan.family, "troco_explains");
   assert.equal(plan.targetAt, "2026-08-26T12:17:00-03:00");
   assert.match(plan.copy.channels.instagram.caption, /utm_source=instagram/);
@@ -528,9 +776,17 @@ import test from "node:test";
 import { datesNeedingPlans } from "../src/planning/rolling-window.js";
 
 test("planning creates today through six days ahead and never backfills yesterday", () => {
-  assert.deepEqual(datesNeedingPlans(new Date("2026-08-26T18:00:00Z"), ["2026-08-27"]), [
-    "2026-08-26", "2026-08-28", "2026-08-29", "2026-08-30", "2026-08-31", "2026-09-01",
-  ]);
+  assert.deepEqual(
+    datesNeedingPlans(new Date("2026-08-26T18:00:00Z"), ["2026-08-27"]),
+    [
+      "2026-08-26",
+      "2026-08-28",
+      "2026-08-29",
+      "2026-08-30",
+      "2026-08-31",
+      "2026-09-01",
+    ],
+  );
 });
 ```
 
@@ -547,7 +803,10 @@ Expected: FAIL because the planning modules do not exist.
 ```ts
 // src/planning/rolling-window.ts
 import { rollingLocalDates } from "../shared/time.js";
-export function datesNeedingPlans(now: Date, existingDates: readonly string[]): string[] {
+export function datesNeedingPlans(
+  now: Date,
+  existingDates: readonly string[],
+): string[] {
   const existing = new Set(existingDates);
   return rollingLocalDates(now, 7).filter((date) => !existing.has(date));
 }
@@ -571,6 +830,7 @@ git commit -m "feat: compose immutable daily campaign plans"
 ## Task 6: Validate canonical Troco brand assets
 
 **Files:**
+
 - Create: `src/brand/manifest.ts`
 - Create: `src/brand/load-brand.ts`
 - Create: `tests/brand.test.ts`
@@ -593,7 +853,10 @@ test("the current canonical Troco mark and fonts pass the reviewed manifest", as
 });
 
 test("brand loading has no substitute mark", async () => {
-  await assert.rejects(loadBrand(new URL("./missing/", import.meta.url)), /Missing canonical brand asset/);
+  await assert.rejects(
+    loadBrand(new URL("./missing/", import.meta.url)),
+    /Missing canonical brand asset/,
+  );
 });
 ```
 
@@ -608,10 +871,14 @@ Expected: FAIL because the brand loader is missing.
 ```ts
 // src/brand/manifest.ts
 export const brandManifest = {
-  "brand/troco-mark.svg": "d577f306ff034f6ee86fbc497a2d28158aa46b3cbb667d1068009a1f4631a422",
-  "brand/troco-mark-inverse.svg": "4dddbd9361cd8bb0e77319705ece8152499a189d0d5f5d3be374767828b8bb43",
-  "fonts/stolzl-regular.woff2": "c9d162816a718cbc2127556f95f6ffcad24bd2b0cb2ee1104f32ae39091ff881",
-  "fonts/figtree-variable.ttf": "1851150b35645dab3a4ef935a349a2d1f5373221c0d5b6993d145210766c54de",
+  "brand/troco-mark.svg":
+    "d577f306ff034f6ee86fbc497a2d28158aa46b3cbb667d1068009a1f4631a422",
+  "brand/troco-mark-inverse.svg":
+    "4dddbd9361cd8bb0e77319705ece8152499a189d0d5f5d3be374767828b8bb43",
+  "fonts/stolzl-regular.woff2":
+    "c9d162816a718cbc2127556f95f6ffcad24bd2b0cb2ee1104f32ae39091ff881",
+  "fonts/figtree-variable.ttf":
+    "1851150b35645dab3a4ef935a349a2d1f5373221c0d5b6993d145210766c54de",
 } as const;
 ```
 
@@ -633,6 +900,7 @@ git commit -m "feat: enforce canonical Troco brand assets"
 ## Task 7: Render feed cards and carousels
 
 **Files:**
+
 - Create: `src/render/svg.ts`
 - Create: `src/render/image.ts`
 - Create: `tests/image-render.test.ts`
@@ -654,12 +922,21 @@ import { renderFeed } from "../src/render/image.js";
 
 test("feed output is deterministic 1080 by 1350 sRGB JPEG", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-feed-"));
-  const plan = createCampaign({ localDate: "2026-08-26", publishTime: "12:17", history: [] });
-  const brand = await loadBrand(new URL("../../frontend/public/", import.meta.url));
+  const plan = createCampaign({
+    localDate: "2026-08-26",
+    publishTime: "12:17",
+    history: [],
+  });
+  const brand = await loadBrand(
+    new URL("../../frontend/public/", import.meta.url),
+  );
   const first = await renderFeed({ plan, brand, output });
   const second = await renderFeed({ plan, brand, output });
   const metadata = await sharp(first.files[0]).metadata();
-  assert.deepEqual([metadata.width, metadata.height, metadata.format, metadata.space], [1080, 1350, "jpeg", "srgb"]);
+  assert.deepEqual(
+    [metadata.width, metadata.height, metadata.format, metadata.space],
+    [1080, 1350, "jpeg", "srgb"],
+  );
   assert.equal(first.files.length, 1);
   assert.equal(first.hashes[0], second.hashes[0]);
   assert.ok((await readFile(first.files[0])).length < 8_000_000);
@@ -667,8 +944,14 @@ test("feed output is deterministic 1080 by 1350 sRGB JPEG", async () => {
 
 test("a carousel campaign renders two to five equal-size slides", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-carousel-"));
-  const plan = createCampaign({ localDate: "2026-08-25", publishTime: "12:17", history: [] });
-  const brand = await loadBrand(new URL("../../frontend/public/", import.meta.url));
+  const plan = createCampaign({
+    localDate: "2026-08-25",
+    publishTime: "12:17",
+    history: [],
+  });
+  const brand = await loadBrand(
+    new URL("../../frontend/public/", import.meta.url),
+  );
   const rendered = await renderFeed({ plan, brand, output });
   assert.ok(rendered.files.length >= 2 && rendered.files.length <= 5);
   for (const file of rendered.files) {
@@ -716,6 +999,7 @@ git commit -m "feat: render deterministic social images"
 ## Task 8: Render valid vertical Shorts with original audio
 
 **Files:**
+
 - Create: `src/render/audio.ts`
 - Create: `src/render/binaries.ts`
 - Create: `src/render/probe.ts`
@@ -740,9 +1024,22 @@ test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));
   const { video } = await renderFixtureCampaign(output);
   const probe = await probeVideo(video);
-  assert.deepEqual({ width: probe.width, height: probe.height, videoCodec: probe.videoCodec,
-    audioCodec: probe.audioCodec, frameRate: probe.frameRate },
-    { width: 1080, height: 1920, videoCodec: "h264", audioCodec: "aac", frameRate: 30 });
+  assert.deepEqual(
+    {
+      width: probe.width,
+      height: probe.height,
+      videoCodec: probe.videoCodec,
+      audioCodec: probe.audioCodec,
+      frameRate: probe.frameRate,
+    },
+    {
+      width: 1080,
+      height: 1920,
+      videoCodec: "h264",
+      audioCodec: "aac",
+      frameRate: 30,
+    },
+  );
   assert.ok(probe.duration >= 8 && probe.duration <= 20);
 });
 ```
@@ -766,7 +1063,15 @@ Create `tests/support/render-fixture.ts` to create the 2026-08-26 campaign, load
 `probe.ts` must execute:
 
 ```ts
-const args = ["-v", "error", "-show_streams", "-show_format", "-of", "json", filePath];
+const args = [
+  "-v",
+  "error",
+  "-show_streams",
+  "-show_format",
+  "-of",
+  "json",
+  filePath,
+];
 ```
 
 Normalize codec names, dimensions, exact rational frame rate, duration, and byte size; reject anything other than MP4/H.264/AAC/1080×1920/30 fps/8–20 seconds and a 50 MB maximum.
@@ -787,6 +1092,7 @@ git commit -m "feat: render deterministic vertical shorts"
 ## Task 9: Produce a read-only dry-run review bundle
 
 **Files:**
+
 - Create: `src/dry-run/create-review.ts`
 - Create: `src/cli/arguments.ts`
 - Create: `src/cli/dry-run.ts`
@@ -806,10 +1112,19 @@ import { createReview } from "../src/dry-run/create-review.js";
 
 test("dry run writes a complete review bundle and no durable state", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-review-"));
-  const review = await createReview({ localDate: "2026-08-26", output,
-    brandRoot: new URL("../../frontend/public/", import.meta.url) });
-  assert.match(await readFile(join(output, "index.html"), "utf8"), /Troco Social Review/);
-  assert.equal(JSON.parse(await readFile(join(output, "campaign.json"), "utf8")).id, review.plan.id);
+  const review = await createReview({
+    localDate: "2026-08-26",
+    output,
+    brandRoot: new URL("../../frontend/public/", import.meta.url),
+  });
+  assert.match(
+    await readFile(join(output, "index.html"), "utf8"),
+    /Troco Social Review/,
+  );
+  assert.equal(
+    JSON.parse(await readFile(join(output, "campaign.json"), "utf8")).id,
+    review.plan.id,
+  );
   await assert.rejects(stat(join(output, "state")), /ENOENT/);
   assert.ok(review.media.video.hash.length === 64);
 });
@@ -857,6 +1172,7 @@ git commit -m "feat: add complete social dry run"
 ## Task 10: Document and verify the core release boundary
 
 **Files:**
+
 - Create: `README.md`
 - Modify: `.gitignore`
 - Modify: `src/index.ts`
@@ -867,8 +1183,17 @@ Add to `tests/package-contract.test.ts`:
 
 ```ts
 test("the README documents the safe local workflow", async () => {
-  const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
-  for (const phrase of ["npm run dry-run", "No provider writes", "Canonical brand assets", "FFmpeg", "NODE_AUTH_TOKEN"]) {
+  const readme = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+  for (const phrase of [
+    "npm run dry-run",
+    "No provider writes",
+    "Canonical brand assets",
+    "FFmpeg",
+    "NODE_AUTH_TOKEN",
+  ]) {
     assert.match(readme, new RegExp(phrase));
   }
 });

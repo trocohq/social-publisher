@@ -26,7 +26,10 @@ export function campaignFamilyForDate(localDate: string): CampaignFamily {
   }
 
   const parsed = new Date(`${localDate}T12:00:00Z`);
-  if (Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== localDate) {
+  if (
+    Number.isNaN(parsed.valueOf()) ||
+    parsed.toISOString().slice(0, 10) !== localDate
+  ) {
     throw new Error("Invalid local date");
   }
 

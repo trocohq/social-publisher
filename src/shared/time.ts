@@ -22,7 +22,10 @@ function parseLocalDate(localDate: string): Date {
   }
 
   const parsed = new Date(`${localDate}T12:00:00Z`);
-  if (Number.isNaN(parsed.valueOf()) || parsed.toISOString().slice(0, 10) !== localDate) {
+  if (
+    Number.isNaN(parsed.valueOf()) ||
+    parsed.toISOString().slice(0, 10) !== localDate
+  ) {
     throw new Error("Invalid local date");
   }
   return parsed;
@@ -37,14 +40,17 @@ export function localDateAt(
   const values = Object.fromEntries(
     localDateFormatter(timeZone)
       .formatToParts(instant)
-      .filter(({ type }) => type === "year" || type === "month" || type === "day")
+      .filter(
+        ({ type }) => type === "year" || type === "month" || type === "day",
+      )
       .map(({ type, value }) => [type, value]),
   );
   return `${values.year}-${values.month}-${values.day}`;
 }
 
 export function addCalendarDays(localDate: string, days: number): string {
-  if (!Number.isInteger(days)) throw new Error("Calendar days must be an integer");
+  if (!Number.isInteger(days))
+    throw new Error("Calendar days must be an integer");
   const parsed = parseLocalDate(localDate);
   parsed.setUTCDate(parsed.getUTCDate() + days);
   return parsed.toISOString().slice(0, 10);
@@ -59,10 +65,14 @@ export function rollingLocalDates(
     throw new Error("Window count must be a non-negative integer");
   }
   const today = localDateAt(now, timeZone);
-  return Array.from({ length: count }, (_, index) => addCalendarDays(today, index));
+  return Array.from({ length: count }, (_, index) =>
+    addCalendarDays(today, index),
+  );
 }
 
 export function calendarDayDistance(left: string, right: string): number {
-  const milliseconds = Math.abs(parseLocalDate(left).valueOf() - parseLocalDate(right).valueOf());
+  const milliseconds = Math.abs(
+    parseLocalDate(left).valueOf() - parseLocalDate(right).valueOf(),
+  );
   return milliseconds / 86_400_000;
 }

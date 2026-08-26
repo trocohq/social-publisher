@@ -38,7 +38,10 @@ function validPlan(): Record<string, unknown> {
         instagram: { caption: "Legenda Instagram" },
         facebook: { caption: "Legenda Facebook" },
         tiktok: { caption: "Legenda TikTok", title: "Troco certo" },
-        youtube: { title: "Troco certo #Shorts", description: "Descrição YouTube" },
+        youtube: {
+          title: "Troco certo #Shorts",
+          description: "Descrição YouTube",
+        },
       },
     },
     sourceIds: ["product.change-calculation"],
@@ -73,7 +76,12 @@ test("expired or incompatible facts cannot enter a campaign", () => {
     /expired/,
   );
   assert.throws(
-    () => assertFactUsable({ ...fact, expiresOn: undefined }, "2026-08-26", "troco_explains"),
+    () =>
+      assertFactUsable(
+        { ...fact, expiresOn: undefined },
+        "2026-08-26",
+        "troco_explains",
+      ),
     /family/,
   );
 });

@@ -1,10 +1,7 @@
 import { formatMinor } from "@trocohq/core";
 import { z } from "zod";
 
-import {
-  campaignFamilies,
-  type CampaignFamily,
-} from "../config/schedule.js";
+import { campaignFamilies, type CampaignFamily } from "../config/schedule.js";
 
 export const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
 export const channelSchema = z.enum(channels);
@@ -45,9 +42,7 @@ export const factSchema = z.object({
 export type Fact = z.infer<typeof factSchema>;
 
 export const calendarMomentSchema = factSchema.extend({
-  monthDay: z
-    .string()
-    .regex(/^(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/),
+  monthDay: z.string().regex(/^(?:0[1-9]|1[0-2])-(?:0[1-9]|[12]\d|3[01])$/),
 });
 export type CalendarMoment = z.infer<typeof calendarMomentSchema>;
 
@@ -57,7 +52,9 @@ export function assertFactUsable(
   family: CampaignFamily,
 ): void {
   if (!fact.families.includes(family)) {
-    throw new Error(`Fact ${fact.id} is not allowed for campaign family ${family}`);
+    throw new Error(
+      `Fact ${fact.id} is not allowed for campaign family ${family}`,
+    );
   }
   if (fact.expiresOn && fact.expiresOn < localDate) {
     throw new Error(`Fact ${fact.id} expired on ${fact.expiresOn}`);
@@ -116,14 +113,21 @@ export const campaignPlanSchema = z
     scenario: scenarioSchema,
     copy: campaignCopySchema,
     sourceIds: z.array(z.string().regex(/^[a-z0-9._-]+$/)).min(1),
-    calendarMomentId: z.string().regex(/^[a-z0-9._-]+$/).optional(),
+    calendarMomentId: z
+      .string()
+      .regex(/^[a-z0-9._-]+$/)
+      .optional(),
     fingerprints: z.object({
       headline: z.string().regex(/^[a-f0-9]{64}$/),
       caption: z.string().regex(/^[a-f0-9]{64}$/),
     }),
   })
   .superRefine((plan, context) => {
-    const expectedAnswer = formatMinor(plan.scenario.resultMinor, "BRL", "pt-BR");
+    const expectedAnswer = formatMinor(
+      plan.scenario.resultMinor,
+      "BRL",
+      "pt-BR",
+    );
     if (plan.copy.answer !== expectedAnswer) {
       context.addIssue({
         code: "custom",
@@ -132,13 +136,25 @@ export const campaignPlanSchema = z
       });
     }
     if (plan.mediaKind === "feed" && plan.slideCount !== 1) {
-      context.addIssue({ code: "custom", message: "Feed campaigns have one slide", path: ["slideCount"] });
+      context.addIssue({
+        code: "custom",
+        message: "Feed campaigns have one slide",
+        path: ["slideCount"],
+      });
     }
     if (plan.mediaKind === "carousel" && plan.slideCount < 2) {
-      context.addIssue({ code: "custom", message: "Carousel campaigns need at least two slides", path: ["slideCount"] });
+      context.addIssue({
+        code: "custom",
+        message: "Carousel campaigns need at least two slides",
+        path: ["slideCount"],
+      });
     }
     if (plan.mediaKind === "video" && plan.slideCount !== 1) {
-      context.addIssue({ code: "custom", message: "Video campaigns have one poster", path: ["slideCount"] });
+      context.addIssue({
+        code: "custom",
+        message: "Video campaigns have one poster",
+        path: ["slideCount"],
+      });
     }
   });
 

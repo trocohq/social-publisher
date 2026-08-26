@@ -10,7 +10,10 @@ test("the publisher is a public ESM package with deterministic validation script
   assert.equal(packageJson.private, false);
   assert.equal(packageJson.type, "module");
   assert.equal(packageJson.engines.node, ">=20.19.4");
-  assert.equal(packageJson.scripts.test, "node --import tsx --test tests/*.test.ts");
+  assert.equal(
+    packageJson.scripts.test,
+    "node --import tsx --test tests/*.test.ts",
+  );
   assert.equal(
     packageJson.scripts.validate,
     "node --import tsx src/validation/run.ts",
@@ -22,4 +25,20 @@ test("the npm registry configuration uses current supported keys", async () => {
   const npmrc = await readFile(new URL("../.npmrc", import.meta.url), "utf8");
   assert.match(npmrc, /@trocohq:registry=https:\/\/npm\.pkg\.github\.com/);
   assert.doesNotMatch(npmrc, /always-auth/);
+});
+
+test("the README documents the safe local workflow", async () => {
+  const readme = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+  for (const phrase of [
+    "npm run dry-run",
+    "No provider writes",
+    "Canonical brand assets",
+    "FFmpeg",
+    "NODE_AUTH_TOKEN",
+  ]) {
+    assert.match(readme, new RegExp(phrase));
+  }
 });

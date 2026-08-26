@@ -34,12 +34,12 @@ The public publisher repository contains no credentials. It uses GitHub Actions 
 
 ## 3. Official channels
 
-| Channel | Official profile | Delivery path | Daily media |
-| --- | --- | --- | --- |
-| Instagram | <https://www.instagram.com/trocohq> | Buffer API | Image, carousel, or Reel |
-| Facebook | <https://www.facebook.com/trocohq> | Buffer API | Image, carousel, or Reel |
-| TikTok | <https://www.tiktok.com/@trocofacil.app> | Buffer API | Photo post or video |
-| YouTube | <https://www.youtube.com/@trocohq> | YouTube Data API | Short video only |
+| Channel   | Official profile                         | Delivery path    | Daily media              |
+| --------- | ---------------------------------------- | ---------------- | ------------------------ |
+| Instagram | <https://www.instagram.com/trocohq>      | Buffer API       | Image, carousel, or Reel |
+| Facebook  | <https://www.facebook.com/trocohq>       | Buffer API       | Image, carousel, or Reel |
+| TikTok    | <https://www.tiktok.com/@trocofacil.app> | Buffer API       | Photo post or video      |
+| YouTube   | <https://www.youtube.com/@trocohq>       | YouTube Data API | Short video only         |
 
 Profile URLs are configuration values, not duplicated literals. A future TikTok handle change requires one configuration edit plus contract-test updates.
 
@@ -110,15 +110,15 @@ Every module exposes a narrow interface and must be independently testable with 
 
 ### 6.1 Weekly rotation
 
-| Day | Campaign family | Primary format for Instagram, Facebook, and TikTok | YouTube format |
-| --- | --- | --- | --- |
-| Monday | Change challenge | Short video | Short video |
-| Tuesday | Cashier shortcut | Carousel | Animated carousel Short |
-| Wednesday | Troco explains | Feed image | Animated explainer Short |
-| Thursday | Quick calculation | Short video | Short video |
-| Friday | Safe checkout | Carousel | Animated checklist Short |
-| Saturday | Real checkout situation | Short video | Short video |
-| Sunday | Save this rule | Feed image | Animated summary Short |
+| Day       | Campaign family         | Primary format for Instagram, Facebook, and TikTok | YouTube format           |
+| --------- | ----------------------- | -------------------------------------------------- | ------------------------ |
+| Monday    | Change challenge        | Short video                                        | Short video              |
+| Tuesday   | Cashier shortcut        | Carousel                                           | Animated carousel Short  |
+| Wednesday | Troco explains          | Feed image                                         | Animated explainer Short |
+| Thursday  | Quick calculation       | Short video                                        | Short video              |
+| Friday    | Safe checkout           | Carousel                                           | Animated checklist Short |
+| Saturday  | Real checkout situation | Short video                                        | Short video              |
+| Sunday    | Save this rule          | Feed image                                         | Animated summary Short   |
 
 The schedule is stored as configuration and can be changed without rewriting selection logic.
 
