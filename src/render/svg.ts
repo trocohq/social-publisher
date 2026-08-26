@@ -292,3 +292,125 @@ export function createFeedSlideSvg({
     ${content}
   </svg>`;
 }
+
+export const verticalScenes = [
+  "hook",
+  "scenario",
+  "answer",
+  "end_card",
+] as const;
+export type VerticalScene = (typeof verticalScenes)[number];
+
+function verticalHeader(
+  plan: CampaignPlan,
+  brand: BrandAssets,
+  sceneIndex: number,
+): string {
+  const mark = Buffer.from(brand.markSvg).toString("base64");
+  return `
+    <image x="${SAFE}" y="92" width="82" height="82" href="data:image/svg+xml;base64,${mark}"/>
+    <text x="205" y="150" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="32" font-weight="700">TROCO</text>
+    <rect x="650" y="104" width="334" height="62" rx="31" fill="${designTokens.colors.paper}" fill-opacity="0.78"/>
+    <text x="817" y="144" text-anchor="middle" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="22" font-weight="700">${escapeXml(familyLabels[plan.family])}</text>
+    <text x="984" y="1840" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="24">${String(sceneIndex + 1).padStart(2, "0")}/04</text>`;
+}
+
+function verticalSceneContent(
+  plan: CampaignPlan,
+  scene: VerticalScene,
+): string {
+  if (scene === "hook") {
+    const headline = fitText(plan.copy.headline, {
+      maxWidth: 888,
+      maxHeight: 900,
+      maximumFontSize: 106,
+      minimumFontSize: 64,
+    });
+    return `${textBlock(headline, SAFE, 360, "Stolzl")}
+      <rect x="96" y="1510" width="888" height="170" rx="36" fill="${designTokens.colors.ink}"/>
+      <text x="540" y="1612" text-anchor="middle" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="40" font-weight="700">CALCULE ANTES DA RESPOSTA</text>`;
+  }
+
+  if (scene === "scenario") {
+    const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
+    const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
+    const title = fitText("Dois valores. Uma conta.", {
+      maxWidth: 888,
+      maxHeight: 260,
+      maximumFontSize: 88,
+      minimumFontSize: 64,
+    });
+    return `${textBlock(title, SAFE, 300, "Stolzl")}
+      <rect x="96" y="720" width="888" height="550" rx="40" fill="${designTokens.colors.paper}"/>
+      <text x="150" y="850" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="36">COMPRA</text>
+      <text x="930" y="850" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="62">${escapeXml(purchase)}</text>
+      <line x1="150" x2="930" y1="915" y2="915" stroke="${designTokens.colors.border}" stroke-width="3"/>
+      <text x="150" y="1040" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="36">RECEBIDO</text>
+      <text x="930" y="1040" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="62">${escapeXml(received)}</text>
+      <rect x="134" y="1110" width="812" height="112" rx="28" fill="${designTokens.colors.ink}"/>
+      <text x="540" y="1183" text-anchor="middle" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="42" font-weight="700">QUAL É O TROCO?</text>`;
+  }
+
+  if (scene === "answer") {
+    const answer = fitText(plan.copy.answer, {
+      maxWidth: 888,
+      maxHeight: 350,
+      maximumFontSize: 160,
+      minimumFontSize: 64,
+    });
+    const detail = plan.scenario.breakdown
+      .map(
+        (item) =>
+          `${item.quantity}× ${formatMinor(item.denominationMinor, "BRL", "pt-BR")}`,
+      )
+      .join("  •  ");
+    const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
+      maxWidth: 780,
+      maxHeight: 420,
+      maximumFontSize: 46,
+      minimumFontSize: 34,
+    });
+    return `<text x="96" y="410" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="700">O TROCO CERTO É</text>
+      ${textBlock(answer, SAFE, 470, "Stolzl")}
+      <rect x="96" y="980" width="888" height="470" rx="40" fill="${designTokens.colors.paper}"/>
+      <text x="150" y="1070" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="30" font-weight="700">UMA FORMA DE SEPARAR</text>
+      ${textBlock(breakdown, 150, 1120, "Figtree")}`;
+  }
+
+  const explanation = fitText(plan.copy.explanation, {
+    maxWidth: 888,
+    maxHeight: 790,
+    maximumFontSize: 54,
+    minimumFontSize: 34,
+  });
+  const cta = fitText(plan.copy.cta, {
+    maxWidth: 780,
+    maxHeight: 280,
+    maximumFontSize: 48,
+    minimumFontSize: 34,
+  });
+  return `${textBlock(explanation, SAFE, 320, "Figtree")}
+    <rect x="96" y="1320" width="888" height="380" rx="40" fill="${designTokens.colors.ink}"/>
+    ${textBlock(cta, 150, 1390, "Figtree", 700, designTokens.colors.paper)}
+    <text x="150" y="1630" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="32" font-weight="700">troco.net</text>`;
+}
+
+export function createVerticalSceneSvg({
+  plan,
+  brand,
+  scene,
+}: Readonly<{
+  plan: CampaignPlan;
+  brand: BrandAssets;
+  scene: VerticalScene;
+}>): string {
+  const sceneIndex = verticalScenes.indexOf(scene);
+  if (sceneIndex < 0)
+    throw new Error(`Invalid vertical scene: ${String(scene)}`);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="1080" height="1920" viewBox="0 0 1080 1920">
+    ${embeddedFonts(brand)}
+    <rect width="1080" height="1920" fill="${backgroundByPalette[plan.palette]}"/>
+    ${verticalHeader(plan, brand, sceneIndex)}
+    ${verticalSceneContent(plan, scene)}
+  </svg>`;
+}
