@@ -1,0 +1,10 @@
+!docs/
+!docs/**
+
+node_modules/
+.tmp/
+dist/
+coverage/
+.env
+.env.*
+!.env.example
