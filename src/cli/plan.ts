@@ -1,0 +1,178 @@
+import { resolve, sep } from "node:path";
+import { pathToFileURL, fileURLToPath } from "node:url";
+
+import { loadBrand } from "../brand/load-brand.js";
+import { parseEnvironment } from "../config/environment.js";
+import { mediaRecordFromState } from "../media/manifest.js";
+import { createPagesPayload, datesInPagesPayload } from "../media/pages.js";
+import {
+  createCampaign,
+  historyEntryFromCampaign,
+} from "../planning/create-campaign.js";
+import { datesNeedingPlans } from "../planning/rolling-window.js";
+import { renderFeed } from "../render/image.js";
+import { renderVideo } from "../render/video.js";
+import { localDateAt } from "../shared/time.js";
+import {
+  campaignStateSchema,
+  type CampaignState,
+  type PublicationChannel,
+  type Stage,
+} from "../state/schema.js";
+import { listCampaignStates, writeCampaignState } from "../state/storage.js";
+import { transitionMedia, transitionProvider } from "../state/transitions.js";
+
+const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
+
+function stageRecord(stage: Stage) {
+  return { stage, attempts: 0, transitions: [] };
+}
+
+function transitionAll(
+  state: CampaignState,
+  to: "rendered" | "deploying",
+  now: Date,
+): CampaignState {
+  let next = transitionMedia(state, to, now);
+  for (const channel of channels) {
+    next = transitionProvider(next, channel, to, now);
+  }
+  return next;
+}
+
+async function renderCampaign(
+  state: Pick<CampaignState, "plan">,
+  brand: Awaited<ReturnType<typeof loadBrand>>,
+  renderRoot: string,
+  ffmpegPath?: string,
+  ffprobePath?: string,
+) {
+  const campaignRoot = resolve(renderRoot, state.plan.localDate, state.plan.id);
+  const feed = await renderFeed({
+    plan: state.plan,
+    brand,
+    output: resolve(campaignRoot, "feed"),
+  });
+  const video = await renderVideo({
+    plan: state.plan,
+    brand,
+    output: resolve(campaignRoot, "video"),
+    ...(ffmpegPath ? { ffmpegPath } : {}),
+    ...(ffprobePath ? { ffprobePath } : {}),
+  });
+  return { feed, video };
+}
+
+export async function runPlanning(
+  workingRoot = process.cwd(),
+  now = new Date(),
+): Promise<Readonly<{ created: number; campaigns: number; today: string }>> {
+  const environment = parseEnvironment(process.env, "planning");
+  const stateRoot = resolve(workingRoot, "state");
+  const renderRoot = resolve(workingRoot, ".tmp/render");
+  const pagesRoot = resolve(workingRoot, ".tmp/pages");
+  const brandPath = resolve(workingRoot, environment.brandRoot);
+  const brand = await loadBrand(pathToFileURL(`${brandPath}${sep}`));
+  const existing = await listCampaignStates(stateRoot);
+  const history = existing
+    .map((state) => historyEntryFromCampaign(state.plan))
+    .sort((left, right) => left.localDate.localeCompare(right.localDate));
+  const missingDates = datesNeedingPlans(
+    now,
+    existing.map((state) => state.plan.localDate),
+  );
+  const created: CampaignState[] = [];
+
+  for (const localDate of missingDates) {
+    const plan = createCampaign({
+      localDate,
+      publishTime: environment.publishTime,
+      history,
+      playStoreUrl: environment.playStoreUrl,
+    });
+    const rendered = await renderCampaign(
+      { plan },
+      brand,
+      renderRoot,
+      environment.ffmpegPath,
+      environment.ffprobePath,
+    );
+    let state = campaignStateSchema.parse({
+      schemaVersion: 1,
+      plan,
+      sourceCommits: {
+        brand: environment.brandSourceSha,
+        designTokens: environment.designTokensSourceSha,
+      },
+      renderHashes: {
+        feed: rendered.feed.hashes,
+        video: rendered.video.hash,
+      },
+      media: stageRecord("planned"),
+      channels: Object.fromEntries(
+        channels.map((channel) => [channel, stageRecord("planned")]),
+      ) as Record<PublicationChannel, ReturnType<typeof stageRecord>>,
+    });
+    state = transitionAll(state, "rendered", now);
+    await writeCampaignState(stateRoot, state);
+    existing.push(state);
+    created.push(state);
+    history.push(historyEntryFromCampaign(plan));
+  }
+
+  const payloadDates = new Set(datesInPagesPayload(localDateAt(now)));
+  const included = existing
+    .filter((state) => payloadDates.has(state.plan.localDate))
+    .sort((left, right) =>
+      left.plan.localDate.localeCompare(right.plan.localDate),
+    );
+  for (const state of included) {
+    const rendered = await renderCampaign(
+      state,
+      brand,
+      renderRoot,
+      environment.ffmpegPath,
+      environment.ffprobePath,
+    );
+    if (
+      JSON.stringify(rendered.feed.hashes) !==
+        JSON.stringify(state.renderHashes.feed) ||
+      rendered.video.hash !== state.renderHashes.video
+    ) {
+      throw new Error(
+        `Render hash changed for immutable campaign ${state.plan.id}`,
+      );
+    }
+  }
+  await createPagesPayload({
+    today: localDateAt(now),
+    campaigns: included.map(mediaRecordFromState),
+    renderRoot,
+    pagesRoot,
+  });
+
+  for (const state of included) {
+    if (state.media.stage !== "rendered") continue;
+    const deploying = transitionAll(state, "deploying", now);
+    await writeCampaignState(stateRoot, deploying);
+  }
+  return Object.freeze({
+    created: created.length,
+    campaigns: included.length,
+    today: localDateAt(now),
+  });
+}
+
+const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
+if (invokedPath === fileURLToPath(import.meta.url)) {
+  runPlanning()
+    .then((summary) =>
+      process.stdout.write(`${JSON.stringify({ ok: true, ...summary })}\n`),
+    )
+    .catch((error: unknown) => {
+      process.stderr.write(
+        `${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "Planning failed" })}\n`,
+      );
+      process.exitCode = 1;
+    });
+}

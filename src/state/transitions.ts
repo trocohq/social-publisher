@@ -7,9 +7,27 @@ import {
 } from "./schema.js";
 
 const providerTransitions: Readonly<Record<Stage, readonly Stage[]>> = {
-  planned: ["skipped_disabled", "skipped_expired"],
-  rendered: ["skipped_disabled", "skipped_expired"],
-  deploying: ["skipped_disabled", "skipped_expired"],
+  planned: [
+    "rendered",
+    "retryable",
+    "failed",
+    "skipped_disabled",
+    "skipped_expired",
+  ],
+  rendered: [
+    "deploying",
+    "retryable",
+    "failed",
+    "skipped_disabled",
+    "skipped_expired",
+  ],
+  deploying: [
+    "media_verified",
+    "retryable",
+    "failed",
+    "skipped_disabled",
+    "skipped_expired",
+  ],
   media_verified: [
     "scheduling",
     "publishing",

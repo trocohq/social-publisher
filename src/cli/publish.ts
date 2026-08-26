@@ -1,0 +1,269 @@
+import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+
+import {
+  parseEnvironment,
+  type PublisherEnvironment,
+} from "../config/environment.js";
+import { mediaRecordFromState } from "../media/manifest.js";
+import { publicMediaUrls } from "../media/pages.js";
+import {
+  createBufferPost,
+  createBufferPostInput,
+} from "../networks/buffer/posts.js";
+import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
+import type { NormalizedProviderObject } from "../networks/types.js";
+import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
+import { reconcileYouTubeUpload } from "../networks/youtube/reconcile.js";
+import {
+  uploadYouTubeVideo,
+  youtubeVideoResource,
+} from "../networks/youtube/upload.js";
+import {
+  executePublication,
+  type AdapterOutcome,
+} from "../publishing/execute.js";
+import { persistPublicationIntent } from "../publishing/intent.js";
+import type { PublicationAction } from "../publishing/next-action.js";
+import type { CampaignState, PublicationChannel } from "../state/schema.js";
+import { readCampaignState, writeCampaignState } from "../state/storage.js";
+
+export type PublishMode = "scheduled" | "controlled";
+
+export function parsePublishRequest(
+  input: Readonly<{
+    mode: PublishMode;
+    autoPublish: boolean;
+    campaignId?: string;
+    confirmation?: string;
+  }>,
+): Readonly<{ mode: PublishMode; campaignId?: string }> {
+  if (input.mode === "scheduled") {
+    if (!input.autoPublish) {
+      throw new Error("Scheduled provider writes are disabled by AUTO_PUBLISH");
+    }
+    return Object.freeze({ mode: "scheduled" });
+  }
+  if (
+    !input.campaignId ||
+    !/^\d{4}-\d{2}-\d{2}-[a-z0-9-]+-v\d+-\d+$/.test(input.campaignId)
+  ) {
+    throw new Error("Controlled execution requires an exact campaign ID");
+  }
+  if (input.confirmation !== "PUBLISH_ONE_CAMPAIGN") {
+    throw new Error("Controlled execution requires PUBLISH_ONE_CAMPAIGN");
+  }
+  return Object.freeze({ mode: "controlled", campaignId: input.campaignId });
+}
+
+export function parseAction(value: string): PublicationAction {
+  const separator = value.lastIndexOf(":");
+  if (separator < 1) throw new Error("Invalid publication action");
+  const campaignId = value.slice(0, separator);
+  const channel = value.slice(separator + 1) as PublicationChannel;
+  if (
+    !/^\d{4}-\d{2}-\d{2}-[a-z0-9-]+-v\d+-\d+$/.test(campaignId) ||
+    !["instagram", "facebook", "tiktok", "youtube"].includes(channel)
+  ) {
+    throw new Error("Invalid publication action");
+  }
+  return {
+    campaignId,
+    localDate: campaignId.slice(0, 10),
+    channel,
+    phase: "scheduling",
+  };
+}
+
+function channelText(
+  state: CampaignState,
+  channel: PublicationChannel,
+): string {
+  if (channel === "instagram")
+    return state.plan.copy.channels.instagram.caption;
+  if (channel === "facebook") return state.plan.copy.channels.facebook.caption;
+  if (channel === "tiktok") return state.plan.copy.channels.tiktok.caption;
+  return state.plan.copy.channels.youtube.description;
+}
+
+export function providerAdaptersForAction({
+  state,
+  channel,
+  environment,
+  renderRoot,
+}: Readonly<{
+  state: CampaignState;
+  channel: PublicationChannel;
+  environment: PublisherEnvironment;
+  renderRoot: string;
+}>): Readonly<{
+  reconcile: () => Promise<AdapterOutcome>;
+  create: () => Promise<AdapterOutcome>;
+}> {
+  const record = mediaRecordFromState(state);
+  const urls = publicMediaUrls(environment.pagesOrigin, record);
+  const dueAt = new Date(state.plan.targetAt).toISOString();
+
+  if (channel !== "youtube") {
+    const apiKey = environment.buffer.apiKey;
+    if (!apiKey) throw new Error("Buffer provider credentials are unavailable");
+    const mediaKind =
+      state.plan.mediaKind === "video" ? "video" : state.plan.mediaKind;
+    const mediaUrls = mediaKind === "video" ? [urls.video] : urls.feed;
+    const input = createBufferPostInput({
+      channel,
+      channelId: environment.buffer.channelIds[channel],
+      text: channelText(state, channel),
+      dueAt,
+      mediaKind,
+      mediaUrls,
+      ...(channel === "tiktok"
+        ? { title: state.plan.copy.channels.tiktok.title }
+        : {}),
+    });
+    return {
+      reconcile: () =>
+        reconcileBufferPost({
+          apiKey,
+          expected: {
+            channelId: input.channelId,
+            dueAt: input.dueAt,
+            text: input.text,
+            mediaUrls,
+          },
+        }),
+      create: () => createBufferPost({ apiKey, input }),
+    };
+  }
+
+  const { clientId, clientSecret, refreshToken } = environment.youtube;
+  if (!clientId || !clientSecret || !refreshToken) {
+    throw new Error("YouTube provider credentials are unavailable");
+  }
+  const tokenProvider = createYouTubeAccessTokenProvider({
+    clientId,
+    clientSecret,
+    refreshToken,
+  });
+  const resource = youtubeVideoResource({
+    campaignId: state.plan.id,
+    title: state.plan.copy.channels.youtube.title,
+    description: state.plan.copy.channels.youtube.description,
+    publishAt: dueAt,
+  });
+  return {
+    reconcile: async (): Promise<NormalizedProviderObject | undefined> => {
+      const match = await reconcileYouTubeUpload({
+        campaignId: state.plan.id,
+        accessToken: await tokenProvider.getAccessToken(),
+      });
+      if (!match) return undefined;
+      return {
+        id: match.id,
+        status:
+          match.status?.privacyStatus === "public" ? "published" : "scheduled",
+        dueAt,
+        permalink: `https://www.youtube.com/watch?v=${encodeURIComponent(match.id)}`,
+      };
+    },
+    create: async () =>
+      uploadYouTubeVideo({
+        accessToken: await tokenProvider.getAccessToken(),
+        filePath: resolve(
+          renderRoot,
+          state.plan.localDate,
+          state.plan.id,
+          "video/short.mp4",
+        ),
+        resource,
+      }),
+  };
+}
+
+function flagValues(args: readonly string[]): Map<string, string> {
+  const values = new Map<string, string>();
+  for (let index = 0; index < args.length; index += 2) {
+    const flag = args[index];
+    const value = args[index + 1];
+    if (!flag || !value || !flag.startsWith("--")) {
+      throw new Error("Publish arguments must be flag-value pairs");
+    }
+    values.set(flag, value);
+  }
+  return values;
+}
+
+async function run(args: readonly string[]): Promise<void> {
+  const flags = flagValues(args);
+  const phase = flags.get("--phase");
+  const actionValue = flags.get("--action");
+  const mode = flags.get("--mode") as PublishMode | undefined;
+  if (!actionValue || (phase !== "intent" && phase !== "execute") || !mode) {
+    throw new Error(
+      "Required: --phase intent|execute --action ID:channel --mode scheduled|controlled",
+    );
+  }
+  const parsedAction = parseAction(actionValue);
+  const planningEnvironment = parseEnvironment(process.env, "planning");
+  const confirmation = flags.get("--confirm");
+  parsePublishRequest({
+    mode,
+    autoPublish: planningEnvironment.autoPublish,
+    campaignId: parsedAction.campaignId,
+    ...(confirmation ? { confirmation } : {}),
+  });
+  const stateRoot = resolve(flags.get("--state-root") ?? "state");
+  const state = await readCampaignState(stateRoot, parsedAction.localDate);
+  if (state.plan.id !== parsedAction.campaignId)
+    throw new Error("Action campaign does not match state");
+  const now = new Date();
+  const action: PublicationAction = {
+    ...parsedAction,
+    phase:
+      new Date(state.plan.targetAt).valueOf() > now.valueOf()
+        ? "scheduling"
+        : "publishing",
+  };
+
+  if (phase === "intent") {
+    const intended = await persistPublicationIntent({
+      state,
+      action,
+      now,
+      stateRoot,
+    });
+    process.stdout.write(
+      `${JSON.stringify({ ok: true, phase, campaignId: action.campaignId, channel: action.channel, stage: intended.channels[action.channel].stage })}\n`,
+    );
+    return;
+  }
+
+  const environment = parseEnvironment(process.env, "provider");
+  const adapters = providerAdaptersForAction({
+    state,
+    channel: action.channel,
+    environment,
+    renderRoot: resolve(flags.get("--render-root") ?? ".tmp/render"),
+  });
+  const completed = await executePublication({
+    state,
+    channel: action.channel,
+    reconcile: adapters.reconcile,
+    create: adapters.create,
+    now,
+    persist: (value) => writeCampaignState(stateRoot, value),
+  });
+  process.stdout.write(
+    `${JSON.stringify({ ok: true, phase, campaignId: action.campaignId, channel: action.channel, stage: completed.channels[action.channel].stage })}\n`,
+  );
+}
+
+const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
+if (invokedPath === fileURLToPath(import.meta.url)) {
+  run(process.argv.slice(2)).catch((error: unknown) => {
+    process.stderr.write(
+      `${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "Publication failed" })}\n`,
+    );
+    process.exitCode = 1;
+  });
+}

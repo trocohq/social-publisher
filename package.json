@@ -15,6 +15,12 @@
     "format:check": "prettier --check .",
     "test": "node --import tsx --test tests/*.test.ts",
     "dry-run": "node --import tsx src/cli/dry-run.ts",
+    "plan": "node --import tsx src/cli/plan.ts",
+    "next-action": "node --import tsx src/cli/next-action.ts",
+    "preflight": "node --import tsx src/cli/preflight.ts",
+    "publish": "node --import tsx src/cli/publish.ts",
+    "reconcile": "node --import tsx src/cli/reconcile.ts",
+    "incident": "node --import tsx src/cli/incident.ts",
     "validate": "node --import tsx src/validation/run.ts",
     "check": "npm run format:check && npm run typecheck && npm test"
   },

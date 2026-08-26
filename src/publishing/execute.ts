@@ -11,7 +11,7 @@ import {
 } from "../state/schema.js";
 import { transitionProvider } from "../state/transitions.js";
 
-type AdapterOutcome =
+export type AdapterOutcome =
   | NormalizedProviderObject
   | undefined
   | ProviderResult<NormalizedProviderObject | undefined>;
@@ -47,7 +47,7 @@ function errorIsRetryable(error: unknown): boolean {
   return record.retryable === true || status === 429 || status >= 500;
 }
 
-function transitionToSuccess(
+export function applyProviderObject(
   state: CampaignState,
   channel: PublicationChannel,
   provider: NormalizedProviderObject,
@@ -111,7 +111,7 @@ export async function executePublication({
     const existing = unwrap(await reconcile());
     const provider = existing ?? unwrap(await create());
     if (!provider) throw new Error("Provider create returned no object");
-    const completed = transitionToSuccess(state, channel, provider, now);
+    const completed = applyProviderObject(state, channel, provider, now);
     await persist?.(completed);
     return completed;
   } catch (error) {
@@ -130,4 +130,28 @@ export async function executePublication({
     await persist?.(failed);
     return failed;
   }
+}
+
+export async function reconcilePublication({
+  state,
+  channel,
+  reconcile,
+  now,
+  persist,
+}: Readonly<{
+  state: CampaignState;
+  channel: PublicationChannel;
+  reconcile: () => Promise<AdapterOutcome>;
+  now: Date;
+  persist?: (state: CampaignState) => Promise<void>;
+}>): Promise<Readonly<{ state: CampaignState; matched: boolean }>> {
+  const activeStage = state.channels[channel].stage;
+  if (activeStage !== "scheduling" && activeStage !== "publishing") {
+    throw new Error("Reconciliation requires a persisted active intent");
+  }
+  const existing = unwrap(await reconcile());
+  if (!existing) return Object.freeze({ state, matched: false });
+  const completed = applyProviderObject(state, channel, existing, now);
+  await persist?.(completed);
+  return Object.freeze({ state: completed, matched: true });
 }
