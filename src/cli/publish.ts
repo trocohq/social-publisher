@@ -108,12 +108,14 @@ export function providerAdaptersForAction({
   state,
   channel,
   mode,
+  phase,
   environment,
   renderRoot,
 }: Readonly<{
   state: CampaignState;
   channel: PublicationChannel;
   mode: PublishMode;
+  phase: PublicationAction["phase"];
   environment: PublisherEnvironment;
   renderRoot: string;
 }>): Readonly<{
@@ -135,6 +137,7 @@ export function providerAdaptersForAction({
       channelId: environment.buffer.channelIds[channel],
       text: channelText(state, channel),
       dueAt,
+      phase,
       mediaKind,
       mediaUrls,
       ...(channel === "tiktok"
@@ -148,7 +151,7 @@ export function providerAdaptersForAction({
           organizationId: environment.buffer.organizationId,
           expected: {
             channelId: input.channelId,
-            dueAt: input.dueAt,
+            dueAt,
             text: input.text,
             mediaUrls,
           },
@@ -270,6 +273,7 @@ async function run(args: readonly string[]): Promise<void> {
     state,
     channel: action.channel,
     mode,
+    phase: action.phase,
     environment,
     renderRoot: resolve(flags.get("--render-root") ?? ".tmp/render"),
   });

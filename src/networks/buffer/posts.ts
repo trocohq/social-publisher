@@ -13,12 +13,9 @@ type BufferAsset =
       }>;
     }>;
 
-export type BufferPostInput = Readonly<{
+type BufferPostBase = Readonly<{
   channelId: string;
   text: string;
-  schedulingType: "automatic";
-  mode: "customScheduled";
-  dueAt: string;
   needsApproval: false;
   aiAssisted: false;
   assets: readonly BufferAsset[];
@@ -31,6 +28,16 @@ export type BufferPostInput = Readonly<{
     tiktok?: Readonly<{ title?: string; isAiGenerated: false }>;
   }>;
 }>;
+
+export type BufferPostInput = BufferPostBase &
+  (
+    | Readonly<{
+        schedulingType: "automatic";
+        mode: "customScheduled";
+        dueAt: string;
+      }>
+    | Readonly<{ mode: "shareNow" }>
+  );
 
 function requirePublicHttpsUrl(value: string): string {
   const url = new URL(value);
@@ -45,6 +52,7 @@ export function createBufferPostInput({
   channelId,
   text,
   dueAt,
+  phase,
   mediaKind,
   mediaUrls,
   title,
@@ -53,6 +61,7 @@ export function createBufferPostInput({
   channelId: string;
   text: string;
   dueAt: string;
+  phase: "scheduling" | "publishing";
   mediaKind: BufferMediaKind;
   mediaUrls: readonly string[];
   title?: string;
@@ -107,9 +116,13 @@ export function createBufferPostInput({
   return Object.freeze({
     channelId,
     text,
-    schedulingType: "automatic",
-    mode: "customScheduled",
-    dueAt: parsedDueAt.toISOString(),
+    ...(phase === "scheduling"
+      ? {
+          schedulingType: "automatic" as const,
+          mode: "customScheduled" as const,
+          dueAt: parsedDueAt.toISOString(),
+        }
+      : { mode: "shareNow" as const }),
     needsApproval: false,
     aiAssisted: false,
     assets: Object.freeze(assets),

@@ -63,6 +63,7 @@ async function run(args: readonly string[]): Promise<void> {
       state: latest,
       channel: target.channel,
       mode: "controlled",
+      phase: "scheduling",
       environment,
       renderRoot,
     });

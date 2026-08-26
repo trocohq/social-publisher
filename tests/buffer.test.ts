@@ -26,6 +26,7 @@ test("Buffer uses custom scheduling and ordered public image assets", () => {
     channelId: "ig_1",
     text: "Legenda",
     dueAt: "2026-08-26T15:17:00.000Z",
+    phase: "scheduling",
     mediaKind: "carousel",
     mediaUrls: [
       "https://trocohq.github.io/social-publisher/media/a.jpg",
@@ -46,6 +47,21 @@ test("Buffer uses custom scheduling and ordered public image assets", () => {
   ]);
   assert.equal(input.mode, "customScheduled");
   assert.equal(input.metadata.instagram?.type, "post");
+});
+
+test("Buffer sends overdue posts now instead of scheduling them in the past", () => {
+  const input = createBufferPostInput({
+    channel: "facebook",
+    channelId: "fb_1",
+    text: "Legenda",
+    dueAt: "2026-08-26T15:17:00.000Z",
+    phase: "publishing",
+    mediaKind: "feed",
+    mediaUrls: ["https://trocohq.github.io/social-publisher/media/feed.jpg"],
+  });
+  assert.equal(input.mode, "shareNow");
+  assert.equal("dueAt" in input, false);
+  assert.equal("schedulingType" in input, false);
 });
 
 test("Buffer typed mutation errors become sanitized retry classes", () => {
