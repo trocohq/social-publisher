@@ -10,6 +10,23 @@ test("scheduled provider writes remain disabled until AUTO_PUBLISH is true", () 
     () => parsePublishRequest({ mode: "scheduled", autoPublish: false }),
     /disabled/,
   );
+  assert.throws(
+    () =>
+      parsePublishRequest({
+        mode: "scheduled",
+        autoPublish: true,
+        youtubePublicationVerified: false,
+      }),
+    /YouTube publication has not been verified/,
+  );
+  assert.deepEqual(
+    parsePublishRequest({
+      mode: "scheduled",
+      autoPublish: true,
+      youtubePublicationVerified: true,
+    }),
+    { mode: "scheduled" },
+  );
 });
 
 test("controlled execution requires an exact campaign and confirmation", () => {
@@ -19,6 +36,7 @@ test("controlled execution requires an exact campaign and confirmation", () => {
       autoPublish: false,
       campaignId: "2026-08-27-quick-calculation-v1-0",
       confirmation: "PUBLISH_ONE_CAMPAIGN",
+      now: new Date("2026-08-26T12:00:00Z"),
     }),
     {
       mode: "controlled",
@@ -32,8 +50,20 @@ test("controlled execution requires an exact campaign and confirmation", () => {
         autoPublish: false,
         campaignId: "2026-08-27-quick-calculation-v1-0",
         confirmation: "publish",
+        now: new Date("2026-08-26T12:00:00Z"),
       }),
     /PUBLISH_ONE_CAMPAIGN/,
+  );
+  assert.throws(
+    () =>
+      parsePublishRequest({
+        mode: "controlled",
+        autoPublish: false,
+        campaignId: "2026-08-26-quick-calculation-v1-0",
+        confirmation: "PUBLISH_ONE_CAMPAIGN",
+        now: new Date("2026-08-26T12:00:00Z"),
+      }),
+    /future campaign/,
   );
 });
 

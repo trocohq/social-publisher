@@ -25,6 +25,7 @@ import {
 } from "../publishing/execute.js";
 import { persistPublicationIntent } from "../publishing/intent.js";
 import type { PublicationAction } from "../publishing/next-action.js";
+import { localDateAt } from "../shared/time.js";
 import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import { readCampaignState, writeCampaignState } from "../state/storage.js";
 
@@ -34,13 +35,19 @@ export function parsePublishRequest(
   input: Readonly<{
     mode: PublishMode;
     autoPublish: boolean;
+    youtubePublicationVerified?: boolean;
     campaignId?: string;
     confirmation?: string;
+    now?: Date;
+    publicationTimeZone?: string;
   }>,
 ): Readonly<{ mode: PublishMode; campaignId?: string }> {
   if (input.mode === "scheduled") {
     if (!input.autoPublish) {
       throw new Error("Scheduled provider writes are disabled by AUTO_PUBLISH");
+    }
+    if (!input.youtubePublicationVerified) {
+      throw new Error("YouTube publication has not been verified");
     }
     return Object.freeze({ mode: "scheduled" });
   }
@@ -52,6 +59,16 @@ export function parsePublishRequest(
   }
   if (input.confirmation !== "PUBLISH_ONE_CAMPAIGN") {
     throw new Error("Controlled execution requires PUBLISH_ONE_CAMPAIGN");
+  }
+  const campaignDate = input.campaignId.slice(0, 10);
+  if (
+    campaignDate <=
+    localDateAt(
+      input.now ?? new Date(),
+      input.publicationTimeZone ?? "America/Sao_Paulo",
+    )
+  ) {
+    throw new Error("Controlled execution requires a future campaign");
   }
   return Object.freeze({ mode: "controlled", campaignId: input.campaignId });
 }
@@ -89,11 +106,13 @@ function channelText(
 export function providerAdaptersForAction({
   state,
   channel,
+  mode,
   environment,
   renderRoot,
 }: Readonly<{
   state: CampaignState;
   channel: PublicationChannel;
+  mode: PublishMode;
   environment: PublisherEnvironment;
   renderRoot: string;
 }>): Readonly<{
@@ -146,12 +165,6 @@ export function providerAdaptersForAction({
     clientSecret,
     refreshToken,
   });
-  const resource = youtubeVideoResource({
-    campaignId: state.plan.id,
-    title: state.plan.copy.channels.youtube.title,
-    description: state.plan.copy.channels.youtube.description,
-    publishAt: dueAt,
-  });
   return {
     reconcile: async (): Promise<NormalizedProviderObject | undefined> => {
       const match = await reconcileYouTubeUpload({
@@ -163,12 +176,15 @@ export function providerAdaptersForAction({
         id: match.id,
         status:
           match.status?.privacyStatus === "public" ? "published" : "scheduled",
-        dueAt,
+        ...(mode === "scheduled" ? { dueAt } : {}),
         permalink: `https://www.youtube.com/watch?v=${encodeURIComponent(match.id)}`,
       };
     },
-    create: async () =>
-      uploadYouTubeVideo({
+    create: async () => {
+      if (mode === "scheduled" && !environment.youtube.publicationVerified) {
+        throw new Error("YouTube publication has not been verified");
+      }
+      return uploadYouTubeVideo({
         accessToken: await tokenProvider.getAccessToken(),
         filePath: resolve(
           renderRoot,
@@ -176,8 +192,14 @@ export function providerAdaptersForAction({
           state.plan.id,
           "video/short.mp4",
         ),
-        resource,
-      }),
+        resource: youtubeVideoResource({
+          campaignId: state.plan.id,
+          title: state.plan.copy.channels.youtube.title,
+          description: state.plan.copy.channels.youtube.description,
+          ...(mode === "scheduled" ? { publishAt: dueAt } : {}),
+        }),
+      });
+    },
   };
 }
 
@@ -207,17 +229,20 @@ async function run(args: readonly string[]): Promise<void> {
   const parsedAction = parseAction(actionValue);
   const planningEnvironment = parseEnvironment(process.env, "planning");
   const confirmation = flags.get("--confirm");
+  const now = new Date();
   parsePublishRequest({
     mode,
     autoPublish: planningEnvironment.autoPublish,
+    youtubePublicationVerified: planningEnvironment.youtube.publicationVerified,
     campaignId: parsedAction.campaignId,
     ...(confirmation ? { confirmation } : {}),
+    now,
+    publicationTimeZone: planningEnvironment.publicationTimeZone,
   });
   const stateRoot = resolve(flags.get("--state-root") ?? "state");
   const state = await readCampaignState(stateRoot, parsedAction.localDate);
   if (state.plan.id !== parsedAction.campaignId)
     throw new Error("Action campaign does not match state");
-  const now = new Date();
   const action: PublicationAction = {
     ...parsedAction,
     phase:
@@ -243,6 +268,7 @@ async function run(args: readonly string[]): Promise<void> {
   const adapters = providerAdaptersForAction({
     state,
     channel: action.channel,
+    mode,
     environment,
     renderRoot: resolve(flags.get("--render-root") ?? ".tmp/render"),
   });

@@ -97,8 +97,11 @@ async function run(args: readonly string[]): Promise<void> {
   parsePublishRequest({
     mode,
     autoPublish: planning.autoPublish,
+    youtubePublicationVerified: planning.youtube.publicationVerified,
     ...(campaignId ? { campaignId } : {}),
     ...(confirmation ? { confirmation } : {}),
+    now: new Date(),
+    publicationTimeZone: planning.publicationTimeZone,
   });
   const environment = parseEnvironment(process.env, "provider");
   const stateRoot = resolve(valueAfter(args, "--state-root") ?? "state");

@@ -58,6 +58,7 @@ async function run(args: readonly string[]): Promise<void> {
     const adapters = providerAdaptersForAction({
       state: latest,
       channel: target.channel,
+      mode: "controlled",
       environment,
       renderRoot,
     });
