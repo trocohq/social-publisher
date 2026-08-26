@@ -92,6 +92,9 @@ the result. It reconciles before creating. It never backfills an earlier local
 date, even if a workflow was unavailable that day. An overdue Buffer action is
 sent with `shareNow`, never with a schedule in the past. Scheduled records are
 reconciled again after their due time to record the final published state.
+Buffer `error` and YouTube terminal upload states become persisted failures. A
+provider object still absent 30 minutes after its deadline becomes retryable
+instead of being treated as healthy.
 
 GitHub Pages retains only media from D−2 through D+7 in each deployment. Tracked
 sanitized campaign history remains available for repetition checks and audits.
@@ -113,10 +116,11 @@ marked `skipped_disabled` through a reviewed state change.
 
 Temporary failures become `retryable`; rerun the serialized workflow after the
 cause is resolved. The next-action selector retries only that channel and keeps
-successful siblings unchanged. A permanent `failed` state is terminal: fix the
-configuration, inspect the incident, and use a reviewed controlled recovery
-rather than editing it backward or deleting provider objects. Reconciliation
-always runs before another create.
+successful siblings unchanged. A retry still unresolved when the São Paulo day
+changes is persisted as `skipped_expired`; it is never backfilled. A permanent
+`failed` state is terminal: fix the configuration, inspect the incident, and use
+a reviewed controlled recovery rather than editing it backward or deleting
+provider objects. Reconciliation always runs before another create.
 
 ### Incidents and recovery
 
