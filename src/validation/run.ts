@@ -6,6 +6,10 @@ import { pathToFileURL } from "node:url";
 import { createReview } from "../dry-run/create-review.js";
 import { verifyPublicAsset } from "../media/verify-public.js";
 import { runBufferPreflight } from "../networks/buffer/preflight.js";
+import {
+  createBufferPost,
+  createBufferPostInput,
+} from "../networks/buffer/posts.js";
 import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
 import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
 import {
@@ -70,11 +74,35 @@ function jsonResponse(body: unknown): Response {
 async function validateProductionProviderContracts(
   root: string,
 ): Promise<void> {
+  const createInputs: Record<string, unknown>[] = [];
   const bufferFetch: typeof fetch = async (_input, init) => {
     const request = JSON.parse(String(init?.body)) as {
       query: string;
-      variables?: { input?: { organizationId?: string } };
+      variables?: { input?: Record<string, unknown> };
     };
+    if (request.query.includes("CreateTrocoPost")) {
+      const input = request.variables?.input;
+      if (!input) throw new Error("Buffer create input is missing");
+      createInputs.push(input);
+      if (input.text === "GraphQL failure") {
+        return jsonResponse({ errors: [{ message: "Invalid input" }] });
+      }
+      return jsonResponse({
+        data: {
+          createPost: {
+            post: {
+              id: `post_${createInputs.length}`,
+              status:
+                input.text === "Async failure"
+                  ? "error"
+                  : input.mode === "shareNow"
+                    ? "sending"
+                    : "scheduled",
+            },
+          },
+        },
+      });
+    }
     if (request.variables?.input?.organizationId !== "org_validation") {
       throw new Error("Buffer organization variable validation failed");
     }
@@ -164,6 +192,72 @@ async function validateProductionProviderContracts(
     reconciliation.value?.status !== "published"
   ) {
     throw new Error("Buffer production reconciliation validation failed");
+  }
+  const commonBufferInput = {
+    channel: "facebook" as const,
+    channelId: "fb_validation",
+    dueAt: "2026-08-26T15:17:00.000Z",
+    mediaKind: "feed" as const,
+    mediaUrls: ["https://example.test/slide.jpg"],
+  };
+  const scheduled = await createBufferPost({
+    apiKey: "fake-buffer-key",
+    input: createBufferPostInput({
+      ...commonBufferInput,
+      text: "Scheduled validation",
+      phase: "scheduling",
+    }),
+    fetchImplementation: bufferFetch,
+  });
+  const immediate = await createBufferPost({
+    apiKey: "fake-buffer-key",
+    input: createBufferPostInput({
+      ...commonBufferInput,
+      text: "Immediate validation",
+      phase: "publishing",
+    }),
+    fetchImplementation: bufferFetch,
+  });
+  const asynchronousFailure = await createBufferPost({
+    apiKey: "fake-buffer-key",
+    input: createBufferPostInput({
+      ...commonBufferInput,
+      text: "Async failure",
+      phase: "publishing",
+    }),
+    fetchImplementation: bufferFetch,
+  });
+  const graphqlFailure = await createBufferPost({
+    apiKey: "fake-buffer-key",
+    input: createBufferPostInput({
+      ...commonBufferInput,
+      text: "GraphQL failure",
+      phase: "publishing",
+    }),
+    fetchImplementation: bufferFetch,
+  });
+  if (
+    scheduled.kind !== "success" ||
+    scheduled.value.status !== "scheduled" ||
+    immediate.kind !== "success" ||
+    immediate.value.status !== "publishing" ||
+    asynchronousFailure.kind !== "permanent_error" ||
+    asynchronousFailure.category !== "buffer_async_failure" ||
+    graphqlFailure.kind !== "permanent_error" ||
+    graphqlFailure.category !== "buffer_graphql"
+  ) {
+    throw new Error("Buffer production create adapter validation failed");
+  }
+  const [scheduledInput, immediateInput] = createInputs;
+  if (
+    scheduledInput?.schedulingType !== "automatic" ||
+    scheduledInput.mode !== "customScheduled" ||
+    typeof scheduledInput.dueAt !== "string" ||
+    immediateInput?.schedulingType !== "automatic" ||
+    immediateInput.mode !== "shareNow" ||
+    "dueAt" in immediateInput
+  ) {
+    throw new Error("Buffer CreatePostInput contract validation failed");
   }
 
   const bytes = Buffer.from("verified-media");

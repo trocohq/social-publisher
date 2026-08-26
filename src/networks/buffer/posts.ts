@@ -156,8 +156,20 @@ export function normalizeBufferCreateResponse(
     data?: { createPost?: { message?: string; post?: BufferPost } };
   };
   const result = payload.data?.createPost;
+  if (result?.post?.id && result.post.status === "error") {
+    return {
+      kind: "permanent_error",
+      category: "buffer_async_failure",
+      message: "Buffer reported an asynchronous delivery failure",
+    };
+  }
   if (result?.post?.id) {
-    const status = result.post.status === "sent" ? "published" : "scheduled";
+    const status =
+      result.post.status === "sent"
+        ? "published"
+        : result.post.status === "sending"
+          ? "publishing"
+          : "scheduled";
     return {
       kind: "success",
       value: {

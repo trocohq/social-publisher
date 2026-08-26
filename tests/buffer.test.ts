@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import {
+  createBufferPost,
   createBufferPostInput,
   normalizeBufferCreateResponse,
 } from "../src/networks/buffer/posts.js";
@@ -74,6 +75,85 @@ test("Buffer typed mutation errors become sanitized retry classes", () => {
       category: "buffer_rate_limit",
       message: "Buffer temporarily rejected the post",
     },
+  );
+  assert.deepEqual(
+    normalizeBufferCreateResponse({
+      data: {
+        createPost: {
+          post: { id: "post_sending", status: "sending" },
+        },
+      },
+    }),
+    {
+      kind: "success",
+      value: { id: "post_sending", status: "publishing" },
+    },
+  );
+  assert.deepEqual(
+    normalizeBufferCreateResponse({
+      data: {
+        createPost: { post: { id: "post_error", status: "error" } },
+      },
+    }),
+    {
+      kind: "permanent_error",
+      category: "buffer_async_failure",
+      message: "Buffer reported an asynchronous delivery failure",
+    },
+  );
+});
+
+test("Buffer production create adapter sends valid scheduled and immediate inputs", async () => {
+  const inputs: Record<string, unknown>[] = [];
+  const fetchImplementation: typeof fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body)) as {
+      variables: { input: Record<string, unknown> };
+    };
+    inputs.push(request.variables.input);
+    const immediate = request.variables.input.mode === "shareNow";
+    return jsonResponse({
+      data: {
+        createPost: {
+          post: {
+            id: immediate ? "post_now" : "post_later",
+            status: immediate ? "sending" : "scheduled",
+          },
+        },
+      },
+    });
+  };
+  const common = {
+    channel: "facebook" as const,
+    channelId: "fb_1",
+    text: "Legenda",
+    dueAt: "2026-08-26T15:17:00.000Z",
+    mediaKind: "feed" as const,
+    mediaUrls: ["https://example.test/slide.jpg"],
+  };
+  await createBufferPost({
+    apiKey: "buffer-key",
+    input: createBufferPostInput({ ...common, phase: "scheduling" }),
+    fetchImplementation,
+  });
+  await createBufferPost({
+    apiKey: "buffer-key",
+    input: createBufferPostInput({ ...common, phase: "publishing" }),
+    fetchImplementation,
+  });
+  assert.deepEqual(
+    inputs.map(({ mode, schedulingType, dueAt }) => ({
+      mode,
+      schedulingType,
+      dueAt,
+    })),
+    [
+      {
+        mode: "customScheduled",
+        schedulingType: "automatic",
+        dueAt: "2026-08-26T15:17:00.000Z",
+      },
+      { mode: "shareNow", schedulingType: "automatic", dueAt: undefined },
+    ],
   );
 });
 
