@@ -1,7 +1,11 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { createCampaign } from "../src/planning/create-campaign.js";
+import type { HistoryEntry } from "../src/editorial/select.js";
+import {
+  createCampaign,
+  historyEntryFromCampaign,
+} from "../src/planning/create-campaign.js";
 
 test("a Wednesday campaign is immutable, attributed, and complete for four channels", () => {
   const plan = createCampaign({
@@ -119,4 +123,31 @@ test("publish time is validated before creating a campaign", () => {
       }),
     /publish time/i,
   );
+});
+
+test("four months of campaigns rotate every official palette without repeats", () => {
+  const history: HistoryEntry[] = [];
+  const observed = new Set<string>();
+  const start = new Date("2026-09-01T12:00:00Z");
+
+  for (let offset = 0; offset < 120; offset += 1) {
+    const date = new Date(start);
+    date.setUTCDate(start.getUTCDate() + offset);
+    const plan = createCampaign({
+      localDate: date.toISOString().slice(0, 10),
+      publishTime: "12:17",
+      history,
+    });
+    const previous = history.at(-1);
+    assert.notEqual(plan.palette, previous?.palette);
+    observed.add(plan.palette);
+    history.push(historyEntryFromCampaign(plan));
+  }
+
+  assert.deepEqual([...observed].sort(), [
+    "blue",
+    "green",
+    "purple",
+    "yellow",
+  ]);
 });

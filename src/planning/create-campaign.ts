@@ -26,7 +26,7 @@ import {
   fingerprintCopy,
 } from "../shared/determinism.js";
 
-const scenarioInputs = [
+const curatedScenarioInputs = [
   [780, 1_000],
   [1_250, 2_000],
   [1_790, 2_000],
@@ -44,6 +44,24 @@ const scenarioInputs = [
   [22_750, 50_000],
   [31_890, 50_000],
 ] as const;
+const receivedAmounts = [1_000, 2_000, 5_000, 10_000, 20_000, 50_000] as const;
+const changeAmounts = [
+  10, 20, 25, 50, 75, 100, 125, 150, 175, 200, 225, 250, 275, 300, 325,
+  350, 375, 400, 425, 450, 475, 500,
+] as const;
+const fallbackScenarioInputs = receivedAmounts.flatMap((receivedMinor) =>
+  changeAmounts.map(
+    (changeMinor) => [receivedMinor - changeMinor, receivedMinor] as const,
+  ),
+);
+
+function scenarioInputFor(
+  seed: string,
+  candidate: number,
+): readonly [number, number] {
+  if (candidate === 0) return chooseSeeded(curatedScenarioInputs, seed, 0);
+  return chooseSeeded(fallbackScenarioInputs, seed, candidate * 7);
+}
 
 function targetAt(localDate: string, publishTime: string): string {
   const match = /^(?:[01]\d|2[0-3]):[0-5]\d$/.exec(publishTime);
@@ -95,11 +113,7 @@ export function createCampaign({
     localDate,
     history,
     createCandidate: (candidate) => {
-      const [purchaseMinor, receivedMinor] = chooseSeeded(
-        scenarioInputs,
-        seed,
-        candidate * 7,
-      );
+      const [purchaseMinor, receivedMinor] = scenarioInputFor(seed, candidate);
       const scenario = createScenario(purchaseMinor, receivedMinor);
       const hook = chooseSeeded(hooks[family], seed, candidate * 7 + 1);
       const palette = chooseSeeded(editorialPalettes, seed, candidate * 7 + 2);
