@@ -1,6 +1,7 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { bufferChannels, type BufferChannelName } from "../config/channels.js";
 import { parseEnvironment } from "../config/environment.js";
 import { mediaRecordFromState } from "../media/manifest.js";
 import { publicMediaUrls } from "../media/pages.js";
@@ -13,22 +14,24 @@ import { transitionMedia, transitionProvider } from "../state/transitions.js";
 import { parsePublishRequest, type PublishMode } from "./publish.js";
 
 const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
-const bufferChannels = ["instagram", "facebook", "tiktok"] as const;
 
 export function bufferSlotsNeeded(
   states: readonly CampaignState[],
-): Readonly<Record<(typeof bufferChannels)[number], number>> {
+  enabled: readonly BufferChannelName[] = bufferChannels,
+): Readonly<Record<BufferChannelName, number>> {
   return Object.freeze(
     Object.fromEntries(
       bufferChannels.map((channel) => [
         channel,
-        states.filter((state) =>
-          ["deploying", "media_verified", "retryable"].includes(
-            state.channels[channel].stage,
-          ),
-        ).length,
+        enabled.includes(channel)
+          ? states.filter((state) =>
+              ["deploying", "media_verified", "retryable"].includes(
+                state.channels[channel].stage,
+              ),
+            ).length
+          : 0,
       ]),
-    ) as Record<(typeof bufferChannels)[number], number>,
+    ) as Record<BufferChannelName, number>,
   );
 }
 

@@ -1,3 +1,7 @@
+import {
+  bufferChannels,
+  type BufferChannelName,
+} from "../../config/channels.js";
 import { bufferGraphql } from "./graphql.js";
 import { listBufferPosts } from "./list-posts.js";
 
@@ -16,22 +20,21 @@ export function assertBufferPreflight({
   requiredSlots,
 }: Readonly<{
   organizationId: string;
-  expectedChannelIds: Readonly<
-    Record<"instagram" | "facebook" | "tiktok", string>
-  >;
+  expectedChannelIds: Readonly<Partial<Record<BufferChannelName, string>>>;
   channels: readonly BufferChannelCapability[];
-  scheduledPostCounts: Readonly<
-    Record<"instagram" | "facebook" | "tiktok", number>
-  >;
-  requiredSlots: Readonly<Record<"instagram" | "facebook" | "tiktok", number>>;
+  scheduledPostCounts: Readonly<Record<BufferChannelName, number>>;
+  requiredSlots: Readonly<Record<BufferChannelName, number>>;
 }>): void {
-  if (channels.length !== 3)
-    throw new Error("Buffer must return exactly three channels");
-  for (const service of ["instagram", "facebook", "tiktok"] as const) {
+  const expectedEntries = bufferChannels.flatMap((service) => {
+    const id = expectedChannelIds[service];
+    return id ? [[service, id] as const] : [];
+  });
+  if (expectedEntries.length === 0) {
+    throw new Error("Buffer preflight requires an enabled channel");
+  }
+  for (const [service, expectedId] of expectedEntries) {
     const matches = channels.filter(
-      (channel) =>
-        channel.id === expectedChannelIds[service] &&
-        channel.service === service,
+      (channel) => channel.id === expectedId && channel.service === service,
     );
     if (matches.length !== 1)
       throw new Error(`Buffer ${service} channel mismatch`);
@@ -64,21 +67,17 @@ export async function runBufferPreflight({
 }: Readonly<{
   apiKey: string;
   organizationId: string;
-  expectedChannelIds: Readonly<
-    Partial<Record<"instagram" | "facebook" | "tiktok", string>>
-  >;
-  requiredSlots?: Readonly<Record<"instagram" | "facebook" | "tiktok", number>>;
+  expectedChannelIds: Readonly<Partial<Record<BufferChannelName, string>>>;
+  requiredSlots?: Readonly<Record<BufferChannelName, number>>;
   fetchImplementation?: typeof fetch;
 }>): Promise<void> {
-  const completeExpectedChannelIds = Object.fromEntries(
-    (["instagram", "facebook", "tiktok"] as const).map((service) => {
-      const channelId = expectedChannelIds[service];
-      if (!channelId) {
-        throw new Error("Buffer preflight requires exactly three channels");
-      }
-      return [service, channelId];
-    }),
-  ) as Record<"instagram" | "facebook" | "tiktok", string>;
+  const expectedEntries = bufferChannels.flatMap((service) => {
+    const id = expectedChannelIds[service];
+    return id ? [[service, id] as const] : [];
+  });
+  if (expectedEntries.length === 0) {
+    throw new Error("Buffer preflight requires an enabled channel");
+  }
   const channelResponse = await bufferGraphql<{
     channels: BufferChannelCapability[];
   }>({
@@ -90,7 +89,7 @@ export async function runBufferPreflight({
   if (channelResponse.kind !== "success") {
     throw Object.assign(new Error(channelResponse.message), channelResponse);
   }
-  const channelIds = Object.values(completeExpectedChannelIds);
+  const channelIds = expectedEntries.map(([, id]) => id);
   const postResponse = await listBufferPosts({
     apiKey,
     organizationId,
@@ -102,20 +101,21 @@ export async function runBufferPreflight({
   if (postResponse.kind !== "success") {
     throw Object.assign(new Error(postResponse.message), postResponse);
   }
-  const scheduledPostCounts = {
-    instagram: postResponse.value.filter(
-      (post) => post.channelId === expectedChannelIds.instagram,
-    ).length,
-    facebook: postResponse.value.filter(
-      (post) => post.channelId === expectedChannelIds.facebook,
-    ).length,
-    tiktok: postResponse.value.filter(
-      (post) => post.channelId === expectedChannelIds.tiktok,
-    ).length,
-  };
+  const scheduledPostCounts = Object.fromEntries(
+    bufferChannels.map((service) => {
+      const expectedId = expectedChannelIds[service];
+      return [
+        service,
+        expectedId
+          ? postResponse.value.filter((post) => post.channelId === expectedId)
+              .length
+          : 0,
+      ];
+    }),
+  ) as Record<BufferChannelName, number>;
   assertBufferPreflight({
     organizationId,
-    expectedChannelIds: completeExpectedChannelIds,
+    expectedChannelIds,
     channels: channelResponse.value.channels,
     scheduledPostCounts,
     requiredSlots,

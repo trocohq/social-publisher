@@ -374,6 +374,69 @@ test("Buffer preflight uses current channel and paginated post inputs", async ()
   });
 });
 
+test("Buffer preflight checks only enabled channels", async () => {
+  let postVariables: {
+    input?: { filter?: { channelIds?: string[] } };
+  } = {};
+  const fetchImplementation: typeof fetch = async (_input, init) => {
+    const request = JSON.parse(String(init?.body)) as {
+      query: string;
+      variables: typeof postVariables;
+    };
+    if (request.query.includes("TrocoChannels")) {
+      return jsonResponse({
+        data: {
+          channels: [
+            {
+              id: "ig_1",
+              service: "instagram",
+              organizationId: "org_1",
+              isQueuePaused: false,
+            },
+            {
+              id: "fb_1",
+              service: "facebook",
+              organizationId: "org_1",
+              isQueuePaused: false,
+            },
+            {
+              id: "tt_unrelated",
+              service: "tiktok",
+              organizationId: "org_1",
+              isQueuePaused: true,
+            },
+          ],
+        },
+      });
+    }
+    if (request.query.includes("TrocoScheduledPosts")) {
+      postVariables = request.variables;
+      return jsonResponse({
+        data: {
+          posts: {
+            edges: [],
+            pageInfo: { hasNextPage: false, endCursor: null },
+          },
+        },
+      });
+    }
+    throw new Error("Unexpected Buffer operation");
+  };
+
+  await runBufferPreflight({
+    apiKey: "buffer-key",
+    organizationId: "org_1",
+    expectedChannelIds: {
+      instagram: "ig_1",
+      facebook: "fb_1",
+    },
+    requiredSlots: { instagram: 7, facebook: 7, tiktok: 0 },
+    fetchImplementation,
+  });
+
+  assert.deepEqual(postVariables.input?.filter?.channelIds, ["ig_1", "fb_1"]);
+});
+
 test("Buffer reconciliation paginates the current posts connection", async () => {
   const cursors: unknown[] = [];
   const fetchImplementation: typeof fetch = async (_input, init) => {
@@ -491,5 +554,19 @@ test("Buffer queue capacity counts only channel posts still needing creation", (
       }),
     ]),
     { instagram: 1, facebook: 2, tiktok: 1 },
+  );
+  assert.deepEqual(
+    bufferSlotsNeeded(
+      [
+        campaignStateFixture(),
+        campaignStateFixture({
+          instagram: "scheduled",
+          facebook: "retryable",
+          tiktok: "failed",
+        }),
+      ],
+      ["instagram", "facebook"],
+    ),
+    { instagram: 1, facebook: 2, tiktok: 0 },
   );
 });
