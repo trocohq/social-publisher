@@ -92,6 +92,53 @@ test("new campaigns permanently skip disabled channels", () => {
   );
 });
 
+test("queued campaigns skip a disabled channel before provider intent", () => {
+  const now = new Date("2026-08-27T13:00:00Z");
+  const state = campaignStateFixture({
+    instagram: "deploying",
+    facebook: "deploying",
+    tiktok: "skipped_disabled",
+    youtube: "deploying",
+  });
+  const configured = markDisabledChannels(
+    state,
+    {
+      instagram: true,
+      facebook: true,
+      tiktok: false,
+      youtube: false,
+    },
+    now,
+  );
+
+  assert.equal(configured.channels.youtube.stage, "skipped_disabled");
+  assert.deepEqual(configured.channels.youtube.transitions.at(-1), {
+    from: "deploying",
+    to: "skipped_disabled",
+    at: now.toISOString(),
+  });
+  assert.equal(configured.channels.instagram.stage, "deploying");
+  assert.equal(configured.channels.facebook.stage, "deploying");
+  assert.equal(configured.channels.tiktok.stage, "skipped_disabled");
+});
+
+test("disabling a channel never rewrites an existing provider object", () => {
+  const now = new Date("2026-08-27T13:00:00Z");
+  const state = campaignStateFixture({ youtube: "scheduled" });
+  const configured = markDisabledChannels(
+    state,
+    {
+      instagram: true,
+      facebook: true,
+      tiktok: true,
+      youtube: false,
+    },
+    now,
+  );
+
+  assert.deepEqual(configured.channels.youtube, state.channels.youtube);
+});
+
 test("a fixed Buffer contract can recover one failed channel without touching siblings", () => {
   const attemptedAt = new Date("2026-08-27T15:51:22Z");
   const recoveredAt = new Date("2026-08-27T16:00:00Z");

@@ -76,6 +76,13 @@ export async function runPlanning(
   const brandPath = resolve(workingRoot, environment.brandRoot);
   const brand = await loadBrand(pathToFileURL(`${brandPath}${sep}`));
   const existing = await listCampaignStates(stateRoot);
+  for (let index = 0; index < existing.length; index += 1) {
+    const state = existing[index]!;
+    const configured = markDisabledChannels(state, environment.enabled, now);
+    if (configured === state) continue;
+    existing[index] = configured;
+    await writeCampaignState(stateRoot, configured);
+  }
   const history = existing
     .map((state) => historyEntryFromCampaign(state.plan))
     .sort((left, right) => left.localDate.localeCompare(right.localDate));

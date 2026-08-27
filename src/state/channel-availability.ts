@@ -13,9 +13,13 @@ export function markDisabledChannels(
   let next = state;
   for (const channel of publicationChannels) {
     if (enabled[channel]) continue;
-    if (next.channels[channel].stage !== "planned") {
-      throw new Error(`Disabled ${channel} channel must begin at planned`);
-    }
+    if (next.channels[channel].stage === "skipped_disabled") continue;
+    if (
+      !["planned", "rendered", "deploying", "media_verified"].includes(
+        next.channels[channel].stage,
+      )
+    )
+      continue;
     next = transitionProvider(next, channel, "skipped_disabled", now);
   }
   return next;
