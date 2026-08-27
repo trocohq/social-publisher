@@ -129,7 +129,7 @@
       "scheduledAt": "2026-08-28T15:17:00.000Z"
     },
     "facebook": {
-      "stage": "scheduling",
+      "stage": "failed",
       "attempts": 1,
       "transitions": [
         {
@@ -151,8 +151,17 @@
           "from": "media_verified",
           "to": "scheduling",
           "at": "2026-08-27T15:51:22.015Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "failed",
+          "at": "2026-08-27T15:51:23.784Z"
         }
-      ]
+      ],
+      "lastError": {
+        "category": "buffer_validation",
+        "message": "Buffer rejected the post"
+      }
     },
     "tiktok": {
       "stage": "skipped_disabled",
