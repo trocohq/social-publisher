@@ -65,11 +65,20 @@ export async function runBufferPreflight({
   apiKey: string;
   organizationId: string;
   expectedChannelIds: Readonly<
-    Record<"instagram" | "facebook" | "tiktok", string>
+    Partial<Record<"instagram" | "facebook" | "tiktok", string>>
   >;
   requiredSlots?: Readonly<Record<"instagram" | "facebook" | "tiktok", number>>;
   fetchImplementation?: typeof fetch;
 }>): Promise<void> {
+  const completeExpectedChannelIds = Object.fromEntries(
+    (["instagram", "facebook", "tiktok"] as const).map((service) => {
+      const channelId = expectedChannelIds[service];
+      if (!channelId) {
+        throw new Error("Buffer preflight requires exactly three channels");
+      }
+      return [service, channelId];
+    }),
+  ) as Record<"instagram" | "facebook" | "tiktok", string>;
   const channelResponse = await bufferGraphql<{
     channels: BufferChannelCapability[];
   }>({
@@ -81,7 +90,7 @@ export async function runBufferPreflight({
   if (channelResponse.kind !== "success") {
     throw Object.assign(new Error(channelResponse.message), channelResponse);
   }
-  const channelIds = Object.values(expectedChannelIds);
+  const channelIds = Object.values(completeExpectedChannelIds);
   const postResponse = await listBufferPosts({
     apiKey,
     organizationId,
@@ -106,7 +115,7 @@ export async function runBufferPreflight({
   };
   assertBufferPreflight({
     organizationId,
-    expectedChannelIds,
+    expectedChannelIds: completeExpectedChannelIds,
     channels: channelResponse.value.channels,
     scheduledPostCounts,
     requiredSlots,

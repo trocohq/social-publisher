@@ -176,8 +176,11 @@ export function providerAdaptersForAction({
 
   if (channel !== "youtube") {
     const apiKey = environment.buffer.apiKey;
-    if (!apiKey) throw new Error("Buffer provider credentials are unavailable");
     const channelId = environment.buffer.channelIds[channel];
+    const organizationId = environment.buffer.organizationId;
+    if (!apiKey || !channelId || !organizationId) {
+      throw new Error("Buffer provider credentials are unavailable");
+    }
     const mediaKind =
       state.plan.mediaKind === "video" ? "video" : state.plan.mediaKind;
     const mediaUrls = mediaKind === "video" ? [urls.video] : urls.feed;
@@ -197,7 +200,7 @@ export function providerAdaptersForAction({
       reconcile: () =>
         reconcileBufferPost({
           apiKey,
-          organizationId: environment.buffer.organizationId,
+          organizationId,
           expected: bufferFingerprintForAction({
             state,
             channel,

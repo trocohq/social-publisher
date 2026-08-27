@@ -1,7 +1,18 @@
 import { z } from "zod";
 
+import {
+  enabledBufferChannels,
+  enabledPublicationChannels,
+  type BufferChannelName,
+  type ChannelEnablement,
+} from "./channels.js";
+
 const shaSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const nonEmpty = z.string().min(1);
+const optionalNonEmpty = z.preprocess(
+  (value) => (value === "" ? undefined : value),
+  nonEmpty.optional(),
+);
 const httpsUrl = z.string().refine((value) => {
   try {
     const url = new URL(value);
@@ -27,14 +38,30 @@ const environmentSchema = z.object({
     .enum(["true", "false"])
     .default("false")
     .transform((value) => value === "true"),
+  INSTAGRAM_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
+  FACEBOOK_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
+  TIKTOK_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
+  YOUTUBE_ENABLED: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
   PUBLICATION_TIME_ZONE: timeZoneSchema,
   PUBLISH_TIME: z.string().regex(/^(?:[01]\d|2[0-3]):[0-5]\d$/),
   PAGES_ORIGIN: httpsUrl,
-  BUFFER_ORGANIZATION_ID: nonEmpty,
-  BUFFER_INSTAGRAM_CHANNEL_ID: nonEmpty,
-  BUFFER_FACEBOOK_CHANNEL_ID: nonEmpty,
-  BUFFER_TIKTOK_CHANNEL_ID: nonEmpty,
-  YOUTUBE_CHANNEL_ID: nonEmpty,
+  BUFFER_ORGANIZATION_ID: optionalNonEmpty,
+  BUFFER_INSTAGRAM_CHANNEL_ID: optionalNonEmpty,
+  BUFFER_FACEBOOK_CHANNEL_ID: optionalNonEmpty,
+  BUFFER_TIKTOK_CHANNEL_ID: optionalNonEmpty,
+  YOUTUBE_CHANNEL_ID: optionalNonEmpty,
   PLAY_STORE_URL: z.string().refine((value) => {
     try {
       const url = new URL(value);
@@ -52,10 +79,10 @@ const environmentSchema = z.object({
   BRAND_ROOT: z.string().min(1).default("dependencies/frontend/public"),
   FFMPEG_PATH: z.string().optional(),
   FFPROBE_PATH: z.string().optional(),
-  BUFFER_API_KEY: nonEmpty.optional(),
-  YOUTUBE_CLIENT_ID: nonEmpty.optional(),
-  YOUTUBE_CLIENT_SECRET: nonEmpty.optional(),
-  YOUTUBE_REFRESH_TOKEN: nonEmpty.optional(),
+  BUFFER_API_KEY: optionalNonEmpty,
+  YOUTUBE_CLIENT_ID: optionalNonEmpty,
+  YOUTUBE_CLIENT_SECRET: optionalNonEmpty,
+  YOUTUBE_REFRESH_TOKEN: optionalNonEmpty,
   GITHUB_REPOSITORY: z
     .string()
     .regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/)
@@ -67,6 +94,7 @@ export type EnvironmentPurpose = "planning" | "provider" | "incident";
 
 export type PublisherEnvironment = Readonly<{
   autoPublish: boolean;
+  enabled: ChannelEnablement;
   publicationTimeZone: string;
   publishTime: string;
   pagesOrigin: string;
@@ -77,16 +105,12 @@ export type PublisherEnvironment = Readonly<{
   ffmpegPath?: string;
   ffprobePath?: string;
   buffer: Readonly<{
-    organizationId: string;
-    channelIds: Readonly<{
-      instagram: string;
-      facebook: string;
-      tiktok: string;
-    }>;
+    organizationId?: string;
+    channelIds: Readonly<Partial<Record<BufferChannelName, string>>>;
     apiKey?: string;
   }>;
   youtube: Readonly<{
-    channelId: string;
+    channelId?: string;
     publicationVerified: boolean;
     clientId?: string;
     clientSecret?: string;
@@ -129,13 +153,44 @@ export function parseEnvironment(
   if (!result.success) throw invalidEnvironment(result.error.issues);
   const parsed = result.data;
 
+  const enabled: ChannelEnablement = Object.freeze({
+    instagram: parsed.INSTAGRAM_ENABLED,
+    facebook: parsed.FACEBOOK_ENABLED,
+    tiktok: parsed.TIKTOK_ENABLED,
+    youtube: parsed.YOUTUBE_ENABLED,
+  });
+  if (enabledPublicationChannels(enabled).length === 0) {
+    throw new Error(
+      "Invalid environment configuration: enabled social channel",
+    );
+  }
+
+  const requiredIds = [
+    ["instagram", "BUFFER_INSTAGRAM_CHANNEL_ID"],
+    ["facebook", "BUFFER_FACEBOOK_CHANNEL_ID"],
+    ["tiktok", "BUFFER_TIKTOK_CHANNEL_ID"],
+    ["youtube", "YOUTUBE_CHANNEL_ID"],
+  ] as const;
+  const missingIds = requiredIds
+    .filter(([channel, field]) => enabled[channel] && !parsed[field])
+    .map(([, field]) => field);
+  if (missingIds.length > 0) {
+    throw new Error(
+      `Missing environment configuration: ${missingIds.join(", ")}`,
+    );
+  }
+
   if (purpose === "provider") {
-    requireFields(parsed, [
-      "BUFFER_API_KEY",
-      "YOUTUBE_CLIENT_ID",
-      "YOUTUBE_CLIENT_SECRET",
-      "YOUTUBE_REFRESH_TOKEN",
-    ]);
+    if (enabledBufferChannels(enabled).length > 0) {
+      requireFields(parsed, ["BUFFER_ORGANIZATION_ID", "BUFFER_API_KEY"]);
+    }
+    if (enabled.youtube) {
+      requireFields(parsed, [
+        "YOUTUBE_CLIENT_ID",
+        "YOUTUBE_CLIENT_SECRET",
+        "YOUTUBE_REFRESH_TOKEN",
+      ]);
+    }
   }
   if (purpose === "incident") {
     requireFields(parsed, ["GITHUB_REPOSITORY", "GITHUB_TOKEN"]);
@@ -143,6 +198,7 @@ export function parseEnvironment(
 
   return Object.freeze({
     autoPublish: parsed.AUTO_PUBLISH,
+    enabled,
     publicationTimeZone: parsed.PUBLICATION_TIME_ZONE,
     publishTime: parsed.PUBLISH_TIME,
     pagesOrigin: parsed.PAGES_ORIGIN.replace(/\/$/, ""),
@@ -153,24 +209,40 @@ export function parseEnvironment(
     ...(parsed.FFMPEG_PATH ? { ffmpegPath: parsed.FFMPEG_PATH } : {}),
     ...(parsed.FFPROBE_PATH ? { ffprobePath: parsed.FFPROBE_PATH } : {}),
     buffer: Object.freeze({
-      organizationId: parsed.BUFFER_ORGANIZATION_ID,
-      channelIds: Object.freeze({
-        instagram: parsed.BUFFER_INSTAGRAM_CHANNEL_ID,
-        facebook: parsed.BUFFER_FACEBOOK_CHANNEL_ID,
-        tiktok: parsed.BUFFER_TIKTOK_CHANNEL_ID,
-      }),
-      ...(parsed.BUFFER_API_KEY ? { apiKey: parsed.BUFFER_API_KEY } : {}),
+      ...(enabledBufferChannels(enabled).length > 0 &&
+      parsed.BUFFER_ORGANIZATION_ID
+        ? { organizationId: parsed.BUFFER_ORGANIZATION_ID }
+        : {}),
+      channelIds: Object.freeze(
+        Object.fromEntries(
+          enabledBufferChannels(enabled).flatMap((channel) => {
+            const field =
+              channel === "instagram"
+                ? "BUFFER_INSTAGRAM_CHANNEL_ID"
+                : channel === "facebook"
+                  ? "BUFFER_FACEBOOK_CHANNEL_ID"
+                  : "BUFFER_TIKTOK_CHANNEL_ID";
+            const id = parsed[field];
+            return id ? [[channel, id] as const] : [];
+          }),
+        ) as Partial<Record<BufferChannelName, string>>,
+      ),
+      ...(enabledBufferChannels(enabled).length > 0 && parsed.BUFFER_API_KEY
+        ? { apiKey: parsed.BUFFER_API_KEY }
+        : {}),
     }),
     youtube: Object.freeze({
-      channelId: parsed.YOUTUBE_CHANNEL_ID,
       publicationVerified: parsed.YOUTUBE_PUBLICATION_VERIFIED,
-      ...(parsed.YOUTUBE_CLIENT_ID
+      ...(enabled.youtube && parsed.YOUTUBE_CHANNEL_ID
+        ? { channelId: parsed.YOUTUBE_CHANNEL_ID }
+        : {}),
+      ...(enabled.youtube && parsed.YOUTUBE_CLIENT_ID
         ? { clientId: parsed.YOUTUBE_CLIENT_ID }
         : {}),
-      ...(parsed.YOUTUBE_CLIENT_SECRET
+      ...(enabled.youtube && parsed.YOUTUBE_CLIENT_SECRET
         ? { clientSecret: parsed.YOUTUBE_CLIENT_SECRET }
         : {}),
-      ...(parsed.YOUTUBE_REFRESH_TOKEN
+      ...(enabled.youtube && parsed.YOUTUBE_REFRESH_TOKEN
         ? { refreshToken: parsed.YOUTUBE_REFRESH_TOKEN }
         : {}),
     }),

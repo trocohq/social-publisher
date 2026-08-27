@@ -114,7 +114,7 @@ async function run(args: readonly string[]): Promise<void> {
   }
   await runBufferPreflight({
     apiKey: environment.buffer.apiKey!,
-    organizationId: environment.buffer.organizationId,
+    organizationId: environment.buffer.organizationId!,
     expectedChannelIds: environment.buffer.channelIds,
     requiredSlots: bufferSlotsNeeded(operationStates),
   });
@@ -125,7 +125,7 @@ async function run(args: readonly string[]): Promise<void> {
   });
   await assertYouTubeChannel(
     await tokenProvider.getAccessToken(),
-    environment.youtube.channelId,
+    environment.youtube.channelId!,
   );
 
   const selected = campaignId
