@@ -41,6 +41,7 @@ export function parsePublishRequest(
   input: Readonly<{
     mode: PublishMode;
     autoPublish: boolean;
+    youtubeEnabled?: boolean;
     youtubePublicationVerified?: boolean;
     campaignId?: string;
     confirmation?: string;
@@ -52,7 +53,7 @@ export function parsePublishRequest(
     if (!input.autoPublish) {
       throw new Error("Scheduled provider writes are disabled by AUTO_PUBLISH");
     }
-    if (!input.youtubePublicationVerified) {
+    if (input.youtubeEnabled !== false && !input.youtubePublicationVerified) {
       throw new Error("YouTube publication has not been verified");
     }
     return Object.freeze({ mode: "scheduled" });
@@ -170,6 +171,7 @@ export function providerAdaptersForAction({
   reconcile: () => Promise<AdapterOutcome>;
   create: () => Promise<AdapterOutcome>;
 }> {
+  assertPublicationChannelEnabled(environment, channel);
   const record = mediaRecordFromState(state);
   const urls = publicMediaUrls(environment.pagesOrigin, record);
   const dueAt = new Date(state.plan.targetAt).toISOString();
@@ -215,8 +217,9 @@ export function providerAdaptersForAction({
     };
   }
 
-  const { clientId, clientSecret, refreshToken } = environment.youtube;
-  if (!clientId || !clientSecret || !refreshToken) {
+  const { channelId, clientId, clientSecret, refreshToken } =
+    environment.youtube;
+  if (!channelId || !clientId || !clientSecret || !refreshToken) {
     throw new Error("YouTube provider credentials are unavailable");
   }
   const tokenProvider = createYouTubeAccessTokenProvider({
@@ -259,6 +262,15 @@ export function providerAdaptersForAction({
   };
 }
 
+export function assertPublicationChannelEnabled(
+  environment: PublisherEnvironment,
+  channel: PublicationChannel,
+): void {
+  if (!environment.enabled[channel]) {
+    throw new Error(`${channel} publication channel is disabled`);
+  }
+}
+
 function flagValues(args: readonly string[]): Map<string, string> {
   const values = new Map<string, string>();
   for (let index = 0; index < args.length; index += 2) {
@@ -284,11 +296,13 @@ async function run(args: readonly string[]): Promise<void> {
   }
   const parsedAction = parseAction(actionValue);
   const planningEnvironment = parseEnvironment(process.env, "planning");
+  assertPublicationChannelEnabled(planningEnvironment, parsedAction.channel);
   const confirmation = flags.get("--confirm");
   const now = new Date();
   parsePublishRequest({
     mode,
     autoPublish: planningEnvironment.autoPublish,
+    youtubeEnabled: planningEnvironment.enabled.youtube,
     youtubePublicationVerified: planningEnvironment.youtube.publicationVerified,
     campaignId: parsedAction.campaignId,
     ...(confirmation ? { confirmation } : {}),

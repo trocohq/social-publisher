@@ -1,7 +1,13 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { bufferChannels, type BufferChannelName } from "../config/channels.js";
+import {
+  bufferChannels,
+  enabledBufferChannels,
+  enabledPublicationChannels,
+  publicationChannels,
+  type BufferChannelName,
+} from "../config/channels.js";
 import { parseEnvironment } from "../config/environment.js";
 import { mediaRecordFromState } from "../media/manifest.js";
 import { publicMediaUrls } from "../media/pages.js";
@@ -12,8 +18,6 @@ import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import { listCampaignStates, writeCampaignState } from "../state/storage.js";
 import { transitionMedia, transitionProvider } from "../state/transitions.js";
 import { parsePublishRequest, type PublishMode } from "./publish.js";
-
-const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
 
 export function bufferSlotsNeeded(
   states: readonly CampaignState[],
@@ -84,7 +88,7 @@ async function verifyCampaignMedia(
 
 function markMediaVerified(state: CampaignState, now: Date): CampaignState {
   let next = transitionMedia(state, "media_verified", now);
-  for (const channel of channels) {
+  for (const channel of publicationChannels) {
     if (next.channels[channel].stage === "deploying") {
       next = transitionProvider(next, channel, "media_verified", now);
     }
@@ -100,6 +104,7 @@ async function run(args: readonly string[]): Promise<void> {
   parsePublishRequest({
     mode,
     autoPublish: planning.autoPublish,
+    youtubeEnabled: planning.enabled.youtube,
     youtubePublicationVerified: planning.youtube.publicationVerified,
     ...(campaignId ? { campaignId } : {}),
     ...(confirmation ? { confirmation } : {}),
@@ -115,21 +120,26 @@ async function run(args: readonly string[]): Promise<void> {
   if (campaignId && operationStates.length !== 1) {
     throw new Error("Controlled campaign was not found in state");
   }
-  await runBufferPreflight({
-    apiKey: environment.buffer.apiKey!,
-    organizationId: environment.buffer.organizationId!,
-    expectedChannelIds: environment.buffer.channelIds,
-    requiredSlots: bufferSlotsNeeded(operationStates),
-  });
-  const tokenProvider = createYouTubeAccessTokenProvider({
-    clientId: environment.youtube.clientId!,
-    clientSecret: environment.youtube.clientSecret!,
-    refreshToken: environment.youtube.refreshToken!,
-  });
-  await assertYouTubeChannel(
-    await tokenProvider.getAccessToken(),
-    environment.youtube.channelId!,
-  );
+  const activeBufferChannels = enabledBufferChannels(environment.enabled);
+  if (activeBufferChannels.length > 0) {
+    await runBufferPreflight({
+      apiKey: environment.buffer.apiKey!,
+      organizationId: environment.buffer.organizationId!,
+      expectedChannelIds: environment.buffer.channelIds,
+      requiredSlots: bufferSlotsNeeded(operationStates, activeBufferChannels),
+    });
+  }
+  if (environment.enabled.youtube) {
+    const tokenProvider = createYouTubeAccessTokenProvider({
+      clientId: environment.youtube.clientId!,
+      clientSecret: environment.youtube.clientSecret!,
+      refreshToken: environment.youtube.refreshToken!,
+    });
+    await assertYouTubeChannel(
+      await tokenProvider.getAccessToken(),
+      environment.youtube.channelId!,
+    );
+  }
 
   const selected = campaignId
     ? operationStates
@@ -148,7 +158,7 @@ async function run(args: readonly string[]): Promise<void> {
     verified += 1;
   }
   process.stdout.write(
-    `${JSON.stringify({ ok: true, providerChannels: 4, verifiedCampaigns: verified })}\n`,
+    `${JSON.stringify({ ok: true, providerChannels: enabledPublicationChannels(environment.enabled).length, verifiedCampaigns: verified })}\n`,
   );
 }
 

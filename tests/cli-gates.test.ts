@@ -1,9 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { parsePublishRequest } from "../src/cli/publish.js";
+import {
+  parsePublishRequest,
+  providerAdaptersForAction,
+} from "../src/cli/publish.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
 import { transitionProvider } from "../src/state/transitions.js";
+import { publisherEnvironmentFixture } from "./support/environment-fixture.js";
 
 test("scheduled provider writes remain disabled until AUTO_PUBLISH is true", () => {
   assert.throws(
@@ -26,6 +30,30 @@ test("scheduled provider writes remain disabled until AUTO_PUBLISH is true", () 
       youtubePublicationVerified: true,
     }),
     { mode: "scheduled" },
+  );
+  assert.deepEqual(
+    parsePublishRequest({
+      mode: "scheduled",
+      autoPublish: true,
+      youtubeEnabled: false,
+      youtubePublicationVerified: false,
+    }),
+    { mode: "scheduled" },
+  );
+});
+
+test("disabled publication channels are rejected at the adapter boundary", () => {
+  assert.throws(
+    () =>
+      providerAdaptersForAction({
+        state: campaignStateFixture({ tiktok: "media_verified" }),
+        channel: "tiktok",
+        mode: "controlled",
+        phase: "scheduling",
+        environment: publisherEnvironmentFixture({ tiktok: false }),
+        renderRoot: "/tmp/troco-render",
+      }),
+    /tiktok.*disabled/i,
   );
 });
 
