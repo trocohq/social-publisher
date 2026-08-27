@@ -6,6 +6,7 @@ import { publicationChannels } from "../config/channels.js";
 import { parseEnvironment } from "../config/environment.js";
 import { mediaRecordFromState } from "../media/manifest.js";
 import { createPagesPayload, datesInPagesPayload } from "../media/pages.js";
+import { restorePublicMedia } from "../media/restore-public.js";
 import {
   createCampaign,
   historyEntryFromCampaign,
@@ -136,14 +137,23 @@ export async function runPlanning(
       environment.ffmpegPath,
       environment.ffprobePath,
     );
-    if (
+    const renderChanged =
       JSON.stringify(rendered.feed.hashes) !==
         JSON.stringify(state.renderHashes.feed) ||
-      rendered.video.hash !== state.renderHashes.video
-    ) {
-      throw new Error(
-        `Render hash changed for immutable campaign ${state.plan.id}`,
-      );
+      rendered.video.hash !== state.renderHashes.video;
+    if (renderChanged) {
+      try {
+        await restorePublicMedia({
+          state,
+          pagesOrigin: environment.pagesOrigin,
+          renderRoot,
+        });
+      } catch (error) {
+        throw new Error(
+          `Render hash changed for immutable campaign ${state.plan.id} and its published media could not be restored`,
+          { cause: error },
+        );
+      }
     }
   }
   await createPagesPayload({
