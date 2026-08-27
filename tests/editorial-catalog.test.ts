@@ -49,7 +49,7 @@ test("hooks use concrete spoken language without generic filler", () => {
   for (const hook of everyHook) {
     assert.doesNotMatch(
       hook,
-      /sem complicação|uma conta importante|segurança também é rotina|vale lembrar/i,
+      /sem complicação|uma conta importante|segurança também é rotina|vale lembrar|cliente pagou/i,
     );
     assert.ok(hook.length <= 48, `${hook} is too long for a visual hook`);
   }

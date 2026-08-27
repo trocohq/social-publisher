@@ -69,8 +69,8 @@ function headlineFor({
     "quick_calculation",
     "checkout_situation",
   ].includes(family);
-  const question = /quanto|troco\?/iu.test(hook) ? "" : " Quanto volta?";
-  if (asksForAnswer) return `${opening} ${setup}${question}`;
+  if (asksForAnswer && hook.endsWith("?")) return `${setup} ${opening}`;
+  if (asksForAnswer) return `${opening} ${setup} Quanto volta?`;
   return `${opening} ${purchase} na compra. Recebeu ${received}.`;
 }
 
@@ -116,7 +116,7 @@ export function createCampaignCopy({
   const answer = formatMinor(scenario.resultMinor, "BRL", "pt-BR");
   const headline = assertLength(
     headlineFor({ family, hook, purchase, received }),
-    150,
+    120,
     "Headline",
   );
   const explanation = [fact.statement, calendarMoment?.statement]

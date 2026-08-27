@@ -111,7 +111,7 @@ export const hooks: Readonly<Record<CampaignFamily, readonly string[]>> = {
     "Aconteceu no balcão",
     "Quanto você devolveria?",
     "No ritmo do caixa",
-    "Cliente pagou. E o troco?",
+    "E o troco?",
   ],
   save_this_rule: [
     "Guarde esta regra",
