@@ -23,6 +23,7 @@
 ### Task 1: Lock the operational README contract
 
 **Files:**
+
 - Modify: `tests/package-contract.test.ts`
 - Test: `tests/package-contract.test.ts`
 
@@ -66,6 +67,7 @@ Expected: the new test fails because `README.md` does not yet contain
 ### Task 2: Add the production operations guide
 
 **Files:**
+
 - Modify: `README.md`
 - Test: `tests/package-contract.test.ts`
 
@@ -106,24 +108,24 @@ campaigns per day.
 Every campaign is due at 12:17 in `America/Sao_Paulo`. The planner maintains D
 through D+6 and never backfills an earlier local date.
 
-| Measure | Per active channel | Three active channels |
-| --- | ---: | ---: |
-| Campaigns per day | 1 | 1 shared campaign |
-| Provider posts per day | 1 | 3 |
-| Provider posts per week | 7 | 21 provider posts |
-| Maximum planned queue | 7 | 21 |
+| Measure                 | Per active channel | Three active channels |
+| ----------------------- | -----------------: | --------------------: |
+| Campaigns per day       |                  1 |     1 shared campaign |
+| Provider posts per day  |                  1 |                     3 |
+| Provider posts per week |                  7 |     21 provider posts |
+| Maximum planned queue   |                  7 |                    21 |
 
 ## Weekly editorial rotation
 
-| Day | Campaign family | Instagram and Facebook output |
-| --- | --- | --- |
-| Monday | Change challenge | Reel |
-| Tuesday | Cashier shortcut | Four-slide carousel |
-| Wednesday | Troco explains | Single feed image |
-| Thursday | Quick calculation | Reel |
-| Friday | Safe checkout | Four-slide carousel |
-| Saturday | Checkout situation | Reel |
-| Sunday | Save this rule | Single feed image |
+| Day       | Campaign family    | Instagram and Facebook output |
+| --------- | ------------------ | ----------------------------- |
+| Monday    | Change challenge   | Reel                          |
+| Tuesday   | Cashier shortcut   | Four-slide carousel           |
+| Wednesday | Troco explains     | Single feed image             |
+| Thursday  | Quick calculation  | Reel                          |
+| Friday    | Safe checkout      | Four-slide carousel           |
+| Saturday  | Checkout situation | Reel                          |
+| Sunday    | Save this rule     | Single feed image             |
 
 Every active day also produces one public YouTube Short. Copy is written in
 Brazilian Portuguese around change calculations, cashier routines, checkout
@@ -205,6 +207,7 @@ contract.
 ### Task 3: Verify and commit the documentation update
 
 **Files:**
+
 - Verify: `README.md`
 - Verify: `tests/package-contract.test.ts`
 

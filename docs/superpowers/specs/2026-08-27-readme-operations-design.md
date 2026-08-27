@@ -62,15 +62,15 @@ delivery overview:
 
 ## Editorial rotation
 
-| Day | Campaign family | Primary recipe |
-| --- | --- | --- |
-| Monday | Change challenge | Video-led challenge |
-| Tuesday | Cashier shortcut | Four-slide carousel |
-| Wednesday | Troco explains | Single feed image |
-| Thursday | Quick calculation | Video-led calculation |
-| Friday | Safe checkout | Four-slide carousel |
-| Saturday | Checkout situation | Video-led scenario |
-| Sunday | Save this rule | Single feed image |
+| Day       | Campaign family    | Primary recipe        |
+| --------- | ------------------ | --------------------- |
+| Monday    | Change challenge   | Video-led challenge   |
+| Tuesday   | Cashier shortcut   | Four-slide carousel   |
+| Wednesday | Troco explains     | Single feed image     |
+| Thursday  | Quick calculation  | Video-led calculation |
+| Friday    | Safe checkout      | Four-slide carousel   |
+| Saturday  | Checkout situation | Video-led scenario    |
+| Sunday    | Save this rule     | Single feed image     |
 
 The renderer selects among the official green, blue, yellow, and purple
 palettes. Each palette maps deterministically to one original generated music
