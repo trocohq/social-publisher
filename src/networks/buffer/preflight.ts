@@ -7,20 +7,25 @@ import { listBufferPosts } from "./list-posts.js";
 
 export type BufferChannelCapability = Readonly<{
   id: string;
-  service: "instagram" | "facebook" | "tiktok";
+  service: "instagram" | "facebook" | "tiktok" | "youtube";
+  serviceId?: string;
   organizationId: string;
   isQueuePaused: boolean;
+  isDisconnected?: boolean;
+  isLocked?: boolean;
 }>;
 
 export function assertBufferPreflight({
   organizationId,
   expectedChannelIds,
+  expectedServiceIds = {},
   channels,
   scheduledPostCounts,
   requiredSlots,
 }: Readonly<{
   organizationId: string;
   expectedChannelIds: Readonly<Partial<Record<BufferChannelName, string>>>;
+  expectedServiceIds?: Readonly<Partial<Record<BufferChannelName, string>>>;
   channels: readonly BufferChannelCapability[];
   scheduledPostCounts: Readonly<Record<BufferChannelName, number>>;
   requiredSlots: Readonly<Record<BufferChannelName, number>>;
@@ -42,6 +47,15 @@ export function assertBufferPreflight({
     if (channel.organizationId !== organizationId) {
       throw new Error("Buffer organization mismatch");
     }
+    if (
+      expectedServiceIds[service] &&
+      channel.serviceId !== expectedServiceIds[service]
+    ) {
+      throw new Error(`Buffer ${service} account mismatch`);
+    }
+    if (channel.isDisconnected || channel.isLocked) {
+      throw new Error(`Buffer ${service} channel is unavailable`);
+    }
     if (channel.isQueuePaused)
       throw new Error(`Buffer ${service} channel is paused`);
     if (scheduledPostCounts[service] + requiredSlots[service] > 10) {
@@ -54,7 +68,7 @@ export function assertBufferPreflight({
 
 const CHANNELS_QUERY = `query TrocoChannels($input: ChannelsInput!) {
   channels(input: $input) {
-    id service organizationId isQueuePaused
+    id service serviceId organizationId isQueuePaused isDisconnected isLocked
   }
 }`;
 
@@ -62,12 +76,14 @@ export async function runBufferPreflight({
   apiKey,
   organizationId,
   expectedChannelIds,
-  requiredSlots = { instagram: 0, facebook: 0, tiktok: 0 },
+  expectedServiceIds = {},
+  requiredSlots = { instagram: 0, facebook: 0, tiktok: 0, youtube: 0 },
   fetchImplementation,
 }: Readonly<{
   apiKey: string;
   organizationId: string;
   expectedChannelIds: Readonly<Partial<Record<BufferChannelName, string>>>;
+  expectedServiceIds?: Readonly<Partial<Record<BufferChannelName, string>>>;
   requiredSlots?: Readonly<Record<BufferChannelName, number>>;
   fetchImplementation?: typeof fetch;
 }>): Promise<void> {
@@ -116,6 +132,7 @@ export async function runBufferPreflight({
   assertBufferPreflight({
     organizationId,
     expectedChannelIds,
+    expectedServiceIds,
     channels: channelResponse.value.channels,
     scheduledPostCounts,
     requiredSlots,

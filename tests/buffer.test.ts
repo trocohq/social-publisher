@@ -365,6 +365,15 @@ test("Buffer preflight uses current channel and paginated post inputs", async ()
               organizationId: "org_1",
               isQueuePaused: false,
             },
+            {
+              id: "yt_1",
+              service: "youtube",
+              serviceId: "UC123",
+              organizationId: "org_1",
+              isQueuePaused: false,
+              isDisconnected: false,
+              isLocked: false,
+            },
           ],
         },
       });
@@ -392,8 +401,10 @@ test("Buffer preflight uses current channel and paginated post inputs", async ()
       instagram: "ig_1",
       facebook: "fb_1",
       tiktok: "tt_1",
+      youtube: "yt_1",
     },
-    requiredSlots: { instagram: 7, facebook: 7, tiktok: 7 },
+    expectedServiceIds: { youtube: "UC123" },
+    requiredSlots: { instagram: 7, facebook: 7, tiktok: 7, youtube: 7 },
     fetchImplementation,
   });
 
@@ -413,7 +424,7 @@ test("Buffer preflight uses current channel and paginated post inputs", async ()
       organizationId: "org_1",
       filter: {
         status: ["scheduled"],
-        channelIds: ["ig_1", "fb_1", "tt_1"],
+        channelIds: ["ig_1", "fb_1", "tt_1", "yt_1"],
       },
       sort: [{ field: "dueAt", direction: "asc" }],
     },
@@ -476,7 +487,7 @@ test("Buffer preflight checks only enabled channels", async () => {
       instagram: "ig_1",
       facebook: "fb_1",
     },
-    requiredSlots: { instagram: 7, facebook: 7, tiktok: 0 },
+    requiredSlots: { instagram: 7, facebook: 7, tiktok: 0, youtube: 0 },
     fetchImplementation,
   });
 
@@ -599,7 +610,7 @@ test("Buffer queue capacity counts only channel posts still needing creation", (
         tiktok: "failed",
       }),
     ]),
-    { instagram: 1, facebook: 2, tiktok: 1 },
+    { instagram: 1, facebook: 2, tiktok: 1, youtube: 2 },
   );
   assert.deepEqual(
     bufferSlotsNeeded(
@@ -613,6 +624,6 @@ test("Buffer queue capacity counts only channel posts still needing creation", (
       ],
       ["instagram", "facebook"],
     ),
-    { instagram: 1, facebook: 2, tiktok: 0 },
+    { instagram: 1, facebook: 2, tiktok: 0, youtube: 0 },
   );
 });

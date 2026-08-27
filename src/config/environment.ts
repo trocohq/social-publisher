@@ -61,6 +61,7 @@ const environmentSchema = z.object({
   BUFFER_INSTAGRAM_CHANNEL_ID: optionalNonEmpty,
   BUFFER_FACEBOOK_CHANNEL_ID: optionalNonEmpty,
   BUFFER_TIKTOK_CHANNEL_ID: optionalNonEmpty,
+  BUFFER_YOUTUBE_CHANNEL_ID: optionalNonEmpty,
   YOUTUBE_CHANNEL_ID: optionalNonEmpty,
   PLAY_STORE_URL: z.string().refine((value) => {
     try {
@@ -169,6 +170,7 @@ export function parseEnvironment(
     ["instagram", "BUFFER_INSTAGRAM_CHANNEL_ID"],
     ["facebook", "BUFFER_FACEBOOK_CHANNEL_ID"],
     ["tiktok", "BUFFER_TIKTOK_CHANNEL_ID"],
+    ["youtube", "BUFFER_YOUTUBE_CHANNEL_ID"],
     ["youtube", "YOUTUBE_CHANNEL_ID"],
   ] as const;
   const missingIds = requiredIds
@@ -183,13 +185,6 @@ export function parseEnvironment(
   if (purpose === "provider") {
     if (enabledBufferChannels(enabled).length > 0) {
       requireFields(parsed, ["BUFFER_ORGANIZATION_ID", "BUFFER_API_KEY"]);
-    }
-    if (enabled.youtube) {
-      requireFields(parsed, [
-        "YOUTUBE_CLIENT_ID",
-        "YOUTUBE_CLIENT_SECRET",
-        "YOUTUBE_REFRESH_TOKEN",
-      ]);
     }
   }
   if (purpose === "incident") {
@@ -221,7 +216,9 @@ export function parseEnvironment(
                 ? "BUFFER_INSTAGRAM_CHANNEL_ID"
                 : channel === "facebook"
                   ? "BUFFER_FACEBOOK_CHANNEL_ID"
-                  : "BUFFER_TIKTOK_CHANNEL_ID";
+                  : channel === "tiktok"
+                    ? "BUFFER_TIKTOK_CHANNEL_ID"
+                    : "BUFFER_YOUTUBE_CHANNEL_ID";
             const id = parsed[field];
             return id ? [[channel, id] as const] : [];
           }),

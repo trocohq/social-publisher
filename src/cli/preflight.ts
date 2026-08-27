@@ -13,7 +13,6 @@ import { mediaRecordFromState } from "../media/manifest.js";
 import { publicMediaUrls } from "../media/pages.js";
 import { verifyPublicAsset } from "../media/verify-public.js";
 import { runBufferPreflight } from "../networks/buffer/preflight.js";
-import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
 import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import { listCampaignStates, writeCampaignState } from "../state/storage.js";
 import { transitionMedia, transitionProvider } from "../state/transitions.js";
@@ -42,30 +41,6 @@ export function bufferSlotsNeeded(
 function valueAfter(args: readonly string[], flag: string): string | undefined {
   const index = args.indexOf(flag);
   return index >= 0 ? args[index + 1] : undefined;
-}
-
-async function assertYouTubeChannel(
-  accessToken: string,
-  expectedChannelId: string,
-): Promise<void> {
-  const url = new URL("https://www.googleapis.com/youtube/v3/channels");
-  url.searchParams.set("part", "id");
-  url.searchParams.set("mine", "true");
-  const response = await fetch(url, {
-    headers: { authorization: `Bearer ${accessToken}` },
-    redirect: "error",
-    signal: AbortSignal.timeout(20_000),
-  });
-  if (!response.ok) throw new Error("YouTube channel preflight failed");
-  const payload = (await response.json()) as {
-    items?: readonly { id?: string }[];
-  };
-  const ids = payload.items?.map((item) => item.id).filter(Boolean) ?? [];
-  if (ids.length !== 1 || ids[0] !== expectedChannelId) {
-    throw new Error(
-      "Authenticated YouTube channel does not match configuration",
-    );
-  }
 }
 
 async function verifyCampaignMedia(
@@ -126,19 +101,12 @@ async function run(args: readonly string[]): Promise<void> {
       apiKey: environment.buffer.apiKey!,
       organizationId: environment.buffer.organizationId!,
       expectedChannelIds: environment.buffer.channelIds,
+      expectedServiceIds:
+        environment.enabled.youtube && environment.youtube.channelId
+          ? { youtube: environment.youtube.channelId }
+          : {},
       requiredSlots: bufferSlotsNeeded(operationStates, activeBufferChannels),
     });
-  }
-  if (environment.enabled.youtube) {
-    const tokenProvider = createYouTubeAccessTokenProvider({
-      clientId: environment.youtube.clientId!,
-      clientSecret: environment.youtube.clientSecret!,
-      refreshToken: environment.youtube.refreshToken!,
-    });
-    await assertYouTubeChannel(
-      await tokenProvider.getAccessToken(),
-      environment.youtube.channelId!,
-    );
   }
 
   const selected = campaignId

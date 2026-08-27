@@ -12,6 +12,7 @@ const valid = {
   BUFFER_INSTAGRAM_CHANNEL_ID: "ig_1",
   BUFFER_FACEBOOK_CHANNEL_ID: "fb_1",
   BUFFER_TIKTOK_CHANNEL_ID: "tt_1",
+  BUFFER_YOUTUBE_CHANNEL_ID: "yt_1",
   YOUTUBE_CHANNEL_ID: "UC123",
   PLAY_STORE_URL:
     "https://play.google.com/store/apps/details?id=trocofacil.app",
@@ -63,13 +64,11 @@ test("production secrets are required only for provider execution", () => {
       {
         ...valid,
         BUFFER_API_KEY: "buffer-value",
-        YOUTUBE_CLIENT_ID: "client",
-        YOUTUBE_CLIENT_SECRET: "client-secret",
-        YOUTUBE_REFRESH_TOKEN: "refresh",
       },
       "provider",
     ),
   );
+  assert.equal(parseEnvironment(valid).buffer.channelIds.youtube, "yt_1");
 });
 
 test("disabled channels do not require provider configuration", () => {
@@ -129,8 +128,12 @@ test("at least one publication channel must remain enabled", () => {
   );
 });
 
-test("disabled YouTube does not require OAuth during provider execution", () => {
-  const { YOUTUBE_CHANNEL_ID: _youtube, ...withoutYouTube } = valid;
+test("disabled YouTube does not require Buffer or channel identifiers", () => {
+  const {
+    YOUTUBE_CHANNEL_ID: _youtube,
+    BUFFER_YOUTUBE_CHANNEL_ID: _bufferYoutube,
+    ...withoutYouTube
+  } = valid;
   assert.doesNotThrow(() =>
     parseEnvironment(
       {
@@ -143,9 +146,8 @@ test("disabled YouTube does not require OAuth during provider execution", () => 
   );
 });
 
-test("YouTube-only execution does not require Buffer configuration", () => {
+test("YouTube-only execution uses the shared Buffer configuration", () => {
   const {
-    BUFFER_ORGANIZATION_ID: _organization,
     BUFFER_INSTAGRAM_CHANNEL_ID: _instagram,
     BUFFER_FACEBOOK_CHANNEL_ID: _facebook,
     BUFFER_TIKTOK_CHANNEL_ID: _tiktok,
@@ -158,9 +160,7 @@ test("YouTube-only execution does not require Buffer configuration", () => {
         INSTAGRAM_ENABLED: "false",
         FACEBOOK_ENABLED: "false",
         TIKTOK_ENABLED: "false",
-        YOUTUBE_CLIENT_ID: "client",
-        YOUTUBE_CLIENT_SECRET: "client-secret",
-        YOUTUBE_REFRESH_TOKEN: "refresh",
+        BUFFER_API_KEY: "buffer-value",
       },
       "provider",
     ),

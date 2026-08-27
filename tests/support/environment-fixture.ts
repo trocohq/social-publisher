@@ -29,19 +29,17 @@ export function publisherEnvironmentFixture(
       BUFFER_INSTAGRAM_CHANNEL_ID: "ig_1",
       BUFFER_FACEBOOK_CHANNEL_ID: "fb_1",
       ...(enabled.tiktok ? { BUFFER_TIKTOK_CHANNEL_ID: "tt_1" } : {}),
-      ...(enabled.youtube ? { YOUTUBE_CHANNEL_ID: "UC123" } : {}),
+      ...(enabled.youtube
+        ? {
+            BUFFER_YOUTUBE_CHANNEL_ID: "yt_1",
+            YOUTUBE_CHANNEL_ID: "UC123",
+          }
+        : {}),
       PLAY_STORE_URL:
         "https://play.google.com/store/apps/details?id=trocofacil.app",
       BRAND_SOURCE_SHA: "298381c8e6c3220cde11a8109ddb727a28223d7c",
       DESIGN_TOKENS_SOURCE_SHA: "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d",
       BUFFER_API_KEY: "buffer-value",
-      ...(enabled.youtube
-        ? {
-            YOUTUBE_CLIENT_ID: "client",
-            YOUTUBE_CLIENT_SECRET: "client-secret",
-            YOUTUBE_REFRESH_TOKEN: "refresh",
-          }
-        : {}),
     },
     "provider",
   );

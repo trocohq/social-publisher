@@ -190,7 +190,7 @@ async function validateProductionProviderContracts(
       facebook: "fb_validation",
       tiktok: "tt_validation",
     },
-    requiredSlots: { instagram: 1, facebook: 1, tiktok: 1 },
+    requiredSlots: { instagram: 1, facebook: 1, tiktok: 1, youtube: 0 },
     fetchImplementation: bufferFetch,
   });
   const reconciliation = await reconcileBufferPost({

@@ -5,7 +5,12 @@ export const publicationChannels = [
   "youtube",
 ] as const;
 
-export const bufferChannels = ["instagram", "facebook", "tiktok"] as const;
+export const bufferChannels = [
+  "instagram",
+  "facebook",
+  "tiktok",
+  "youtube",
+] as const;
 
 export type PublicationChannelName = (typeof publicationChannels)[number];
 export type BufferChannelName = (typeof bufferChannels)[number];
