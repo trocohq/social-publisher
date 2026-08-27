@@ -55,6 +55,7 @@ jobs:
       BUFFER_INSTAGRAM_CHANNEL_ID: ${{ vars.BUFFER_INSTAGRAM_CHANNEL_ID }}
       BUFFER_FACEBOOK_CHANNEL_ID: ${{ vars.BUFFER_FACEBOOK_CHANNEL_ID }}
       BUFFER_TIKTOK_CHANNEL_ID: ${{ vars.BUFFER_TIKTOK_CHANNEL_ID }}
+      BUFFER_YOUTUBE_CHANNEL_ID: ${{ vars.BUFFER_YOUTUBE_CHANNEL_ID }}
       YOUTUBE_CHANNEL_ID: ${{ vars.YOUTUBE_CHANNEL_ID }}
 
     steps:
@@ -172,9 +173,6 @@ jobs:
         working-directory: publisher
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: |
           if [[ "${{ steps.mode.outputs.value }}" == "controlled" ]]; then
             npm run preflight -- --mode controlled --campaign "${{ inputs.campaign_id }}" --confirm "${{ inputs.confirmation }}"
@@ -192,9 +190,6 @@ jobs:
         working-directory: publisher
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: |
           set -euo pipefail
           mode="${{ steps.mode.outputs.value }}"
@@ -209,7 +204,7 @@ jobs:
               action="$(npm run --silent next-action)"
             fi
             if [[ "$action" == "none" ]]; then break; fi
-            env -u BUFFER_API_KEY -u YOUTUBE_CLIENT_ID -u YOUTUBE_CLIENT_SECRET -u YOUTUBE_REFRESH_TOKEN \
+            env -u BUFFER_API_KEY \
               node --import tsx src/cli/publish.ts --phase intent --action "$action" --mode "$mode" "${extra[@]}"
             scripts/commit-state.sh "chore(state): record publication intent [skip ci]"
             set +e
@@ -226,9 +221,6 @@ jobs:
         working-directory: publisher
         env:
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
-          YOUTUBE_CLIENT_ID: ${{ secrets.YOUTUBE_CLIENT_ID }}
-          YOUTUBE_CLIENT_SECRET: ${{ secrets.YOUTUBE_CLIENT_SECRET }}
-          YOUTUBE_REFRESH_TOKEN: ${{ secrets.YOUTUBE_REFRESH_TOKEN }}
         run: |
           set -euo pipefail
           set +e

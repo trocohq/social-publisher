@@ -15,15 +15,6 @@ import {
   reconcileBufferPost,
   type BufferPostFingerprint,
 } from "../networks/buffer/reconcile.js";
-import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
-import {
-  reconcileYouTubeUpload,
-  youtubeReconciliationResult,
-} from "../networks/youtube/reconcile.js";
-import {
-  uploadYouTubeVideo,
-  youtubeVideoResource,
-} from "../networks/youtube/upload.js";
 import {
   assertPublicationSucceeded,
   executePublication,
@@ -120,7 +111,7 @@ export function bufferFingerprintForAction({
   mediaUrls,
 }: Readonly<{
   state: CampaignState;
-  channel: Exclude<PublicationChannel, "youtube">;
+  channel: PublicationChannel;
   channelId: string;
   phase: PublicationAction["phase"];
   dueAt: string;
@@ -153,112 +144,79 @@ export function bufferFingerprintForAction({
   };
 }
 
-export function providerAdaptersForAction({
-  state,
-  channel,
-  mode,
-  phase,
-  environment,
-  renderRoot,
-}: Readonly<{
-  state: CampaignState;
-  channel: PublicationChannel;
-  mode: PublishMode;
-  phase: PublicationAction["phase"];
-  environment: PublisherEnvironment;
-  renderRoot: string;
-}>): Readonly<{
+export function providerAdaptersForAction(
+  input: Readonly<{
+    state: CampaignState;
+    channel: PublicationChannel;
+    mode: PublishMode;
+    phase: PublicationAction["phase"];
+    environment: PublisherEnvironment;
+    renderRoot: string;
+    bufferFetchImplementation?: typeof fetch;
+  }>,
+): Readonly<{
   reconcile: () => Promise<AdapterOutcome>;
   create: () => Promise<AdapterOutcome>;
 }> {
+  const { state, channel, phase, environment, bufferFetchImplementation } =
+    input;
   assertPublicationChannelEnabled(environment, channel);
   const record = mediaRecordFromState(state);
   const urls = publicMediaUrls(environment.pagesOrigin, record);
   const dueAt = new Date(state.plan.targetAt).toISOString();
-
-  if (channel !== "youtube") {
-    const apiKey = environment.buffer.apiKey;
-    const channelId = environment.buffer.channelIds[channel];
-    const organizationId = environment.buffer.organizationId;
-    if (!apiKey || !channelId || !organizationId) {
-      throw new Error("Buffer provider credentials are unavailable");
-    }
-    const mediaKind =
-      state.plan.mediaKind === "video" ? "video" : state.plan.mediaKind;
-    const mediaUrls = mediaKind === "video" ? [urls.video] : urls.feed;
-    const input = createBufferPostInput({
-      channel,
-      channelId,
-      text: channelText(state, channel),
-      dueAt,
-      phase,
-      mediaKind,
-      mediaUrls,
-      ...(channel === "tiktok"
-        ? { title: state.plan.copy.channels.tiktok.title }
+  const apiKey = environment.buffer.apiKey;
+  const channelId = environment.buffer.channelIds[channel];
+  const organizationId = environment.buffer.organizationId;
+  if (!apiKey || !channelId || !organizationId) {
+    throw new Error("Buffer provider credentials are unavailable");
+  }
+  const mediaKind =
+    channel === "youtube"
+      ? "video"
+      : state.plan.mediaKind === "video"
+        ? "video"
+        : state.plan.mediaKind;
+  const mediaUrls = mediaKind === "video" ? [urls.video] : urls.feed;
+  const postInput = createBufferPostInput({
+    channel,
+    channelId,
+    text: channelText(state, channel),
+    dueAt,
+    phase,
+    mediaKind,
+    mediaUrls,
+    ...(channel === "tiktok"
+      ? { title: state.plan.copy.channels.tiktok.title }
+      : channel === "youtube"
+        ? { title: state.plan.copy.channels.youtube.title }
         : {}),
-    });
-    return {
-      reconcile: () =>
-        reconcileBufferPost({
-          apiKey,
-          organizationId,
-          expected: bufferFingerprintForAction({
-            state,
-            channel,
-            channelId,
-            phase,
-            dueAt,
-            text: input.text,
-            mediaUrls,
-          }),
-        }),
-      create: () => createBufferPost({ apiKey, input }),
-    };
-  }
-
-  const { channelId, clientId, clientSecret, refreshToken } =
-    environment.youtube;
-  if (!channelId || !clientId || !clientSecret || !refreshToken) {
-    throw new Error("YouTube provider credentials are unavailable");
-  }
-  const tokenProvider = createYouTubeAccessTokenProvider({
-    clientId,
-    clientSecret,
-    refreshToken,
   });
   return {
-    reconcile: async (): Promise<AdapterOutcome> => {
-      const match = await reconcileYouTubeUpload({
-        campaignId: state.plan.id,
-        accessToken: await tokenProvider.getAccessToken(),
-      });
-      if (!match) return undefined;
-      return youtubeReconciliationResult(
-        match,
-        mode === "scheduled" ? dueAt : undefined,
-      );
-    },
-    create: async () => {
-      if (mode === "scheduled" && !environment.youtube.publicationVerified) {
-        throw new Error("YouTube publication has not been verified");
-      }
-      return uploadYouTubeVideo({
-        accessToken: await tokenProvider.getAccessToken(),
-        filePath: resolve(
-          renderRoot,
-          state.plan.localDate,
-          state.plan.id,
-          "video/short.mp4",
-        ),
-        resource: youtubeVideoResource({
-          campaignId: state.plan.id,
-          title: state.plan.copy.channels.youtube.title,
-          description: state.plan.copy.channels.youtube.description,
-          ...(mode === "scheduled" ? { publishAt: dueAt } : {}),
+    reconcile: () =>
+      reconcileBufferPost({
+        apiKey,
+        organizationId,
+        expected: bufferFingerprintForAction({
+          state,
+          channel,
+          channelId,
+          phase,
+          dueAt,
+          text: postInput.text,
+          mediaUrls,
         }),
-      });
-    },
+        ...(bufferFetchImplementation
+          ? { fetchImplementation: bufferFetchImplementation }
+          : {}),
+      }),
+    create: () =>
+      createBufferPost({
+        apiKey,
+        input: postInput,
+        ...(bufferFetchImplementation
+          ? { fetchImplementation: bufferFetchImplementation }
+          : {}),
+      }),
   };
 }
 

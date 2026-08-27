@@ -26,6 +26,11 @@ test("production workflow is serialized, disabled by default, and runs every thr
   ]) {
     assert.match(workflow, pattern);
   }
+  assert.match(
+    workflow,
+    /BUFFER_YOUTUBE_CHANNEL_ID: \$\{\{ vars\.BUFFER_YOUTUBE_CHANNEL_ID \}\}/,
+  );
+  assert.doesNotMatch(workflow, /secrets\.YOUTUBE_(?:CLIENT|REFRESH)/);
   assert.match(workflow, /echo "value=disabled"/);
   assert.doesNotMatch(workflow, /steps\.mode\.outputs\.value != 'dry-run'/);
   assert.match(workflow, /publish_status=\$\?/);

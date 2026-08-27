@@ -57,6 +57,59 @@ test("disabled publication channels are rejected at the adapter boundary", () =>
   );
 });
 
+test("YouTube publication uses the public Buffer Short contract", async () => {
+  let providerInput: Record<string, unknown> | undefined;
+  const state = campaignStateFixture({ youtube: "media_verified" });
+  const adapters = providerAdaptersForAction({
+    state,
+    channel: "youtube",
+    mode: "scheduled",
+    phase: "scheduling",
+    environment: publisherEnvironmentFixture({ tiktok: false }),
+    renderRoot: "/tmp/troco-render",
+    bufferFetchImplementation: async (_input, init) => {
+      const request = JSON.parse(String(init?.body)) as {
+        variables: { input: Record<string, unknown> };
+      };
+      providerInput = request.variables.input;
+      return new Response(
+        JSON.stringify({
+          data: {
+            createPost: {
+              post: { id: "yt_buffer_1", status: "scheduled" },
+            },
+          },
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    },
+  });
+
+  const result = await adapters.create();
+
+  assert.equal(result?.kind, "success");
+  assert.equal(providerInput?.channelId, "yt_1");
+  assert.deepEqual(providerInput?.metadata, {
+    youtube: {
+      title: state.plan.copy.channels.youtube.title,
+      categoryId: "27",
+      privacy: "public",
+      madeForKids: false,
+      notifySubscribers: true,
+      embeddable: true,
+      license: "youtube",
+      isAiGenerated: false,
+    },
+  });
+  assert.deepEqual(providerInput?.assets, [
+    {
+      video: {
+        url: `https://trocohq.github.io/social-publisher/media/2026-08-26/${state.plan.id}/video/short.mp4`,
+      },
+    },
+  ]);
+});
+
 test("controlled execution requires an exact campaign and confirmation", () => {
   assert.deepEqual(
     parsePublishRequest({
