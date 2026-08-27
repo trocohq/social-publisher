@@ -1,7 +1,7 @@
 # Troco Palette and Music Rotation Design
 
 **Date:** 2026-08-27  
-**Status:** Approved direction, awaiting written-spec review
+**Status:** Implemented and verified
 
 ## Goal
 
@@ -24,12 +24,12 @@ arrangement of the same original musical identity.
 
 ## Audiovisual System
 
-| Troco palette | Arrangement | Character | Primary change |
-| --- | --- | --- | --- |
-| Green | `warm` | Welcoming and steady | Warmer pad and rounded pluck |
-| Blue | `airy` | Light and clear | Wider pad and more open high notes |
-| Yellow | `bright` | Cheerful and energetic | Stronger percussion and melodic accent |
-| Purple | `pulse` | Rhythmic and modern | More active bass pulse and electronic pluck |
+| Troco palette | Arrangement | Character              | Primary change                              |
+| ------------- | ----------- | ---------------------- | ------------------------------------------- |
+| Green         | `warm`      | Welcoming and steady   | Warmer pad and rounded pluck                |
+| Blue          | `airy`      | Light and clear        | Wider pad and more open high notes          |
+| Yellow        | `bright`    | Cheerful and energetic | Stronger percussion and melodic accent      |
+| Purple        | `pulse`     | Rhythmic and modern    | More active bass pulse and electronic pluck |
 
 These are arrangements of one identity, not four unrelated tracks. They share:
 
