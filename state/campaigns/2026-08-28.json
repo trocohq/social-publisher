@@ -129,8 +129,8 @@
       "scheduledAt": "2026-08-28T15:17:00.000Z"
     },
     "facebook": {
-      "stage": "retryable",
-      "attempts": 1,
+      "stage": "scheduling",
+      "attempts": 2,
       "transitions": [
         {
           "from": "planned",
@@ -161,6 +161,11 @@
           "from": "failed",
           "to": "retryable",
           "at": "2026-08-27T15:56:05.786Z"
+        },
+        {
+          "from": "retryable",
+          "to": "scheduling",
+          "at": "2026-08-27T15:58:41.630Z"
         }
       ]
     },
