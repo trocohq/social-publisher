@@ -116,12 +116,10 @@ export function createCampaignCopy({
   const answer = formatMinor(scenario.resultMinor, "BRL", "pt-BR");
   const headline = assertLength(
     headlineFor({ family, hook, purchase, received }),
-    120,
+    100,
     "Headline",
   );
-  const explanation = [fact.statement, calendarMoment?.statement]
-    .filter((value): value is string => Boolean(value))
-    .join(" ");
+  const explanation = fact.statement;
   const cta = ctaByKind[ctaKind];
   const breakdown = breakdownLine(scenario);
   const common = [
@@ -131,6 +129,7 @@ export function createCampaignCopy({
     ...(breakdown ? [breakdown] : []),
     "",
     explanation,
+    ...(calendarMoment ? [calendarMoment.statement] : []),
     "",
     cta,
   ];

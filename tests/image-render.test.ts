@@ -10,7 +10,8 @@ import fixture from "../assets/fixtures/worst-case-campaign.json" with { type: "
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
 import { renderFeed } from "../src/render/image.js";
-import { createFeedSlideSvg, fitText } from "../src/render/svg.js";
+import { createFeedSlideSvg } from "../src/render/svg.js";
+import { feedTextLayouts, fitText } from "../src/render/text-layout.js";
 
 const frontendPublic = new URL("../../frontend/public/", import.meta.url);
 
@@ -55,23 +56,16 @@ test("a carousel campaign renders two to five equal-size slides", async () => {
 });
 
 test("worst-case editorial text fits inside the 96 pixel safe area", () => {
-  const display = fitText(fixture.headline, {
-    maxWidth: 888,
-    maxHeight: 600,
-    maximumFontSize: 86,
-    minimumFontSize: 64,
-  });
-  const body = fitText(fixture.explanation, {
-    maxWidth: 888,
-    maxHeight: 650,
-    maximumFontSize: 42,
-    minimumFontSize: 34,
-  });
+  const display = fitText(fixture.headline, feedTextLayouts.headline);
+  const body = fitText(fixture.explanation, feedTextLayouts.explanation);
+  const cta = fitText(fixture.cta, feedTextLayouts.cta);
 
-  assert.ok(display.width <= 888 && display.height <= 600);
-  assert.ok(body.width <= 888 && body.height <= 650);
-  assert.ok(display.fontSize >= 64);
-  assert.ok(body.fontSize >= 34);
+  assert.ok(display.width <= 888 && display.height <= 420);
+  assert.ok(body.width <= 888 && body.height <= 140);
+  assert.ok(cta.width <= 792 && cta.height <= 96);
+  assert.ok(display.fontSize >= 72);
+  assert.ok(body.fontSize >= 38);
+  assert.ok(cta.fontSize >= 36);
 });
 
 test("feed hierarchy uses larger type and a distinct call-to-action stage", async () => {

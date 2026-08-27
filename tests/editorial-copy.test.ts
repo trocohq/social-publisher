@@ -42,6 +42,25 @@ test("headline generation enforces the editorial limit before channel limits", (
         ...input,
         hook: "Conta muito comprida ".repeat(4).trim(),
       }),
-    /Headline exceeds its 120-character limit/,
+    /Headline exceeds its 100-character limit/,
   );
+});
+
+test("a calendar moment enriches captions without crowding the artwork", () => {
+  const calendarMoment = {
+    id: "calendar.christmas",
+    statement: "O Natal é celebrado em 25 de dezembro no Brasil.",
+    source: "https://www.gov.br/pt-br",
+    reviewedOn: "2026-08-26",
+    monthDay: "12-25",
+    families: ["quick_calculation"],
+  } as const;
+  const copy = createCampaignCopy({
+    ...input,
+    hook: "Quanto volta?",
+    calendarMoment,
+  });
+
+  assert.equal(copy.explanation, input.fact.statement);
+  assert.match(copy.channels.instagram.caption, /O Natal é celebrado/);
 });

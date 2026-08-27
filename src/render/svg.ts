@@ -4,6 +4,20 @@ import { designTokens } from "@trocohq/design-tokens";
 import type { BrandAssets } from "../brand/load-brand.js";
 import type { CampaignFamily } from "../config/schedule.js";
 import type { CampaignPlan, Palette } from "../editorial/schema.js";
+import {
+  carouselTextLayouts,
+  feedTextLayouts,
+  fitText,
+  verticalTextLayouts,
+  type TextLayout,
+} from "./text-layout.js";
+
+export {
+  fitText,
+  measureText,
+  type FitTextOptions,
+  type TextLayout,
+} from "./text-layout.js";
 
 const WIDTH = 1080;
 const HEIGHT = 1350;
@@ -26,22 +40,6 @@ const backgroundByPalette: Readonly<Record<Palette, string>> = {
   blue: designTokens.colors.blue,
 };
 
-export type TextLayout = Readonly<{
-  lines: readonly string[];
-  fontSize: number;
-  lineHeight: number;
-  width: number;
-  height: number;
-}>;
-
-export type FitTextOptions = Readonly<{
-  maxWidth: number;
-  maxHeight: number;
-  maximumFontSize: number;
-  minimumFontSize: number;
-  lineHeightRatio?: number;
-}>;
-
 export function escapeXml(value: string): string {
   return value.replace(/[&<>"']/g, (character) => {
     const escaped: Readonly<Record<string, string>> = {
@@ -53,78 +51,6 @@ export function escapeXml(value: string): string {
     };
     return escaped[character]!;
   });
-}
-
-export function measureText(value: string, fontSize: number): number {
-  let units = 0;
-  for (const character of value) {
-    if (/\s/.test(character)) units += 0.31;
-    else if (/[MWÁÀÃÂÉÊÍÓÔÕÚÇ]/.test(character)) units += 0.76;
-    else if (/[A-Z0-9]/.test(character)) units += 0.62;
-    else if (/[.,:;!?'´`]/.test(character)) units += 0.3;
-    else units += 0.54;
-  }
-  return Math.ceil(units * fontSize);
-}
-
-function wrapText(value: string, fontSize: number, maxWidth: number): string[] {
-  const words = value.trim().split(/\s+/).filter(Boolean);
-  const lines: string[] = [];
-  let current = "";
-
-  for (const originalWord of words) {
-    const pieces: string[] = [];
-    let word = originalWord;
-    while (measureText(word, fontSize) > maxWidth) {
-      let end = 1;
-      while (
-        end < word.length &&
-        measureText(`${word.slice(0, end + 1)}-`, fontSize) <= maxWidth
-      ) {
-        end += 1;
-      }
-      pieces.push(`${word.slice(0, end)}-`);
-      word = word.slice(end);
-    }
-    pieces.push(word);
-
-    for (const piece of pieces) {
-      const proposed = current ? `${current} ${piece}` : piece;
-      if (current && measureText(proposed, fontSize) > maxWidth) {
-        lines.push(current);
-        current = piece;
-      } else {
-        current = proposed;
-      }
-    }
-  }
-  if (current) lines.push(current);
-  return lines;
-}
-
-export function fitText(value: string, options: FitTextOptions): TextLayout {
-  const lineHeightRatio = options.lineHeightRatio ?? 1.16;
-  if (!value.trim()) throw new Error("Cannot fit empty editorial text");
-  if (options.minimumFontSize > options.maximumFontSize) {
-    throw new Error("Minimum font size cannot exceed maximum font size");
-  }
-
-  for (
-    let fontSize = options.maximumFontSize;
-    fontSize >= options.minimumFontSize;
-    fontSize -= 1
-  ) {
-    const lines = wrapText(value, fontSize, options.maxWidth);
-    const lineHeight = Math.ceil(fontSize * lineHeightRatio);
-    const width = Math.max(...lines.map((line) => measureText(line, fontSize)));
-    const height = lines.length * lineHeight;
-    if (width <= options.maxWidth && height <= options.maxHeight) {
-      return { lines, fontSize, lineHeight, width, height };
-    }
-  }
-  throw new Error(
-    `Editorial text does not fit without dropping below ${options.minimumFontSize}px`,
-  );
 }
 
 function textBlock(
@@ -179,24 +105,12 @@ function scenarioCard(plan: CampaignPlan, top: number): string {
 }
 
 function feedContent(plan: CampaignPlan): string {
-  const headline = fitText(plan.copy.headline, {
-    maxWidth: 888,
-    maxHeight: 420,
-    maximumFontSize: 96,
-    minimumFontSize: 72,
-  });
-  const explanation = fitText(plan.copy.explanation, {
-    maxWidth: 888,
-    maxHeight: 140,
-    maximumFontSize: 42,
-    minimumFontSize: 38,
-  });
-  const cta = fitText(plan.copy.cta, {
-    maxWidth: 792,
-    maxHeight: 96,
-    maximumFontSize: 40,
-    minimumFontSize: 36,
-  });
+  const headline = fitText(plan.copy.headline, feedTextLayouts.headline);
+  const explanation = fitText(
+    plan.copy.explanation,
+    feedTextLayouts.explanation,
+  );
+  const cta = fitText(plan.copy.cta, feedTextLayouts.cta);
   return [
     textBlock(headline, SAFE, 178, "Stolzl"),
     scenarioCard(plan, 610),
@@ -208,12 +122,7 @@ function feedContent(plan: CampaignPlan): string {
 
 function carouselContent(plan: CampaignPlan, slide: number): string {
   if (slide === 0) {
-    const headline = fitText(plan.copy.headline, {
-      maxWidth: 888,
-      maxHeight: 690,
-      maximumFontSize: 92,
-      minimumFontSize: 64,
-    });
+    const headline = fitText(plan.copy.headline, carouselTextLayouts.headline);
     return `${textBlock(headline, SAFE, 260, "Stolzl")}
       <text x="96" y="1170" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="34" font-weight="700">DESLIZE PARA CONFERIR →</text>`;
   }
@@ -251,18 +160,11 @@ function carouselContent(plan: CampaignPlan, slide: number): string {
       ${textBlock(breakdown, 144, 770, "Figtree")}`;
   }
 
-  const explanation = fitText(plan.copy.explanation, {
-    maxWidth: 888,
-    maxHeight: 600,
-    maximumFontSize: 48,
-    minimumFontSize: 34,
-  });
-  const cta = fitText(plan.copy.cta, {
-    maxWidth: 888,
-    maxHeight: 170,
-    maximumFontSize: 42,
-    minimumFontSize: 34,
-  });
+  const explanation = fitText(
+    plan.copy.explanation,
+    carouselTextLayouts.explanation,
+  );
+  const cta = fitText(plan.copy.cta, carouselTextLayouts.cta);
   return `${textBlock(explanation, SAFE, 250, "Figtree")}
     <rect x="96" y="980" width="888" height="200" rx="32" fill="${designTokens.colors.ink}"/>
     ${textBlock(cta, 144, 1015, "Figtree", 700, designTokens.colors.paper)}`;
@@ -321,12 +223,7 @@ function verticalSceneContent(
   scene: VerticalScene,
 ): string {
   if (scene === "hook") {
-    const headline = fitText(plan.copy.headline, {
-      maxWidth: 888,
-      maxHeight: 980,
-      maximumFontSize: 124,
-      minimumFontSize: 76,
-    });
+    const headline = fitText(plan.copy.headline, verticalTextLayouts.headline);
     return `${textBlock(headline, SAFE, 320, "Stolzl")}
       <rect x="96" y="1490" width="888" height="190" rx="40" fill="${designTokens.colors.ink}"/>
       <text x="540" y="1606" text-anchor="middle" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="46" font-weight="700">CALCULE ANTES DA RESPOSTA</text>`;
@@ -378,18 +275,11 @@ function verticalSceneContent(
       ${textBlock(breakdown, 150, 1120, "Figtree")}`;
   }
 
-  const explanation = fitText(plan.copy.explanation, {
-    maxWidth: 888,
-    maxHeight: 760,
-    maximumFontSize: 64,
-    minimumFontSize: 44,
-  });
-  const cta = fitText(plan.copy.cta, {
-    maxWidth: 780,
-    maxHeight: 260,
-    maximumFontSize: 56,
-    minimumFontSize: 46,
-  });
+  const explanation = fitText(
+    plan.copy.explanation,
+    verticalTextLayouts.explanation,
+  );
+  const cta = fitText(plan.copy.cta, verticalTextLayouts.cta);
   return `${textBlock(explanation, SAFE, 300, "Figtree")}
     <rect x="96" y="1280" width="888" height="430" rx="44" fill="${designTokens.colors.ink}"/>
     ${textBlock(cta, 150, 1360, "Figtree", 700, designTokens.colors.paper)}

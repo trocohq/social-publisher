@@ -2,6 +2,13 @@ import { formatMinor } from "@trocohq/core";
 import { z } from "zod";
 
 import { campaignFamilies, type CampaignFamily } from "../config/schedule.js";
+import {
+  carouselTextLayouts,
+  feedTextLayouts,
+  fitText,
+  verticalTextLayouts,
+  type CopyTextLayouts,
+} from "../render/text-layout.js";
 
 export const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
 export const channelSchema = z.enum(channels);
@@ -79,7 +86,7 @@ const captionSchema = (maximum: number) =>
   z.object({ caption: safePublicText(maximum) });
 
 export const campaignCopySchema = z.object({
-  headline: safePublicText(120),
+  headline: safePublicText(100),
   answer: safePublicText(80),
   explanation: safePublicText(600),
   cta: safePublicText(220),
@@ -94,6 +101,21 @@ export const campaignCopySchema = z.object({
   }),
 });
 export type CampaignCopy = z.infer<typeof campaignCopySchema>;
+
+function requiredVisualLayouts(
+  mediaKind: "feed" | "carousel" | "video",
+): readonly Readonly<{ name: string; layouts: CopyTextLayouts }>[] {
+  if (mediaKind === "carousel") {
+    return [{ name: "carousel", layouts: carouselTextLayouts }];
+  }
+  if (mediaKind === "video") {
+    return [
+      { name: "feed", layouts: feedTextLayouts },
+      { name: "vertical", layouts: verticalTextLayouts },
+    ];
+  }
+  return [{ name: "feed", layouts: feedTextLayouts }];
+}
 
 export const campaignPlanSchema = z
   .object({
@@ -155,6 +177,19 @@ export const campaignPlanSchema = z
         message: "Video campaigns have one poster",
         path: ["slideCount"],
       });
+    }
+    for (const { name, layouts } of requiredVisualLayouts(plan.mediaKind)) {
+      for (const field of ["headline", "explanation", "cta"] as const) {
+        try {
+          fitText(plan.copy[field], layouts[field]);
+        } catch {
+          context.addIssue({
+            code: "custom",
+            message: `${field} does not fit the visual ${name} layout`,
+            path: ["copy", field],
+          });
+        }
+      }
     }
   });
 

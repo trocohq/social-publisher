@@ -100,6 +100,14 @@ test("campaign plans require a correctly formatted numeric answer", () => {
   assert.throws(() => campaignPlanSchema.parse(plan), /scenario result/);
 });
 
+test("campaign plans reject copy that cannot fit their visual layout", () => {
+  const plan = validPlan();
+  const copy = plan.copy as Record<string, unknown>;
+  copy.explanation = "Uma explicação deliberadamente longa. ".repeat(12).trim();
+
+  assert.throws(() => campaignPlanSchema.parse(plan), /visual feed layout/);
+});
+
 test("channel copy limits are enforced before provider calls", () => {
   const plan = validPlan();
   const copy = plan.copy as {
