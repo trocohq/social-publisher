@@ -52,22 +52,38 @@ export function createYouTubeAccessTokenProvider({
       if (!response.ok) {
         const credentialsRejected =
           response.status === 400 || response.status === 401;
-        throw Object.assign(
-          new Error(
-            credentialsRejected
+        let oauthError: string | undefined;
+        try {
+          const payload = (await response.json()) as { error?: unknown };
+          if (typeof payload.error === "string") oauthError = payload.error;
+        } catch {
+          oauthError = undefined;
+        }
+        const refreshRejected = oauthError === "invalid_grant";
+        const clientRejected =
+          oauthError === "invalid_client" ||
+          oauthError === "unauthorized_client";
+        const message = refreshRejected
+          ? "YouTube refresh token was rejected"
+          : clientRejected
+            ? "YouTube client credentials were rejected"
+            : credentialsRejected
               ? "YouTube OAuth credentials were rejected"
-              : "YouTube OAuth failed temporarily",
-          ),
-          {
-            category: credentialsRejected
+              : "YouTube OAuth failed temporarily";
+        const category = refreshRejected
+          ? "youtube_oauth_refresh"
+          : clientRejected
+            ? "youtube_oauth_client"
+            : credentialsRejected
               ? "youtube_oauth_credentials"
-              : "youtube_oauth_server",
-            statusCode: response.status,
-            retryable:
-              !credentialsRejected &&
-              (response.status === 429 || response.status >= 500),
-          },
-        );
+              : "youtube_oauth_server";
+        throw Object.assign(new Error(message), {
+          category,
+          statusCode: response.status,
+          retryable:
+            !credentialsRejected &&
+            (response.status === 429 || response.status >= 500),
+        });
       }
       const payload = (await response.json()) as {
         access_token?: string;

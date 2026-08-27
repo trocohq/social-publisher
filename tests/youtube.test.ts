@@ -139,6 +139,41 @@ test("temporary OAuth failures keep retry metadata", async () => {
   });
 });
 
+test("OAuth rejection identifies refresh-token and client failures safely", async () => {
+  for (const failure of [
+    {
+      googleError: "invalid_grant",
+      category: "youtube_oauth_refresh",
+      message: /refresh token was rejected/i,
+    },
+    {
+      googleError: "invalid_client",
+      category: "youtube_oauth_client",
+      message: /client credentials were rejected/i,
+    },
+  ]) {
+    const provider = createYouTubeAccessTokenProvider({
+      clientId: "client",
+      clientSecret: "secret",
+      refreshToken: "refresh",
+      fetchImplementation: async () =>
+        new Response(JSON.stringify({ error: failure.googleError }), {
+          status: 400,
+          headers: { "content-type": "application/json" },
+        }),
+    });
+    await assert.rejects(provider.getAccessToken(), (error: unknown) => {
+      const record = error as Record<string, unknown>;
+      return (
+        failure.message.test(String(record.message)) &&
+        record.category === failure.category &&
+        record.statusCode === 400 &&
+        record.retryable === false
+      );
+    });
+  }
+});
+
 test("YouTube reconciliation exposes terminal asynchronous upload states", () => {
   assert.deepEqual(
     youtubeReconciliationResult(
