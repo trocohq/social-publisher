@@ -35,6 +35,7 @@ test("workflow dependency checkouts stay outside publisher formatting and Git st
 
   assert.match(gitignore, /^dependencies\/$/m);
   assert.match(prettierignore, /^dependencies\/$/m);
+  assert.match(prettierignore, /^state\/$/m);
 });
 
 test("media tests resolve the canonical brand through the workflow environment", async () => {
