@@ -53,8 +53,15 @@ async function validateWorkflowGates(): Promise<void> {
       }
     }
     if (file === "publish.yml") {
+      const channelFlags = [
+        "INSTAGRAM_ENABLED: ${{ vars.INSTAGRAM_ENABLED || 'true' }}",
+        "FACEBOOK_ENABLED: ${{ vars.FACEBOOK_ENABLED || 'true' }}",
+        "TIKTOK_ENABLED: ${{ vars.TIKTOK_ENABLED || 'false' }}",
+        "YOUTUBE_ENABLED: ${{ vars.YOUTUBE_ENABLED || 'true' }}",
+      ];
       if (
         !source.includes("AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'false' }}") ||
+        channelFlags.some((flag) => !source.includes(flag)) ||
         !source.includes("group: troco-social-publication") ||
         source.includes("pull_request:")
       ) {

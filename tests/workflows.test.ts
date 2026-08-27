@@ -18,6 +18,14 @@ test("production workflow is serialized, disabled by default, and runs every thr
     workflow,
     /YOUTUBE_PUBLICATION_VERIFIED: \$\{\{ vars\.YOUTUBE_PUBLICATION_VERIFIED \|\| 'false' \}\}/,
   );
+  for (const pattern of [
+    /INSTAGRAM_ENABLED: \$\{\{ vars\.INSTAGRAM_ENABLED \|\| 'true' \}\}/,
+    /FACEBOOK_ENABLED: \$\{\{ vars\.FACEBOOK_ENABLED \|\| 'true' \}\}/,
+    /TIKTOK_ENABLED: \$\{\{ vars\.TIKTOK_ENABLED \|\| 'false' \}\}/,
+    /YOUTUBE_ENABLED: \$\{\{ vars\.YOUTUBE_ENABLED \|\| 'true' \}\}/,
+  ]) {
+    assert.match(workflow, pattern);
+  }
   assert.match(workflow, /echo "value=disabled"/);
   assert.doesNotMatch(workflow, /steps\.mode\.outputs\.value != 'dry-run'/);
   assert.match(workflow, /publish_status=\$\?/);

@@ -18,6 +18,9 @@ test("operations document keeps unattended publication behind verified activatio
     "verification",
     "token rotation",
     "never backfills",
+    "TIKTOK_ENABLED=false",
+    "skipped_disabled",
+    "newly created campaigns only",
   ]) {
     assert.match(document, new RegExp(phrase, "i"));
   }
