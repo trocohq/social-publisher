@@ -7,6 +7,7 @@ import test from "node:test";
 import { probeVideo } from "../src/render/probe.js";
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
+import { musicVariantForPalette } from "../src/render/audio.js";
 import { createVerticalSceneSvg } from "../src/render/svg.js";
 import { renderFixtureCampaign } from "./support/render-fixture.js";
 
@@ -14,7 +15,7 @@ const frontendPublic = new URL("../../frontend/public/", import.meta.url);
 
 test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));
-  const { video } = await renderFixtureCampaign(output);
+  const { plan, video } = await renderFixtureCampaign(output);
   const probe = await probeVideo(video.file);
 
   assert.deepEqual(
@@ -37,6 +38,7 @@ test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
   assert.ok(video.hash.length === 64);
   assert.match(video.binaries.ffmpegVersion, /^ffmpeg version/);
   assert.match(video.binaries.ffprobeVersion, /^ffprobe version/);
+  assert.equal(video.musicVariant, musicVariantForPalette(plan.palette));
 });
 
 test("vertical scenes prioritize larger hook, values, answer, and CTA", async () => {

@@ -7,7 +7,11 @@ import sharp from "sharp";
 import type { BrandAssets } from "../brand/load-brand.js";
 import type { CampaignPlan } from "../editorial/schema.js";
 import { sha256 } from "../shared/determinism.js";
-import { createToneBed } from "./audio.js";
+import {
+  createToneBed,
+  musicVariantForPalette,
+  type MusicVariant,
+} from "./audio.js";
 import {
   resolveMediaBinaries,
   runProcess,
@@ -24,6 +28,7 @@ export type RenderedVideo = Readonly<{
   hash: string;
   probe: VideoProbe;
   binaries: MediaBinaries;
+  musicVariant: MusicVariant;
 }>;
 
 export async function renderVideo({
@@ -44,6 +49,7 @@ export async function renderVideo({
     ...(ffprobePath ? { ffprobePath } : {}),
   });
   const outputRoot = resolve(output);
+  const musicVariant = musicVariantForPalette(plan.palette);
   await mkdir(outputRoot, { recursive: true });
   const temporaryRoot = await mkdtemp(join(tmpdir(), "troco-video-scenes-"));
   const videoPath = join(outputRoot, "short.mp4");
@@ -71,7 +77,7 @@ export async function renderVideo({
       filePath: join(temporaryRoot, "brand-music.wav"),
       durationSeconds: TOTAL_SECONDS,
       cueTimes: [SCENE_SECONDS, SCENE_SECONDS * 2, SCENE_SECONDS * 3],
-      variant: "warm",
+      variant: musicVariant,
     });
     const args: string[] = ["-y", "-hide_banner", "-loglevel", "error"];
     for (const scenePath of sceneFiles) {
@@ -144,6 +150,7 @@ export async function renderVideo({
       hash: sha256(bytes),
       probe,
       binaries,
+      musicVariant,
     });
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });

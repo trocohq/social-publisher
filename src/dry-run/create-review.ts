@@ -121,6 +121,7 @@ export async function createReview({
     video: {
       path: localAssetPath(outputRoot, video.file),
       hash: video.hash,
+      musicVariant: video.musicVariant,
       ...video.probe,
       ffmpegVersion: video.binaries.ffmpegVersion,
       ffprobeVersion: video.binaries.ffprobeVersion,

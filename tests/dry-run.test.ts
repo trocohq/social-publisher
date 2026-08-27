@@ -6,6 +6,7 @@ import test from "node:test";
 
 import { parseArguments } from "../src/cli/arguments.js";
 import { createReview } from "../src/dry-run/create-review.js";
+import { musicVariantForPalette } from "../src/render/audio.js";
 
 test("dry run writes a complete review bundle and no durable state", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-review-"));
@@ -27,6 +28,15 @@ test("dry run writes a complete review bundle and no durable state", async () =>
     JSON.parse(
       await readFile(join(output, "captions.json"), "utf8"),
     ).instagram.caption.includes("utm_source=instagram"),
+  );
+  const manifest = JSON.parse(
+    await readFile(join(output, "manifest.json"), "utf8"),
+  );
+  const expectedMusicVariant = musicVariantForPalette(review.plan.palette);
+  assert.equal(review.media.video.musicVariant, expectedMusicVariant);
+  assert.equal(
+    manifest.video.musicVariant,
+    expectedMusicVariant,
   );
   await assert.rejects(stat(join(output, "state")), /ENOENT/);
   assert.ok(review.media.video.hash.length === 64);
