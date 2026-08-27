@@ -144,10 +144,5 @@ test("four months of campaigns rotate every official palette without repeats", (
     history.push(historyEntryFromCampaign(plan));
   }
 
-  assert.deepEqual([...observed].sort(), [
-    "blue",
-    "green",
-    "purple",
-    "yellow",
-  ]);
+  assert.deepEqual([...observed].sort(), ["blue", "green", "purple", "yellow"]);
 });

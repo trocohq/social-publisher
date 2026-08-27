@@ -34,10 +34,7 @@ test("dry run writes a complete review bundle and no durable state", async () =>
   );
   const expectedMusicVariant = musicVariantForPalette(review.plan.palette);
   assert.equal(review.media.video.musicVariant, expectedMusicVariant);
-  assert.equal(
-    manifest.video.musicVariant,
-    expectedMusicVariant,
-  );
+  assert.equal(manifest.video.musicVariant, expectedMusicVariant);
   await assert.rejects(stat(join(output, "state")), /ENOENT/);
   assert.ok(review.media.video.hash.length === 64);
 });
