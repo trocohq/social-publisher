@@ -23,7 +23,7 @@ const channelLimits = {
 const ctaByKind: Readonly<Record<CtaKind, string>> = {
   download: "Baixe o Troco grátis no Android.",
   calculator: "Faça a próxima conta com o Troco.",
-  save_share: "Salve e compartilhe com quem trabalha no caixa.",
+  save_share: "Salve para consultar no próximo atendimento.",
 };
 
 function attributedUrl(
@@ -47,12 +47,47 @@ function assertLength(value: string, maximum: number, label: string): string {
   return value;
 }
 
-function scenarioLines(scenario: Scenario): readonly string[] {
-  return [
-    `Compra: ${formatMinor(scenario.purchaseMinor, "BRL", "pt-BR")}`,
-    `Recebido: ${formatMinor(scenario.receivedMinor, "BRL", "pt-BR")}`,
-    `Troco: ${formatMinor(scenario.resultMinor, "BRL", "pt-BR")}`,
-  ];
+function finishSentence(value: string): string {
+  return /[.!?]$/u.test(value) ? value : `${value}.`;
+}
+
+function headlineFor({
+  family,
+  hook,
+  purchase,
+  received,
+}: Readonly<{
+  family: CampaignFamily;
+  hook: string;
+  purchase: string;
+  received: string;
+}>): string {
+  const opening = finishSentence(hook);
+  const setup = `${purchase} na compra. Pagou com ${received}.`;
+  const asksForAnswer = [
+    "change_challenge",
+    "quick_calculation",
+    "checkout_situation",
+  ].includes(family);
+  const question = /quanto|troco\?/iu.test(hook) ? "" : " Quanto volta?";
+  if (asksForAnswer) return `${opening} ${setup}${question}`;
+  return `${opening} ${purchase} na compra. Recebeu ${received}.`;
+}
+
+function breakdownLine(scenario: Scenario): string | undefined {
+  if (scenario.breakdown.length === 0) return undefined;
+  const pieces = scenario.breakdown.map(({ denominationMinor, quantity }) => {
+    const isNote = denominationMinor >= 200;
+    const unit = isNote
+      ? quantity === 1
+        ? "nota"
+        : "notas"
+      : quantity === 1
+        ? "moeda"
+        : "moedas";
+    return `${quantity} ${unit} de ${formatMinor(denominationMinor, "BRL", "pt-BR")}`;
+  });
+  return `Uma forma: ${pieces.join(" + ")}.`;
 }
 
 export type CreateCampaignCopyInput = Readonly<{
@@ -80,18 +115,20 @@ export function createCampaignCopy({
   const received = formatMinor(scenario.receivedMinor, "BRL", "pt-BR");
   const answer = formatMinor(scenario.resultMinor, "BRL", "pt-BR");
   const headline = assertLength(
-    `${hook}: ${purchase} pagos com ${received}`,
-    120,
+    headlineFor({ family, hook, purchase, received }),
+    150,
     "Headline",
   );
   const explanation = [fact.statement, calendarMoment?.statement]
     .filter((value): value is string => Boolean(value))
     .join(" ");
   const cta = ctaByKind[ctaKind];
+  const breakdown = breakdownLine(scenario);
   const common = [
     headline,
     "",
-    ...scenarioLines(scenario),
+    `A resposta é ${answer}.`,
+    ...(breakdown ? [breakdown] : []),
     "",
     explanation,
     "",

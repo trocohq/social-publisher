@@ -30,6 +30,31 @@ test("the reviewed catalog contains product, cashier, and safety sources", () =>
   );
 });
 
+test("public facts stay concise and avoid formal filler", () => {
+  for (const fact of facts) {
+    assert.ok(
+      fact.statement.length <= 150,
+      `${fact.id} is too long for social media`,
+    );
+    assert.doesNotMatch(
+      fact.statement,
+      /está disponível|pode ser usado|oferece cálculo|como conferência|sem complicação/i,
+      `${fact.id} still contains mechanical copy`,
+    );
+  }
+});
+
+test("hooks use concrete spoken language without generic filler", () => {
+  const everyHook = Object.values(hooks).flat();
+  for (const hook of everyHook) {
+    assert.doesNotMatch(
+      hook,
+      /sem complicação|uma conta importante|segurança também é rotina|vale lembrar/i,
+    );
+    assert.ok(hook.length <= 48, `${hook} is too long for a visual hook`);
+  }
+});
+
 test("calendar moments influence only matching dates and families", () => {
   assert.equal(
     calendarMomentForDate("2026-05-01", "safe_checkout")?.id,

@@ -40,6 +40,46 @@ test("campaign generation is deterministic and preserves one numeric answer", ()
   assert.ok(first.sourceIds.length >= 1);
 });
 
+test("a quick calculation sounds spoken and closes its numeric loop", () => {
+  const plan = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+
+  assert.equal(
+    plan.copy.headline,
+    "Troco rápido. R$\u00a07,80 na compra. Pagou com R$\u00a010,00. Quanto volta?",
+  );
+  assert.match(
+    plan.copy.channels.instagram.caption,
+    /A resposta é R\$\s2,20\./u,
+  );
+  assert.match(
+    plan.copy.channels.instagram.caption,
+    /Uma forma: 1 nota de R\$\s2,00 \+ 2 moedas de R\$\s0,10\./u,
+  );
+  assert.match(
+    plan.copy.channels.instagram.caption,
+    /O app completo do Troco está na Google Play\./u,
+  );
+  assert.doesNotMatch(
+    plan.copy.channels.instagram.caption,
+    /^(Compra|Recebido|Troco):/mu,
+  );
+});
+
+test("the save-and-share rotation ends with one concrete action", () => {
+  const plan = createCampaign({
+    localDate: "2026-08-26",
+    publishTime: "12:17",
+    history: [],
+  });
+
+  assert.equal(plan.ctaKind, "save_share");
+  assert.equal(plan.copy.cta, "Salve para consultar no próximo atendimento.");
+});
+
 test("campaign generation advances past a conflicting history entry", () => {
   const first = createCampaign({
     localDate: "2026-08-26",

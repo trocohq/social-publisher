@@ -1,28 +1,28 @@
 [
   {
     "id": "safety.confirm-pix-credit",
-    "statement": "Print não confirma pagamento. Sem crédito confirmado na conta recebedora, não libere produto, serviço ou devolução.",
+    "statement": "Print não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.",
     "source": "repo://frontend/lib/blog/articles.ts#falso-comprovante-pix-5-sinais",
     "reviewedOn": "2026-08-26",
     "families": ["safe_checkout", "save_this_rule"]
   },
   {
     "id": "safety.refund-original-transaction",
-    "statement": "Se o recebimento for legítimo, use a função de devolução vinculada à própria transação. Não envie para outra chave indicada por mensagem.",
+    "statement": "Recebimento legítimo? Devolva pela própria transação. Nunca envie para outra chave recebida por mensagem.",
     "source": "repo://frontend/lib/blog/articles.ts#golpe-do-estorno",
     "reviewedOn": "2026-08-26",
     "families": ["safe_checkout", "save_this_rule"]
   },
   {
     "id": "safety.verify-qr-recipient",
-    "statement": "Leia o nome exibido pelo seu banco, confira o valor e observe se existe adesivo ou código sobreposto no ponto de pagamento.",
+    "statement": "Antes de pagar, confira nome e valor no banco. Veja também se há adesivo ou outro QR code por cima.",
     "source": "repo://frontend/lib/blog/articles.ts#qr-code-trocado-teste-3-segundos",
     "reviewedOn": "2026-08-26",
     "families": ["safe_checkout", "checkout_situation"]
   },
   {
     "id": "safety.verify-terminal-amount",
-    "statement": "Veja o valor completo no visor. Se a tela estiver danificada, escondida ou ilegível, peça outra máquina ou outro meio de pagamento.",
+    "statement": "Confira o valor completo no visor. Tela danificada ou ilegível? Peça outra máquina ou outro meio de pagamento.",
     "source": "repo://frontend/lib/blog/articles.ts#maquininha-adulterada-checklist",
     "reviewedOn": "2026-08-26",
     "families": ["safe_checkout", "save_this_rule"]
