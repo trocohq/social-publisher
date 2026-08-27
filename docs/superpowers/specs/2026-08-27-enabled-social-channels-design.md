@@ -1,7 +1,7 @@
 # Enabled Social Channels Design
 
 **Date:** 2026-08-27  
-**Status:** Approved approach; awaiting written-spec review
+**Status:** Implemented and verified; controlled provider test pending
 
 ## Goal
 
