@@ -55,6 +55,10 @@ test("every official palette selects one stable music arrangement", () => {
     () => musicVariantForPalette("orange" as never),
     /Unknown Troco palette/,
   );
+  assert.throws(
+    () => musicVariantForPalette("toString" as never),
+    /Unknown Troco palette/,
+  );
 });
 
 test("all music arrangements are distinct, deterministic, and safe", async () => {

@@ -22,9 +22,10 @@ const musicVariantByPalette = {
 } as const satisfies Readonly<Record<Palette, MusicVariant>>;
 
 export function musicVariantForPalette(palette: Palette): MusicVariant {
-  const variant = musicVariantByPalette[palette];
-  if (!variant) throw new Error(`Unknown Troco palette: ${String(palette)}`);
-  return variant;
+  if (!Object.hasOwn(musicVariantByPalette, palette)) {
+    throw new Error(`Unknown Troco palette: ${String(palette)}`);
+  }
+  return musicVariantByPalette[palette];
 }
 
 type Arrangement = Readonly<{
