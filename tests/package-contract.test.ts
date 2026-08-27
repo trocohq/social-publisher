@@ -27,6 +27,16 @@ test("the npm registry configuration uses current supported keys", async () => {
   assert.doesNotMatch(npmrc, /always-auth/);
 });
 
+test("workflow dependency checkouts stay outside publisher formatting and Git state", async () => {
+  const [gitignore, prettierignore] = await Promise.all([
+    readFile(new URL("../.gitignore", import.meta.url), "utf8"),
+    readFile(new URL("../.prettierignore", import.meta.url), "utf8"),
+  ]);
+
+  assert.match(gitignore, /^dependencies\/$/m);
+  assert.match(prettierignore, /^dependencies\/$/m);
+});
+
 test("the README documents the safe local workflow", async () => {
   const readme = await readFile(
     new URL("../README.md", import.meta.url),
