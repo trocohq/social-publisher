@@ -4,7 +4,11 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import { createToneBed } from "../src/render/audio.js";
+import {
+  createToneBed,
+  musicVariantForPalette,
+  musicVariants,
+} from "../src/render/audio.js";
 
 function rms(
   wav: Buffer,
@@ -39,6 +43,18 @@ function sampleStats(wav: Buffer): Readonly<{
   }
   return { peak: peak / 32_767, samplesAtCeiling };
 }
+
+test("every official palette selects one stable music arrangement", () => {
+  assert.deepEqual(musicVariants, ["warm", "airy", "bright", "pulse"]);
+  assert.equal(musicVariantForPalette("green"), "warm");
+  assert.equal(musicVariantForPalette("blue"), "airy");
+  assert.equal(musicVariantForPalette("yellow"), "bright");
+  assert.equal(musicVariantForPalette("purple"), "pulse");
+  assert.throws(
+    () => musicVariantForPalette("orange" as never),
+    /Unknown Troco palette/,
+  );
+});
 
 test("the original music bed is deterministic stereo with a clear 100 BPM pulse", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-music-"));

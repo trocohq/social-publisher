@@ -1,6 +1,8 @@
 import { mkdir, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 
+import type { Palette } from "../editorial/schema.js";
+
 const SAMPLE_RATE = 48_000;
 const CHANNELS = 2;
 const BITS_PER_SAMPLE = 16;
@@ -9,6 +11,22 @@ const MUSIC_GAIN = 1.75;
 const BPM = 100;
 const BEAT_SECONDS = 60 / BPM;
 const BAR_SECONDS = BEAT_SECONDS * 4;
+
+export const musicVariants = ["warm", "airy", "bright", "pulse"] as const;
+export type MusicVariant = (typeof musicVariants)[number];
+
+const musicVariantByPalette = {
+  green: "warm",
+  blue: "airy",
+  yellow: "bright",
+  purple: "pulse",
+} as const satisfies Readonly<Record<Palette, MusicVariant>>;
+
+export function musicVariantForPalette(palette: Palette): MusicVariant {
+  const variant = musicVariantByPalette[palette];
+  if (!variant) throw new Error(`Unknown Troco palette: ${String(palette)}`);
+  return variant;
+}
 
 const chordProgression = [
   [261.63, 329.63, 392],
