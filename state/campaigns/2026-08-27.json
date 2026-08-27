@@ -93,7 +93,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "publishing",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -115,13 +115,19 @@
           "from": "media_verified",
           "to": "publishing",
           "at": "2026-08-27T16:58:40.619Z"
+        },
+        {
+          "from": "publishing",
+          "to": "published",
+          "at": "2026-08-27T17:00:35.359Z"
         }
       ],
       "providerId": "6a906cc2c1e57d0992799f43",
-      "scheduledAt": "2026-08-27T16:58:42.939Z"
+      "scheduledAt": "2026-08-27T16:58:42.939Z",
+      "publishedAt": "2026-08-27T17:00:35.359Z"
     },
     "facebook": {
-      "stage": "publishing",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -143,10 +149,16 @@
           "from": "media_verified",
           "to": "publishing",
           "at": "2026-08-27T16:58:56.372Z"
+        },
+        {
+          "from": "publishing",
+          "to": "published",
+          "at": "2026-08-27T17:00:35.657Z"
         }
       ],
       "providerId": "6a906cd2ad439ded2ea08592",
-      "scheduledAt": "2026-08-27T16:58:58.673Z"
+      "scheduledAt": "2026-08-27T16:58:58.673Z",
+      "publishedAt": "2026-08-27T17:00:35.657Z"
     },
     "tiktok": {
       "stage": "skipped_disabled",
