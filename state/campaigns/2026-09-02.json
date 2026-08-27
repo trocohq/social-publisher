@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-02-troco-explains-v1-1",
+    "localDate": "2026-09-02",
+    "targetAt": "2026-09-02T12:17:00-03:00",
+    "family": "troco_explains",
+    "recipeId": "troco-explains-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-02:troco_explains:v1",
+    "palette": "yellow",
+    "ctaKind": "save_share",
+    "mediaKind": "feed",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 4800,
+      "receivedMinor": 5000,
+      "resultMinor": 200,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Como o Troco chega ao valor. R$ 48,00 na compra. Recebeu R$ 50,00.",
+      "answer": "R$ 2,00",
+      "explanation": "Abra e use o Troco sem criar conta.",
+      "cta": "Salve para consultar no próximo atendimento.",
+      "channels": {
+        "instagram": {
+          "caption": "Como o Troco chega ao valor. R$ 48,00 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nAbra e use o Troco sem criar conta.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-09-02-troco-explains-v1-1&utm_content=troco_explains\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Como o Troco chega ao valor. R$ 48,00 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nAbra e use o Troco sem criar conta.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-09-02-troco-explains-v1-1&utm_content=troco_explains\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Como o Troco chega ao valor. R$ 48,00 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nAbra e use o Troco sem criar conta.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-02-troco-explains-v1-1&utm_content=troco_explains\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Como o Troco chega ao valor"
+        },
+        "youtube": {
+          "title": "Como o Troco chega ao valor. R$ 48,00 na compra. Recebeu R$ 50,00.",
+          "description": "Como o Troco chega ao valor. R$ 48,00 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nAbra e use o Troco sem criar conta.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-09-02-troco-explains-v1-1&utm_content=troco_explains\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.no-account"
+    ],
+    "fingerprints": {
+      "headline": "e6a074a459f705734a38eea7ed6fe180d7412966c5d31cee274a724dbb1b5601",
+      "caption": "275bea55dead392ff24d20e0c3620e30d6f3c58f2b5c301865fe1dd1774eebe3"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "4a33895d81b7d9b4f38d9cf9a796a19aeb4177afdba459124b3ebea936650361"
+    ],
+    "video": "8d2c075bff0e8e70f467c4cfecc9c3b94f3916f5704cb4f052361c86286b97fe"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}

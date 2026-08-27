@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-08-27-quick-calculation-v1-0",
+    "localDate": "2026-08-27",
+    "targetAt": "2026-08-27T12:17:00-03:00",
+    "family": "quick_calculation",
+    "recipeId": "quick-calculation-v1",
+    "recipeVersion": 1,
+    "candidate": 0,
+    "seed": "2026-08-27:quick_calculation:v1",
+    "palette": "blue",
+    "ctaKind": "calculator",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 780,
+      "receivedMinor": 1000,
+      "resultMinor": 220,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 10,
+          "quantity": 2
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Troco rápido. R$ 7,80 na compra. Pagou com R$ 10,00. Quanto volta?",
+      "answer": "R$ 2,20",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "Troco rápido. R$ 7,80 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 2,20.\nUma forma: 1 nota de R$ 2,00 + 2 moedas de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-08-27-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Troco rápido. R$ 7,80 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 2,20.\nUma forma: 1 nota de R$ 2,00 + 2 moedas de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-08-27-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Troco rápido. R$ 7,80 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 2,20.\nUma forma: 1 nota de R$ 2,00 + 2 moedas de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-08-27-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Troco rápido"
+        },
+        "youtube": {
+          "title": "Troco rápido. R$ 7,80 na compra. Pagou com R$ 10,00. Quanto volta?",
+          "description": "Troco rápido. R$ 7,80 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 2,20.\nUma forma: 1 nota de R$ 2,00 + 2 moedas de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-08-27-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "cced6b054ab60844f566579f6ee6d1646ba8054ebf8fcc11272ccffbd9931fdf",
+      "caption": "fb31c7a1c77fcbbd24f885225e8327325e31ae0307e72547bf4a9136ead6d6e0"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "5b31fea2bb71724f84e6031fe4139a86fda8a308af17d1a4b0c1c5a429afe3fe"
+    ],
+    "video": "e3a4e635c9988a71d0c95105fce10a248608588f0fdfeca128e0de52b33537fb"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}

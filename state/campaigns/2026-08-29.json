@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-08-29-checkout-situation-v1-3",
+    "localDate": "2026-08-29",
+    "targetAt": "2026-08-29T12:17:00-03:00",
+    "family": "checkout_situation",
+    "recipeId": "checkout-situation-v1",
+    "recipeVersion": 1,
+    "candidate": 3,
+    "seed": "2026-08-29:checkout_situation:v1",
+    "palette": "yellow",
+    "ctaKind": "calculator",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 9700,
+      "receivedMinor": 10000,
+      "resultMinor": 300,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 100,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "No ritmo do caixa. R$ 97,00 na compra. Pagou com R$ 100,00. Quanto volta?",
+      "answer": "R$ 3,00",
+      "explanation": "Digite a compra e quanto recebeu. O Troco calcula a diferença.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "No ritmo do caixa. R$ 97,00 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 3,00.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-08-29-checkout-situation-v1-3&utm_content=checkout_situation\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "No ritmo do caixa. R$ 97,00 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 3,00.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-08-29-checkout-situation-v1-3&utm_content=checkout_situation\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "No ritmo do caixa. R$ 97,00 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 3,00.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-08-29-checkout-situation-v1-3&utm_content=checkout_situation\n\n#Troco #TrocoCerto #Caixa",
+          "title": "No ritmo do caixa"
+        },
+        "youtube": {
+          "title": "No ritmo do caixa. R$ 97,00 na compra. Pagou com R$ 100,00. Quanto volta?",
+          "description": "No ritmo do caixa. R$ 97,00 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 3,00.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-08-29-checkout-situation-v1-3&utm_content=checkout_situation\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.change-calculation"
+    ],
+    "fingerprints": {
+      "headline": "ce6f1121ca26a8f326a74a46a814187c96181c2f17338a611ab9e2e2caa8c3f0",
+      "caption": "e68662320ad0558f8625e1dc2c8d89fae6a3c28452f92e35d155b054b68be887"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "6e08e87c53209aa2dbd0fec489bb5363ec7633d4b81f426a331b5341869b39b9"
+    ],
+    "video": "d2c121eff0be2c7a3c9330ef835d8d08d011c55048792d8760f5976d1d1e001a"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-08-31-change-challenge-v1-1",
+    "localDate": "2026-08-31",
+    "targetAt": "2026-08-31T12:17:00-03:00",
+    "family": "change_challenge",
+    "recipeId": "change-challenge-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-08-31:change_challenge:v1",
+    "palette": "green",
+    "ctaKind": "calculator",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 49800,
+      "receivedMinor": 50000,
+      "resultMinor": 200,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "R$ 498,00 na compra. Pagou com R$ 500,00. Faz de cabeça?",
+      "answer": "R$ 2,00",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "R$ 498,00 na compra. Pagou com R$ 500,00. Faz de cabeça?\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-08-31-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "R$ 498,00 na compra. Pagou com R$ 500,00. Faz de cabeça?\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-08-31-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "R$ 498,00 na compra. Pagou com R$ 500,00. Faz de cabeça?\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-08-31-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Faz de cabeça?"
+        },
+        "youtube": {
+          "title": "R$ 498,00 na compra. Pagou com R$ 500,00. Faz de cabeça?",
+          "description": "R$ 498,00 na compra. Pagou com R$ 500,00. Faz de cabeça?\n\nA resposta é R$ 2,00.\nUma forma: 1 nota de R$ 2,00.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-08-31-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "e4cfa14248d02e4e9c9361d5a44ad6fe3a5aee4559f6778d0d5da7462f84d48c",
+      "caption": "8900b92f26982ac20866cce98455c8903cad321b160d9d27bd4ccd4540d1ac96"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "917aeb11eca9a16585db8c5dafd710f9ba1fbb8d13b49553216e5f2f2913ac69"
+    ],
+    "video": "078001a6ffae188bda5007b64f7f700537381206a1ae0a6ee720ae7b0107c9ea"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}

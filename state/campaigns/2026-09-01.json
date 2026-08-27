@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-01-cashier-shortcut-v1-10",
+    "localDate": "2026-09-01",
+    "targetAt": "2026-09-01T12:17:00-03:00",
+    "family": "cashier_shortcut",
+    "recipeId": "cashier-shortcut-v1",
+    "recipeVersion": 1,
+    "candidate": 10,
+    "seed": "2026-09-01:cashier_shortcut:v1",
+    "palette": "purple",
+    "ctaKind": "download",
+    "mediaKind": "carousel",
+    "slideCount": 4,
+    "scenario": {
+      "purchaseMinor": 19925,
+      "receivedMinor": 20000,
+      "resultMinor": 75,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Confira sem refazer a conta. R$ 199,25 na compra. Recebeu R$ 200,00.",
+      "answer": "R$ 0,75",
+      "explanation": "Confirme o valor da compra e quanto recebeu. Depois calcule o troco.",
+      "cta": "Baixe o Troco grátis no Android.",
+      "channels": {
+        "instagram": {
+          "caption": "Confira sem refazer a conta. R$ 199,25 na compra. Recebeu R$ 200,00.\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-09-01-cashier-shortcut-v1-10&utm_content=cashier_shortcut\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Confira sem refazer a conta. R$ 199,25 na compra. Recebeu R$ 200,00.\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-09-01-cashier-shortcut-v1-10&utm_content=cashier_shortcut\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Confira sem refazer a conta. R$ 199,25 na compra. Recebeu R$ 200,00.\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-01-cashier-shortcut-v1-10&utm_content=cashier_shortcut\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Confira sem refazer a conta"
+        },
+        "youtube": {
+          "title": "Confira sem refazer a conta. R$ 199,25 na compra. Recebeu R$ 200,00.",
+          "description": "Confira sem refazer a conta. R$ 199,25 na compra. Recebeu R$ 200,00.\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-09-01-cashier-shortcut-v1-10&utm_content=cashier_shortcut\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "cashier.confirm-received"
+    ],
+    "fingerprints": {
+      "headline": "aaf45c63651c3607903544e0efe540318da78a3d207cf28a405ef9e4fe0200c6",
+      "caption": "1345c9fc851db1dea98a03b345e594e14290c42776a1fd2d4fecfc7a99e3e852"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "63285a141b54122ba86dcc8dcde9d7a8efaba54af6abee743d00173d8778944c",
+      "2526b6c66c4d05e198e2bb2bcbf6a92758f409f202800bdc41a28e688aed68cc",
+      "ff059ae6a08e94238939e966686837286ede4c1bc5f78e1cb5472a3d3041c16b",
+      "f391e63bf53714457f19c825cc8e0c2c18891fd248d64fb708a15d00493966d7"
+    ],
+    "video": "46bb0f228d817417a07e67f0b36b4477fd6ff181fce645826a8a8efa9ef32e83"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}

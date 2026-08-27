@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-08-30-save-this-rule-v1-1",
+    "localDate": "2026-08-30",
+    "targetAt": "2026-08-30T12:17:00-03:00",
+    "family": "save_this_rule",
+    "recipeId": "save-this-rule-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-08-30:save_this_rule:v1",
+    "palette": "purple",
+    "ctaKind": "download",
+    "mediaKind": "feed",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 4625,
+      "receivedMinor": 5000,
+      "resultMinor": 375,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 100,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Guarde esta regra. R$ 46,25 na compra. Recebeu R$ 50,00.",
+      "answer": "R$ 3,75",
+      "explanation": "Print não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.",
+      "cta": "Baixe o Troco grátis no Android.",
+      "channels": {
+        "instagram": {
+          "caption": "Guarde esta regra. R$ 46,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-08-30-save-this-rule-v1-1&utm_content=save_this_rule\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Guarde esta regra. R$ 46,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-08-30-save-this-rule-v1-1&utm_content=save_this_rule\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Guarde esta regra. R$ 46,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-08-30-save-this-rule-v1-1&utm_content=save_this_rule\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Guarde esta regra"
+        },
+        "youtube": {
+          "title": "Guarde esta regra. R$ 46,25 na compra. Recebeu R$ 50,00.",
+          "description": "Guarde esta regra. R$ 46,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-08-30-save-this-rule-v1-1&utm_content=save_this_rule\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "safety.confirm-pix-credit"
+    ],
+    "fingerprints": {
+      "headline": "5fd89c75999314d5f40623dce84e70c3b6b9db704b47b4b12b59321183a575cc",
+      "caption": "682e2efca7ca1662e2673aae8602ce2e40b45501387ea30859b302243bf18223"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "5d60bed519bef06ec6ef8c646ffe43f5356df079d35e362944bc5cf164e3bfc2"
+    ],
+    "video": "6bec230fd977fe8823cba47d6feedaa059ccf3c07685a4adb7e186d46864f924"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}

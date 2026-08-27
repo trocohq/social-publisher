@@ -1,0 +1,153 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-08-28-safe-checkout-v1-4",
+    "localDate": "2026-08-28",
+    "targetAt": "2026-08-28T12:17:00-03:00",
+    "family": "safe_checkout",
+    "recipeId": "safe-checkout-v1",
+    "recipeVersion": 1,
+    "candidate": 4,
+    "seed": "2026-08-28:safe_checkout:v1",
+    "palette": "purple",
+    "ctaKind": "save_share",
+    "mediaKind": "carousel",
+    "slideCount": 4,
+    "scenario": {
+      "purchaseMinor": 750,
+      "receivedMinor": 1000,
+      "resultMinor": 250,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Confira antes de concluir. R$ 7,50 na compra. Recebeu R$ 10,00.",
+      "answer": "R$ 2,50",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Salve para consultar no próximo atendimento.",
+      "channels": {
+        "instagram": {
+          "caption": "Confira antes de concluir. R$ 7,50 na compra. Recebeu R$ 10,00.\n\nA resposta é R$ 2,50.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-08-28-safe-checkout-v1-4&utm_content=safe_checkout\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Confira antes de concluir. R$ 7,50 na compra. Recebeu R$ 10,00.\n\nA resposta é R$ 2,50.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-08-28-safe-checkout-v1-4&utm_content=safe_checkout\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Confira antes de concluir. R$ 7,50 na compra. Recebeu R$ 10,00.\n\nA resposta é R$ 2,50.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-08-28-safe-checkout-v1-4&utm_content=safe_checkout\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Confira antes de concluir"
+        },
+        "youtube": {
+          "title": "Confira antes de concluir. R$ 7,50 na compra. Recebeu R$ 10,00.",
+          "description": "Confira antes de concluir. R$ 7,50 na compra. Recebeu R$ 10,00.\n\nA resposta é R$ 2,50.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nSalve para consultar no próximo atendimento.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-08-28-safe-checkout-v1-4&utm_content=safe_checkout\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "9e0a97dde616259a684400aab3e68c4cf1c2e57db392f46b4acd600c7980dbcb",
+      "caption": "75153f7ef7394b8ba17797058f0e8c14e32cff28d99d898b10fb105f705e4184"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "f4c02a67c8291157fa242e207a1836f2a6a5b93efad54f2d94f552f2be107438",
+      "d5232a8189006299bad26a3112b609ccbc42e8d0a3bf6fb084ebd5832e39e60f",
+      "4e21eaf24aa6d5a82ffddb372a4a1ca0676a1809ee574389636a6410ac322f7d",
+      "6ec1376c6785c8cfe86c1b2dca4ec22ee61c8b67258c212bd98a7bc4e98d67a6"
+    ],
+    "video": "ecebc02d01220ccead472167ebd46e1092cdd7afd3a7075a24e4f223da850e59"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-27T15:10:59.823Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-27T15:10:59.823Z"
+        }
+      ]
+    }
+  }
+}
