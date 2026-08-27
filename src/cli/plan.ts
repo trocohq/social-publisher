@@ -2,6 +2,7 @@ import { resolve, sep } from "node:path";
 import { pathToFileURL, fileURLToPath } from "node:url";
 
 import { loadBrand } from "../brand/load-brand.js";
+import { publicationChannels } from "../config/channels.js";
 import { parseEnvironment } from "../config/environment.js";
 import { mediaRecordFromState } from "../media/manifest.js";
 import { createPagesPayload, datesInPagesPayload } from "../media/pages.js";
@@ -13,6 +14,7 @@ import { datesNeedingPlans } from "../planning/rolling-window.js";
 import { renderFeed } from "../render/image.js";
 import { renderVideo } from "../render/video.js";
 import { localDateAt } from "../shared/time.js";
+import { markDisabledChannels } from "../state/channel-availability.js";
 import {
   campaignStateSchema,
   type CampaignState,
@@ -21,8 +23,6 @@ import {
 } from "../state/schema.js";
 import { listCampaignStates, writeCampaignState } from "../state/storage.js";
 import { transitionMedia, transitionProvider } from "../state/transitions.js";
-
-const channels = ["instagram", "facebook", "tiktok", "youtube"] as const;
 
 function stageRecord(stage: Stage) {
   return { stage, attempts: 0, transitions: [] };
@@ -34,7 +34,8 @@ function transitionAll(
   now: Date,
 ): CampaignState {
   let next = transitionMedia(state, to, now);
-  for (const channel of channels) {
+  for (const channel of publicationChannels) {
+    if (next.channels[channel].stage === "skipped_disabled") continue;
     next = transitionProvider(next, channel, to, now);
   }
   return next;
@@ -110,9 +111,10 @@ export async function runPlanning(
       },
       media: stageRecord("planned"),
       channels: Object.fromEntries(
-        channels.map((channel) => [channel, stageRecord("planned")]),
+        publicationChannels.map((channel) => [channel, stageRecord("planned")]),
       ) as Record<PublicationChannel, ReturnType<typeof stageRecord>>,
     });
+    state = markDisabledChannels(state, environment.enabled, now);
     state = transitionAll(state, "rendered", now);
     await writeCampaignState(stateRoot, state);
     existing.push(state);
