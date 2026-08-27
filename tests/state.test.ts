@@ -5,7 +5,9 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { markDisabledChannels } from "../src/state/channel-availability.js";
+import { recoverFixedProviderContract } from "../src/state/recovery.js";
 import { sanitizeError } from "../src/state/sanitize.js";
+import { campaignStateSchema } from "../src/state/schema.js";
 import { writeCampaignState } from "../src/state/storage.js";
 import { transitionProvider } from "../src/state/transitions.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
@@ -88,4 +90,47 @@ test("new campaigns permanently skip disabled channels", () => {
     () => transitionProvider(configured, "tiktok", "rendered", now),
     /Illegal transition/,
   );
+});
+
+test("a fixed Buffer contract can recover one failed channel without touching siblings", () => {
+  const attemptedAt = new Date("2026-08-27T15:51:22Z");
+  const recoveredAt = new Date("2026-08-27T16:00:00Z");
+  let failed = transitionProvider(
+    campaignStateFixture(),
+    "facebook",
+    "scheduling",
+    attemptedAt,
+  );
+  failed = transitionProvider(failed, "facebook", "failed", attemptedAt);
+  failed = campaignStateSchema.parse({
+    ...failed,
+    channels: {
+      ...failed.channels,
+      facebook: {
+        ...failed.channels.facebook,
+        lastError: {
+          category: "buffer_validation",
+          message: "Buffer rejected the post",
+        },
+      },
+    },
+  });
+
+  const recovered = recoverFixedProviderContract(
+    failed,
+    "facebook",
+    recoveredAt,
+  );
+
+  assert.equal(recovered.channels.facebook.stage, "retryable");
+  assert.equal(recovered.channels.facebook.lastError, undefined);
+  assert.equal(
+    recovered.channels.instagram.stage,
+    failed.channels.instagram.stage,
+  );
+  assert.deepEqual(recovered.channels.facebook.transitions.at(-1), {
+    from: "failed",
+    to: "retryable",
+    at: recoveredAt.toISOString(),
+  });
 });
