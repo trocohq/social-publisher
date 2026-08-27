@@ -144,7 +144,9 @@
           "to": "publishing",
           "at": "2026-08-27T16:58:56.372Z"
         }
-      ]
+      ],
+      "providerId": "6a906cd2ad439ded2ea08592",
+      "scheduledAt": "2026-08-27T16:58:58.673Z"
     },
     "tiktok": {
       "stage": "skipped_disabled",
