@@ -178,7 +178,7 @@
       ]
     },
     "youtube": {
-      "stage": "scheduling",
+      "stage": "scheduled",
       "attempts": 1,
       "transitions": [
         {
@@ -200,8 +200,15 @@
           "from": "media_verified",
           "to": "scheduling",
           "at": "2026-08-27T16:59:44.478Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-08-27T16:59:46.428Z"
         }
-      ]
+      ],
+      "providerId": "6a906d03ad439ded2ea089cc",
+      "scheduledAt": "2026-08-30T15:17:00.000Z"
     }
   }
 }
