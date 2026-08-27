@@ -5,7 +5,12 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { probeVideo } from "../src/render/probe.js";
+import { loadBrand } from "../src/brand/load-brand.js";
+import { createCampaign } from "../src/planning/create-campaign.js";
+import { createVerticalSceneSvg } from "../src/render/svg.js";
 import { renderFixtureCampaign } from "./support/render-fixture.js";
+
+const frontendPublic = new URL("../../frontend/public/", import.meta.url);
 
 test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));
@@ -32,4 +37,31 @@ test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
   assert.ok(video.hash.length === 64);
   assert.match(video.binaries.ffmpegVersion, /^ffmpeg version/);
   assert.match(video.binaries.ffprobeVersion, /^ffprobe version/);
+});
+
+test("vertical scenes prioritize larger hook, values, answer, and CTA", async () => {
+  const plan = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+  const brand = await loadBrand(frontendPublic);
+  const hook = createVerticalSceneSvg({ plan, brand, scene: "hook" });
+  const scenario = createVerticalSceneSvg({ plan, brand, scene: "scenario" });
+  const answer = createVerticalSceneSvg({ plan, brand, scene: "answer" });
+  const endCard = createVerticalSceneSvg({ plan, brand, scene: "end_card" });
+  const hookSize = Number(
+    hook.match(/font-family="Stolzl" font-size="(\d+)"/)?.[1],
+  );
+
+  assert.ok(hookSize >= 112, `hook rendered at ${hookSize}px`);
+  assert.match(scenario, /font-family="Stolzl" font-size="72">R\$/u);
+  assert.match(
+    answer,
+    /font-family="Stolzl" font-size="180"[^>]*><tspan[^>]*>R\$/u,
+  );
+  assert.match(
+    endCard,
+    /fill="#FEFDFB" font-family="Figtree" font-size="56" font-weight="700">/u,
+  );
 });

@@ -10,7 +10,7 @@ import fixture from "../assets/fixtures/worst-case-campaign.json" with { type: "
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
 import { renderFeed } from "../src/render/image.js";
-import { fitText } from "../src/render/svg.js";
+import { createFeedSlideSvg, fitText } from "../src/render/svg.js";
 
 const frontendPublic = new URL("../../frontend/public/", import.meta.url);
 
@@ -72,4 +72,31 @@ test("worst-case editorial text fits inside the 96 pixel safe area", () => {
   assert.ok(body.width <= 888 && body.height <= 650);
   assert.ok(display.fontSize >= 64);
   assert.ok(body.fontSize >= 34);
+});
+
+test("feed hierarchy uses larger type and a distinct call-to-action stage", async () => {
+  const plan = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+  const brand = await loadBrand(frontendPublic);
+  const svg = createFeedSlideSvg({ plan, brand, slide: 0 });
+  const headlineSize = Number(
+    svg.match(
+      /<text x="96" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
+    )?.[1],
+  );
+
+  assert.ok(headlineSize >= 88, `headline rendered at ${headlineSize}px`);
+  assert.match(svg, /font-family="Stolzl" font-size="54">R\$/u);
+  assert.match(svg, /font-family="Stolzl" font-size="68">R\$/u);
+  assert.match(
+    svg,
+    /<rect x="96" y="1160" width="888" height="118"[^>]*fill="#213130"/u,
+  );
+  assert.match(
+    svg,
+    /<text x="144" y="\d+" fill="#FEFDFB" font-family="Figtree" font-size="40" font-weight="700">/u,
+  );
 });
