@@ -2,8 +2,9 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 import { loadBrand } from "../src/brand/load-brand.js";
+import { canonicalBrandRoot } from "./support/brand-root.js";
 
-const frontendPublic = new URL("../../frontend/public/", import.meta.url);
+const frontendPublic = canonicalBrandRoot();
 
 test("the current canonical Troco mark and fonts pass the reviewed manifest", async () => {
   const brand = await loadBrand(frontendPublic);

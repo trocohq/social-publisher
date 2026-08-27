@@ -12,8 +12,9 @@ import { createCampaign } from "../src/planning/create-campaign.js";
 import { renderFeed } from "../src/render/image.js";
 import { createFeedSlideSvg } from "../src/render/svg.js";
 import { feedTextLayouts, fitText } from "../src/render/text-layout.js";
+import { canonicalBrandRoot } from "./support/brand-root.js";
 
-const frontendPublic = new URL("../../frontend/public/", import.meta.url);
+const frontendPublic = canonicalBrandRoot();
 
 test("feed output is deterministic 1080 by 1350 sRGB JPEG", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-feed-"));

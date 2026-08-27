@@ -7,13 +7,14 @@ import test from "node:test";
 import { parseArguments } from "../src/cli/arguments.js";
 import { createReview } from "../src/dry-run/create-review.js";
 import { musicVariantForPalette } from "../src/render/audio.js";
+import { canonicalBrandRoot } from "./support/brand-root.js";
 
 test("dry run writes a complete review bundle and no durable state", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-review-"));
   const review = await createReview({
     localDate: "2026-08-26",
     output,
-    brandRoot: new URL("../../frontend/public/", import.meta.url),
+    brandRoot: canonicalBrandRoot(),
   });
 
   assert.match(

@@ -9,9 +9,10 @@ import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
 import { musicVariantForPalette } from "../src/render/audio.js";
 import { createVerticalSceneSvg } from "../src/render/svg.js";
+import { canonicalBrandRoot } from "./support/brand-root.js";
 import { renderFixtureCampaign } from "./support/render-fixture.js";
 
-const frontendPublic = new URL("../../frontend/public/", import.meta.url);
+const frontendPublic = canonicalBrandRoot();
 
 test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));

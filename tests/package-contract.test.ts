@@ -37,6 +37,21 @@ test("workflow dependency checkouts stay outside publisher formatting and Git st
   assert.match(prettierignore, /^dependencies\/$/m);
 });
 
+test("media tests resolve the canonical brand through the workflow environment", async () => {
+  const testFiles = [
+    "brand.test.ts",
+    "dry-run.test.ts",
+    "image-render.test.ts",
+    "video-render.test.ts",
+    "support/render-fixture.ts",
+  ];
+
+  for (const file of testFiles) {
+    const source = await readFile(new URL(file, import.meta.url), "utf8");
+    assert.doesNotMatch(source, /new URL\([^\n]*frontend\/public/);
+  }
+});
+
 test("the README documents the safe local workflow", async () => {
   const readme = await readFile(
     new URL("../README.md", import.meta.url),
