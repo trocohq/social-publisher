@@ -188,7 +188,7 @@
       ]
     },
     "youtube": {
-      "stage": "scheduling",
+      "stage": "scheduled",
       "attempts": 1,
       "transitions": [
         {
@@ -210,8 +210,15 @@
           "from": "media_verified",
           "to": "scheduling",
           "at": "2026-08-27T15:58:46.613Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-08-27T15:58:49.203Z"
         }
-      ]
+      ],
+      "providerId": "gi56wjswJao",
+      "permalink": "https://www.youtube.com/watch?v=gi56wjswJao"
     }
   }
 }
