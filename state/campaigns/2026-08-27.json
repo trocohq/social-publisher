@@ -160,7 +160,7 @@
       ]
     },
     "youtube": {
-      "stage": "publishing",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -182,8 +182,16 @@
           "from": "media_verified",
           "to": "publishing",
           "at": "2026-08-27T16:59:12.107Z"
+        },
+        {
+          "from": "publishing",
+          "to": "published",
+          "at": "2026-08-27T16:59:13.808Z"
         }
-      ]
+      ],
+      "providerId": "6a906ce25b365168c5c84f6f",
+      "scheduledAt": "2026-08-27T16:59:14.557Z",
+      "publishedAt": "2026-08-27T16:59:13.808Z"
     }
   }
 }
