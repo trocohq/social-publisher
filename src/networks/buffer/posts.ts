@@ -1,7 +1,7 @@
 import type { NormalizedProviderObject, ProviderResult } from "../types.js";
 import { bufferGraphql } from "./graphql.js";
 
-export type BufferChannel = "instagram" | "facebook" | "tiktok";
+export type BufferChannel = "instagram" | "facebook" | "tiktok" | "youtube";
 export type BufferMediaKind = "feed" | "carousel" | "video";
 
 type BufferAsset =
@@ -9,7 +9,7 @@ type BufferAsset =
   | Readonly<{
       video: Readonly<{
         url: string;
-        metadata: Readonly<{ thumbnailOffset: 2000 }>;
+        metadata?: Readonly<{ thumbnailOffset: 2000 }>;
       }>;
     }>;
 
@@ -28,6 +28,16 @@ type BufferPostBase = Readonly<{
       isAiGenerated: false;
     }>;
     tiktok?: Readonly<{ title?: string; isAiGenerated: false }>;
+    youtube?: Readonly<{
+      title: string;
+      categoryId: "27";
+      privacy: "public";
+      madeForKids: false;
+      notifySubscribers: true;
+      embeddable: true;
+      license: "youtube";
+      isAiGenerated: false;
+    }>;
   }>;
 }>;
 
@@ -68,12 +78,18 @@ export function createBufferPostInput({
   title?: string;
 }>): BufferPostInput {
   if (!channelId || !text.trim()) throw new Error("Buffer post is incomplete");
+  if (channel === "youtube" && (!title?.trim() || title.length > 100)) {
+    throw new Error("Buffer YouTube title is invalid");
+  }
   const parsedDueAt = new Date(dueAt);
   if (Number.isNaN(parsedDueAt.valueOf()) || !dueAt.endsWith("Z")) {
     throw new Error("Buffer dueAt must be a UTC date-time");
   }
   if (mediaKind === "video" && mediaUrls.length !== 1) {
     throw new Error("Buffer video posts require exactly one video");
+  }
+  if (channel === "youtube" && mediaKind !== "video") {
+    throw new Error("YouTube Shorts require exactly one video");
   }
   if (
     mediaKind === "carousel" &&
@@ -91,7 +107,9 @@ export function createBufferPostInput({
           {
             video: {
               url: urls[0]!,
-              metadata: { thumbnailOffset: 2000 },
+              ...(channel === "youtube"
+                ? {}
+                : { metadata: { thumbnailOffset: 2000 as const } }),
             },
           },
         ]
@@ -118,7 +136,18 @@ export function createBufferPostInput({
                 isAiGenerated: false,
               },
             }
-          : {};
+          : {
+              youtube: {
+                title: title!,
+                categoryId: "27",
+                privacy: "public",
+                madeForKids: false,
+                notifySubscribers: true,
+                embeddable: true,
+                license: "youtube",
+                isAiGenerated: false,
+              },
+            };
 
   return Object.freeze({
     channelId,

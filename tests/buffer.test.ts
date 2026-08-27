@@ -69,6 +69,51 @@ test("Buffer sends overdue posts now instead of scheduling them in the past", ()
   assert.equal(input.metadata.facebook?.type, "post");
 });
 
+test("Buffer schedules a public YouTube Short with channel metadata", () => {
+  const input = createBufferPostInput({
+    channel: "youtube",
+    channelId: "yt_1",
+    text: "Descrição do Short",
+    title: "Confira antes de concluir",
+    dueAt: "2026-08-26T15:17:00.000Z",
+    phase: "scheduling",
+    mediaKind: "video",
+    mediaUrls: ["https://trocohq.github.io/social-publisher/media/short.mp4"],
+  });
+
+  assert.deepEqual(input.assets, [
+    {
+      video: {
+        url: "https://trocohq.github.io/social-publisher/media/short.mp4",
+      },
+    },
+  ]);
+  assert.deepEqual(input.metadata.youtube, {
+    title: "Confira antes de concluir",
+    categoryId: "27",
+    privacy: "public",
+    madeForKids: false,
+    notifySubscribers: true,
+    embeddable: true,
+    license: "youtube",
+    isAiGenerated: false,
+  });
+  assert.throws(
+    () =>
+      createBufferPostInput({
+        channel: "youtube",
+        channelId: "yt_1",
+        text: "Descrição",
+        title: "Título",
+        dueAt: "2026-08-26T15:17:00.000Z",
+        phase: "scheduling",
+        mediaKind: "feed",
+        mediaUrls: ["https://example.test/slide.jpg"],
+      }),
+    /YouTube Shorts require exactly one video/,
+  );
+});
+
 test("Buffer typed mutation errors become sanitized retry classes", () => {
   assert.deepEqual(
     normalizeBufferCreateResponse({
