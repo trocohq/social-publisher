@@ -21,6 +21,7 @@
     "publish": "node --import tsx src/cli/publish.ts",
     "reconcile": "node --import tsx src/cli/reconcile.ts",
     "recover-provider-contract": "node --import tsx src/cli/recover-provider-contract.ts",
+    "migrate-youtube-to-buffer": "node --import tsx src/cli/migrate-youtube-to-buffer.ts",
     "expire": "node --import tsx src/cli/expire.ts",
     "health": "node --import tsx src/cli/health.ts",
     "incident": "node --import tsx src/cli/incident.ts",

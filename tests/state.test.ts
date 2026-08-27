@@ -5,7 +5,10 @@ import { join } from "node:path";
 import test from "node:test";
 
 import { markDisabledChannels } from "../src/state/channel-availability.js";
-import { recoverFixedProviderContract } from "../src/state/recovery.js";
+import {
+  migrateControlledYouTubeToBuffer,
+  recoverFixedProviderContract,
+} from "../src/state/recovery.js";
 import { sanitizeError } from "../src/state/sanitize.js";
 import { campaignStateSchema } from "../src/state/schema.js";
 import { writeCampaignState } from "../src/state/storage.js";
@@ -180,4 +183,52 @@ test("a fixed Buffer contract can recover one failed channel without touching si
     to: "retryable",
     at: recoveredAt.toISOString(),
   });
+});
+
+test("a future private YouTube verification can migrate to Buffer once", () => {
+  const now = new Date("2026-08-25T12:00:00Z");
+  let state = transitionProvider(
+    campaignStateFixture({ youtube: "media_verified" }),
+    "youtube",
+    "scheduling",
+    now,
+  );
+  state = transitionProvider(state, "youtube", "scheduled", now);
+  state = campaignStateSchema.parse({
+    ...state,
+    channels: {
+      ...state.channels,
+      youtube: {
+        ...state.channels.youtube,
+        providerId: "private_video_1",
+        permalink: "https://www.youtube.com/watch?v=private_video_1",
+      },
+    },
+  });
+
+  const migrated = migrateControlledYouTubeToBuffer(
+    state,
+    new Date("2026-08-25T13:00:00Z"),
+  );
+
+  assert.equal(migrated.channels.youtube.stage, "retryable");
+  assert.equal(migrated.channels.youtube.providerId, undefined);
+  assert.equal(migrated.channels.youtube.permalink, undefined);
+  assert.deepEqual(migrated.channels.youtube.transitions.at(-1), {
+    from: "scheduled",
+    to: "retryable",
+    at: "2026-08-25T13:00:00.000Z",
+  });
+  assert.equal(
+    migrated.channels.instagram.stage,
+    state.channels.instagram.stage,
+  );
+  assert.throws(
+    () =>
+      migrateControlledYouTubeToBuffer(
+        migrated,
+        new Date("2026-08-25T14:00:00Z"),
+      ),
+    /not eligible/,
+  );
 });
