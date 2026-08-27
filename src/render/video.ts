@@ -68,7 +68,7 @@ export async function renderVideo({
     }
 
     const audioPath = await createToneBed({
-      filePath: join(temporaryRoot, "tone-bed.wav"),
+      filePath: join(temporaryRoot, "brand-music.wav"),
       durationSeconds: TOTAL_SECONDS,
       cueTimes: [SCENE_SECONDS, SCENE_SECONDS * 2, SCENE_SECONDS * 3],
     });
@@ -119,7 +119,7 @@ export async function renderVideo({
       "-ar",
       "48000",
       "-ac",
-      "1",
+      "2",
       "-t",
       String(TOTAL_SECONDS),
       "-movflags",

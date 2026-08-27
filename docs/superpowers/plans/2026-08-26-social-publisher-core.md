@@ -33,7 +33,7 @@ All paths below are relative to the `social-publisher` repository.
 - `src/brand/load-brand.ts`: asset presence, hash, font, and SVG validation.
 - `src/render/svg.ts`: escaped Product Editorial SVG scene construction.
 - `src/render/image.ts`: 1080×1350 sRGB JPEG rendering and carousel manifests.
-- `src/render/audio.ts`: deterministic original PCM tone-bed generation.
+- `src/render/audio.ts`: deterministic original PCM brand-music generation.
 - `src/render/video.ts`: FFmpeg argument-array assembly and 1080×1920 MP4 rendering.
 - `src/render/probe.ts`: `ffprobe` metadata normalization and media-contract validation.
 - `src/dry-run/create-review.ts`: campaign JSON, captions, assets, metadata, and HTML review page.
@@ -1050,15 +1050,19 @@ Run: `node --import tsx --test --test-name-pattern="short output" tests/*.test.t
 
 Expected: FAIL because the video renderer, probe, and fixture helper are missing.
 
-- [ ] **Step 3: Implement deterministic scene video, tone bed, and probing**
+- [ ] **Step 3: Implement deterministic scene video, brand music, and probing**
 
 Create `tests/support/render-fixture.ts` to create the 2026-08-26 campaign, load the canonical brand, render feed scenes, and call `renderVideo`.
 
-`audio.ts` must write a mono 48 kHz signed 16-bit PCM WAV whose samples combine quiet sine tones at 220 Hz and 330 Hz with 20 ms fade-in/out around transition cues. Derive cue timing from scene durations and cap peak amplitude at 0.12; the generated bed is original and deterministic.
+`audio.ts` must write a stereo 48 kHz signed 16-bit PCM WAV. Its five-bar,
+100 BPM arrangement combines a warm major-key chord bed, bass, a pluck melody,
+kick, shaker, and transition cues. Derive cue timing from scene durations, cap
+peak sample amplitude at 0.18, and generate every sample deterministically so
+the music remains original and independent from licensed tracks.
 
 `src/types/ffprobe-static.d.ts` declares the package default export as `{ path: string; version: string }`. `binaries.ts` imports the exact locked `ffmpeg-static` and `ffprobe-static` paths, accepts explicit CLI overrides for local diagnosis, verifies executable files, and records `ffmpeg -version` plus `ffprobe -version` in the media manifest.
 
-`video.ts` must call FFmpeg through `spawn` or `execFile` with an argument array, never a shell string. Use vertical 1080×1920 scene PNGs derived from the same SVG scene model, 30 fps, `libx264`, `yuv420p`, AAC at 128 kbps, `-movflags +faststart`, and fixed encoder metadata. The scene timeline is `hook`, `scenario`, `answer`, `end_card`, with total duration between 8 and 20 seconds. All meaning must remain in on-screen text.
+`video.ts` must call FFmpeg through `spawn` or `execFile` with an argument array, never a shell string. Use vertical 1080×1920 scene PNGs derived from the same SVG scene model, 30 fps, `libx264`, `yuv420p`, stereo AAC at 128 kbps, `-movflags +faststart`, and fixed encoder metadata. The scene timeline is `hook`, `scenario`, `answer`, `end_card`, with total duration between 8 and 20 seconds. All meaning must remain in on-screen text.
 
 `probe.ts` must execute:
 
