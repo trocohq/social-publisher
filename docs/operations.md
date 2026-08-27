@@ -13,21 +13,17 @@ Complete these steps in order.
    Enable GitHub Actions and GitHub Pages with **GitHub Actions** as its source.
    Set the Pages origin to `https://trocohq.github.io/social-publisher` unless a
    reviewed custom HTTPS origin is used.
-2. Use the free Buffer account owned by Troco with Instagram `@trocohq` and
-   Facebook `trocohq` connected. TikTok `@trocofacil.app` remains explicitly
-   disabled while its authentication is unresolved.
-3. Record the Buffer organization ID and the Instagram and Facebook channel
-   IDs. `BUFFER_TIKTOK_CHANNEL_ID` may remain blank while TikTok is disabled.
-   Keep the personal Buffer API key in the repository secret store only; never
-   copy it into a local file, issue, workflow log, or campaign state.
-4. In a Google Cloud project owned by Troco, enable YouTube Data API v3. Create
-   an OAuth client, authorize the owning `@trocohq` YouTube account with offline
-   access, and retain the refresh token in the repository secret store only.
-5. Complete Google's YouTube API audit/verification required for uploads to
-   become public. Until verification is confirmed, every controlled YouTube
-   upload must remain **private**. A successful upload is not proof that public
-   scheduling is authorized.
-6. Add these repository variables:
+2. Use the free Buffer account owned by Troco with Instagram `@trocohq`,
+   Facebook `trocohq`, and YouTube `@trocohq` connected. These are the three
+   free channel slots. TikTok `@trocofacil.app` remains explicitly disabled
+   while its authentication is unresolved.
+3. Record the Buffer organization ID and all three active Buffer channel IDs.
+   Also record the external YouTube channel ID so preflight can prove that the
+   Buffer connection belongs to `@trocohq`. `BUFFER_TIKTOK_CHANNEL_ID` may
+   remain blank while TikTok is disabled. Keep the personal Buffer API key in
+   the repository secret store only; never copy it into a local file, issue,
+   workflow log, or campaign state.
+4. Add these repository variables:
 
    - `AUTO_PUBLISH=false`
    - `YOUTUBE_PUBLICATION_VERIFIED=false`
@@ -40,21 +36,19 @@ Complete these steps in order.
    - `BUFFER_INSTAGRAM_CHANNEL_ID`
    - `BUFFER_FACEBOOK_CHANNEL_ID`
    - `BUFFER_TIKTOK_CHANNEL_ID` may be blank while TikTok is disabled
+   - `BUFFER_YOUTUBE_CHANNEL_ID`
    - `YOUTUBE_CHANNEL_ID`
 
-7. Add these repository secrets:
+5. Add these repository secrets:
 
    - `PACKAGES_READ_TOKEN` for read-only GitHub Packages access;
    - `SOURCE_READ_TOKEN` for read-only canonical source checkouts;
-   - `BUFFER_API_KEY`;
-   - `YOUTUBE_CLIENT_ID`;
-   - `YOUTUBE_CLIENT_SECRET`;
-   - `YOUTUBE_REFRESH_TOKEN`.
+   - `BUFFER_API_KEY`.
 
    GitHub supplies the workflow token. Do not create a broad personal token for
    state commits or incident issues.
 
-8. Verify that the frontend checkout is exactly
+6. Verify that the frontend checkout is exactly
    `298381c8e6c3220cde11a8109ddb727a28223d7c` and the design-token checkout is
    exactly `1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d`. Brand hashes and the packaged
    token source must match those reviewed commits.
@@ -63,32 +57,37 @@ Complete these steps in order.
 
 1. Run the validation workflow. Require formatting, types, all tests, media
    probing, workflow gates, and the production-adapter contract simulations to
-   pass. These simulations exercise the real Buffer GraphQL and YouTube
-   resumable-upload code without contacting either provider.
+   pass. These simulations exercise the real Buffer GraphQL contracts for all
+   three active channels without contacting the provider.
 2. Download and inspect the review artifact. Check the canonical logo, all
    image slides, the complete 12-second video, amounts, answer, calls to action,
    and the four final captions. Open every attributed Google Play link.
 3. Choose one campaign dated in the future. Dispatch the production workflow
    in `controlled` mode with its exact campaign ID and confirmation
    `PUBLISH_ONE_CAMPAIGN`.
-4. Confirm the Instagram and Facebook objects in Buffer. Check their channel,
-   due time, ordered media, copy, and UTM parameters. Confirm that TikTok made no
-   provider request and its campaign record is terminal `skipped_disabled`.
-   Record nothing manually in tracked state; the workflow persists normalized
-   provider IDs.
-5. Confirm that the corresponding YouTube Short exists on the owning channel,
-   has the campaign fingerprint tag, and remains private during pre-audit
-   verification. Check title, description, and media; controlled validation
-   deliberately sets no public schedule.
-6. Run reconciliation for the controlled campaign. It must find the existing
-   Buffer and YouTube objects and create zero duplicates.
-7. Confirm that `state/campaigns/YYYY-MM-DD.json` contains provider IDs and no
+4. Confirm the Instagram, Facebook, and YouTube objects in Buffer. Check the
+   exact channels, due time, ordered media, copy, UTM parameters, YouTube title,
+   category, and public privacy setting. Confirm that TikTok made no provider
+   request and its campaign record is terminal `skipped_disabled`. Record
+   nothing manually in tracked state; the workflow persists normalized provider
+   IDs.
+5. Run reconciliation for the controlled campaign. It must find all existing
+   Buffer objects and create zero duplicates.
+6. Confirm that `state/campaigns/YYYY-MM-DD.json` contains provider IDs and no
    credentials, authorization headers, upload-session URLs, or raw payloads.
-8. Only after Google's audit and the private upload checks pass, set
-   `YOUTUBE_PUBLICATION_VERIFIED=true`. Then set `AUTO_PUBLISH=true`. Both flags
-   are required for unattended publication. Monitor every run and all three
-   active provider channels for the first seven days. Review Google Play Console
-   acquisition manually; Play Console ingestion is deliberately not automated.
+7. Only after Buffer proves the external YouTube channel ID and accepts the
+   reviewed public Short contract, set `YOUTUBE_PUBLICATION_VERIFIED=true`.
+   Then set `AUTO_PUBLISH=true`. Both flags are required for unattended
+   publication. Monitor every run and all three active provider channels for
+   the first seven days. Review Google Play Console acquisition manually; Play
+   Console ingestion is deliberately not automated.
+
+If an older controlled test uploaded a private YouTube video through Google's
+API, leave that private object untouched and migrate only its future campaign
+state with `npm run migrate-youtube-to-buffer -- --campaign ID --confirm
+MIGRATE_PRIVATE_YOUTUBE_TO_BUFFER`. The command is one-time, future-only, and
+records the `scheduled` to `retryable` transition before Buffer creates the
+public scheduled Short.
 
 ## Routine operation
 
@@ -99,10 +98,9 @@ one intent, performs one provider action, and records the result. It reconciles
 before creating. It never backfills an earlier local date, even if a workflow
 was unavailable that day. An overdue Buffer action is sent with `shareNow`,
 never with a schedule in the past. Scheduled records are reconciled again after
-their due time to record the final published state. Buffer `error` and YouTube
-terminal upload states become persisted failures. A provider object still
-absent 30 minutes after its deadline becomes retryable instead of being treated
-as healthy.
+their due time to record the final published state. Buffer `error` states become
+persisted failures. A provider object still absent 30 minutes after its deadline
+becomes retryable instead of being treated as healthy.
 
 With `TIKTOK_ENABLED=false`, newly created campaigns only transition TikTok from
 `planned` to terminal `skipped_disabled`. Later changing the flag to `true`
@@ -118,11 +116,11 @@ Do not use Pages as permanent media storage.
 ### Emergency stop or disabling one provider
 
 Set `AUTO_PUBLISH=false` first. This stops every unattended provider write
-before Pages deployment. To disable one provider for future campaigns, set its
-explicit `*_ENABLED` flag to `false` while the global gate stays false, then run
-validation and a controlled campaign. Existing campaigns are never rewritten
-automatically; review any nonterminal record created before the flag change.
-Restore the channel only after authentication and controlled verification pass.
+before Pages deployment. To disable one provider, set its explicit `*_ENABLED`
+flag to `false` while the global gate stays false, then run planning. Existing
+queued records that have no provider intent transition to `skipped_disabled`;
+scheduled, published, and other provider-owned records remain untouched. Restore
+the channel only after authentication and controlled verification pass.
 
 ### Retrying one failed stage
 
@@ -140,16 +138,16 @@ One open issue labeled `social-publisher-incident` represents the current
 incident. Repeated failures append sanitized summaries. If multiple labeled
 issues are open, stop and resolve the configuration error. A fully healthy
 reconciliation appends a recovery note and closes the issue automatically.
-Never paste raw Buffer responses, OAuth tokens, resumable upload URLs, request
-headers, or workflow environment dumps into an incident.
+Never paste raw Buffer responses, OAuth tokens, request headers, or workflow
+environment dumps into an incident.
 
 ### Token rotation
 
 For token rotation, set `AUTO_PUBLISH=false`, rotate one secret at a time in the
 provider and GitHub, run preflight, perform one future controlled campaign, and
 revoke the previous token only after verification. Rotate the Buffer API key,
-YouTube refresh/client credentials, `PACKAGES_READ_TOKEN`, and
-`SOURCE_READ_TOKEN` independently. No rotation requires a state rewrite.
+`PACKAGES_READ_TOKEN`, and `SOURCE_READ_TOKEN` independently. No rotation
+requires a state rewrite.
 
 ## Deactivation checklist
 

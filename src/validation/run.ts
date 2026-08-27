@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -11,11 +11,6 @@ import {
   createBufferPostInput,
 } from "../networks/buffer/posts.js";
 import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
-import { createYouTubeAccessTokenProvider } from "../networks/youtube/oauth.js";
-import {
-  uploadYouTubeVideo,
-  youtubeVideoResource,
-} from "../networks/youtube/upload.js";
 import { sha256 } from "../shared/determinism.js";
 import { listCampaignStates } from "../state/storage.js";
 
@@ -61,6 +56,9 @@ async function validateWorkflowGates(): Promise<void> {
       ];
       if (
         !source.includes("AUTO_PUBLISH: ${{ vars.AUTO_PUBLISH || 'false' }}") ||
+        !source.includes(
+          "BUFFER_YOUTUBE_CHANNEL_ID: ${{ vars.BUFFER_YOUTUBE_CHANNEL_ID }}",
+        ) ||
         channelFlags.some((flag) => !source.includes(flag)) ||
         !source.includes("group: troco-social-publication") ||
         source.includes("pull_request:")
@@ -78,9 +76,7 @@ function jsonResponse(body: unknown): Response {
   });
 }
 
-async function validateProductionProviderContracts(
-  root: string,
-): Promise<void> {
+async function validateProductionProviderContracts(): Promise<void> {
   const createInputs: Record<string, unknown>[] = [];
   const bufferFetch: typeof fetch = async (_input, init) => {
     const request = JSON.parse(String(init?.body)) as {
@@ -138,6 +134,15 @@ async function validateProductionProviderContracts(
               organizationId: "org_validation",
               isQueuePaused: false,
             },
+            {
+              id: "yt_validation",
+              service: "youtube",
+              serviceId: "UC_validation",
+              organizationId: "org_validation",
+              isQueuePaused: false,
+              isDisconnected: false,
+              isLocked: false,
+            },
           ],
         },
       });
@@ -189,8 +194,10 @@ async function validateProductionProviderContracts(
       instagram: "ig_validation",
       facebook: "fb_validation",
       tiktok: "tt_validation",
+      youtube: "yt_validation",
     },
-    requiredSlots: { instagram: 1, facebook: 1, tiktok: 1, youtube: 0 },
+    expectedServiceIds: { youtube: "UC_validation" },
+    requiredSlots: { instagram: 1, facebook: 1, tiktok: 1, youtube: 1 },
     fetchImplementation: bufferFetch,
   });
   const reconciliation = await reconcileBufferPost({
@@ -271,6 +278,20 @@ async function validateProductionProviderContracts(
     }),
     fetchImplementation: bufferFetch,
   });
+  const youtubeShort = await createBufferPost({
+    apiKey: "fake-buffer-key",
+    input: createBufferPostInput({
+      channel: "youtube",
+      channelId: "yt_validation",
+      text: "YouTube description",
+      title: "YouTube title",
+      dueAt: "2026-08-26T15:17:00.000Z",
+      phase: "scheduling",
+      mediaKind: "video",
+      mediaUrls: ["https://example.test/short.mp4"],
+    }),
+    fetchImplementation: bufferFetch,
+  });
   if (
     scheduled.kind !== "success" ||
     scheduled.value.status !== "scheduled" ||
@@ -279,18 +300,34 @@ async function validateProductionProviderContracts(
     asynchronousFailure.kind !== "permanent_error" ||
     asynchronousFailure.category !== "buffer_async_failure" ||
     graphqlFailure.kind !== "permanent_error" ||
-    graphqlFailure.category !== "buffer_graphql"
+    graphqlFailure.category !== "buffer_graphql" ||
+    youtubeShort.kind !== "success" ||
+    youtubeShort.value.status !== "scheduled"
   ) {
     throw new Error("Buffer production create adapter validation failed");
   }
-  const [scheduledInput, immediateInput] = createInputs;
+  const [scheduledInput, immediateInput, , , youtubeInput] = createInputs;
   if (
     scheduledInput?.schedulingType !== "automatic" ||
     scheduledInput.mode !== "customScheduled" ||
     typeof scheduledInput.dueAt !== "string" ||
     immediateInput?.schedulingType !== "automatic" ||
     immediateInput.mode !== "shareNow" ||
-    "dueAt" in immediateInput
+    "dueAt" in immediateInput ||
+    !youtubeInput ||
+    JSON.stringify(youtubeInput.metadata) !==
+      JSON.stringify({
+        youtube: {
+          title: "YouTube title",
+          categoryId: "27",
+          privacy: "public",
+          madeForKids: false,
+          notifySubscribers: true,
+          embeddable: true,
+          license: "youtube",
+          isAiGenerated: false,
+        },
+      })
   ) {
     throw new Error("Buffer CreatePostInput contract validation failed");
   }
@@ -311,62 +348,6 @@ async function validateProductionProviderContracts(
         },
       }),
   });
-
-  const tokens = createYouTubeAccessTokenProvider({
-    clientId: "fake-client",
-    clientSecret: "fake-secret",
-    refreshToken: "fake-refresh",
-    fetchImplementation: async () =>
-      new Response(
-        JSON.stringify({
-          access_token: "process-local-token",
-          expires_in: 3_600,
-          token_type: "Bearer",
-        }),
-        { status: 200, headers: { "content-type": "application/json" } },
-      ),
-  });
-  if (
-    (await tokens.getAccessToken(new Date("2026-08-26T10:00:00Z"))).length < 1
-  ) {
-    throw new Error("YouTube in-memory OAuth validation failed");
-  }
-
-  const videoPath = join(root, "provider-contract.mp4");
-  await writeFile(videoPath, Buffer.from("provider-contract"));
-  let uploadRequests = 0;
-  const uploaded = await uploadYouTubeVideo({
-    accessToken: "process-local-token",
-    filePath: videoPath,
-    resource: youtubeVideoResource({
-      campaignId: "2026-08-27-quick-calculation-v1-0",
-      title: "Private validation #Shorts",
-      description: "Production upload protocol validation",
-    }),
-    fetchImplementation: async (_input, init) => {
-      const authorization = new Headers(init?.headers).get("authorization");
-      if (authorization !== "Bearer process-local-token") {
-        throw new Error("YouTube production request is not authorized");
-      }
-      if (init?.method === "POST") {
-        return new Response(null, {
-          status: 200,
-          headers: {
-            location:
-              "https://www.googleapis.com/upload/youtube/v3/videos?upload_id=validation",
-          },
-        });
-      }
-      uploadRequests += 1;
-      return jsonResponse({
-        id: "video_validation",
-        status: { uploadStatus: "uploaded", privacyStatus: "private" },
-      });
-    },
-  });
-  if (uploaded.id !== "video_validation" || uploadRequests !== 1) {
-    throw new Error("YouTube production upload protocol validation failed");
-  }
 }
 
 async function validate(): Promise<void> {
@@ -376,7 +357,7 @@ async function validate(): Promise<void> {
     const states = await listCampaignStates(resolve("state"));
     for (const state of states) assertSanitizedState(state);
     await validateWorkflowGates();
-    await validateProductionProviderContracts(output);
+    await validateProductionProviderContracts();
     const review = await createReview({
       localDate: "2026-08-26",
       output,

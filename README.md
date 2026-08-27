@@ -104,11 +104,10 @@ dimensions, video codecs, duration, frame rate, or file-size limits fail.
 
 The production boundary stores a sanitized campaign state before and after each
 external action. GitHub Pages serves the verified rolling media. The current
-production set schedules Instagram and Facebook through Buffer and sends the
-local MP4 to YouTube using an OAuth resumable upload. TikTok remains explicitly
-disabled while account authentication is unresolved. Every execution reconciles
-the campaign fingerprint, channel, due time, normalized copy, and ordered media
-before it creates anything.
+production set schedules Instagram, Facebook, and public YouTube Shorts through
+the same free Buffer account. TikTok remains explicitly disabled while account
+authentication is unresolved. Every execution reconciles the campaign channel,
+due time, normalized copy, and ordered media before it creates anything.
 
 Each channel receives its own Google Play URL with `utm_source`, `utm_medium`,
 `utm_campaign`, and `utm_content`. Download growth is evaluated manually in
@@ -117,11 +116,11 @@ credential access are explicitly outside this repository.
 
 Scheduled writes are serialized and disabled unless the repository variable
 `AUTO_PUBLISH` is exactly `true`. Public YouTube scheduling has a second,
-independent gate: `YOUTUBE_PUBLICATION_VERIFIED` must also be exactly `true`.
+independent gate: `YOUTUBE_PUBLICATION_VERIFIED` must also be exactly `true`
+after Buffer's exact `@trocohq` channel and public Short metadata are checked.
 Both default to false. The workflow also declares `INSTAGRAM_ENABLED=true`,
 `FACEBOOK_ENABLED=true`, `TIKTOK_ENABLED=false`, and `YOUTUBE_ENABLED=true`.
 New campaigns persist TikTok as terminal `skipped_disabled`; enabling it later
 never reopens or backfills those records. Start with the future controlled
-campaign and private YouTube verification described in the
-[operations runbook](docs/operations.md). Never activate unattended publishing
-from code completion alone.
+campaign described in the [operations runbook](docs/operations.md). Never
+activate unattended publishing from code completion alone.

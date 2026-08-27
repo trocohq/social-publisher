@@ -10,6 +10,7 @@ test("operations document keeps unattended publication behind verified activatio
   for (const phrase of [
     "AUTO_PUBLISH=false",
     "YOUTUBE_PUBLICATION_VERIFIED=false",
+    "BUFFER_YOUTUBE_CHANNEL_ID",
     "PUBLISH_ONE_CAMPAIGN",
     "Buffer",
     "YouTube",
@@ -21,6 +22,7 @@ test("operations document keeps unattended publication behind verified activatio
     "TIKTOK_ENABLED=false",
     "skipped_disabled",
     "newly created campaigns only",
+    "MIGRATE_PRIVATE_YOUTUBE_TO_BUFFER",
   ]) {
     assert.match(document, new RegExp(phrase, "i"));
   }
