@@ -68,3 +68,23 @@ test("the README documents the safe local workflow", async () => {
     assert.match(readme, new RegExp(phrase));
   }
 });
+
+test("the README explains production schedule, volume, status, and remaining work", async () => {
+  const readme = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+
+  for (const phrase of [
+    "Current production status",
+    "Schedule and publishing volume",
+    "17 */3 * * *",
+    "12:17",
+    "21 provider posts",
+    "Weekly editorial rotation",
+    "TIKTOK_ENABLED=false",
+    "Remaining work",
+  ]) {
+    assert.ok(readme.includes(phrase), `README is missing ${phrase}`);
+  }
+});
