@@ -154,6 +154,20 @@ If a collision occurs, the planner advances to the next deterministic candidate.
 
 All social copy is Brazilian Portuguese. Every campaign gives useful information before asking for an action.
 
+Troco's editorial voice is direct, practical, and recognizably Brazilian. A
+short-video campaign opens one curiosity loop, resolves it with the exact
+numeric answer or sourced rule, and ends with one action. Hooks use spoken
+phrasing instead of a repeated template. Supporting text keeps the concrete
+fact while removing formal availability language, generic transitions,
+inflated claims, and explanations already visible in the scenario. Sentence
+length and rhythm vary naturally; fragments are used only when they improve
+on-screen comprehension.
+
+The dominant emotional driver is confidence at the counter. The numeric
+scenario is the micro-proof. Copy must remain specific enough that it could not
+be moved unchanged to an unrelated product. Channel captions may reveal the
+answer after the setup, but must not open a loop they fail to close.
+
 Calls to action rotate between:
 
 - downloading Troco from Google Play, the primary conversion;
@@ -212,6 +226,12 @@ There is no placeholder-logo fallback.
 - Every slide keeps text within a shared safe area.
 - The first slide is a cover; the last slide resolves the lesson and presents a restrained CTA.
 - Critical meaning never depends on color alone.
+- The reading order is headline, scenario or proof, supporting fact, then CTA.
+- Headlines target 88–96 px on feed assets. Scenario values and the numeric
+  answer are larger than their labels. Supporting copy is shortened before the
+  renderer is allowed to reduce it below the approved readable scale.
+- CTA copy receives its own high-contrast stage instead of competing with the
+  explanation in the same text block.
 
 ### 7.4 Short-video output
 
@@ -222,7 +242,12 @@ There is no placeholder-logo fallback.
 - Structure: hook, scenario, reveal or lesson, and Troco end card.
 - Motion: slide, count, scale, and crossfade transitions derived from static scenes.
 - Text remains readable with audio muted.
-- Audio uses a quiet, procedurally generated original tone bed and transition cues. It does not depend on platform music libraries or copyrighted tracks.
+- Audio uses an upbeat institutional theme generated entirely by the
+  repository. Its 100 BPM arrangement combines a warm major-key chord bed,
+  soft bass, a light pluck melody, restrained kick and shaker, and musical
+  transition cues. The five-bar phrase resolves at exactly 12 seconds and stays
+  below the approved peak amplitude. It does not download, sample, imitate, or
+  depend on platform music libraries or copyrighted tracks.
 - No spoken narration is required for the first production design; the content is complete through motion and on-screen copy.
 
 Image-led campaign days use the feed assets on Instagram, Facebook, and TikTok while the same scenes become an animated Short for YouTube. Video-led days send the vertical video to all four networks.
