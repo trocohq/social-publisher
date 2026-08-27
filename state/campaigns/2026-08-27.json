@@ -116,7 +116,9 @@
           "to": "publishing",
           "at": "2026-08-27T16:58:40.619Z"
         }
-      ]
+      ],
+      "providerId": "6a906cc2c1e57d0992799f43",
+      "scheduledAt": "2026-08-27T16:58:42.939Z"
     },
     "facebook": {
       "stage": "media_verified",
