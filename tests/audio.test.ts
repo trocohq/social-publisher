@@ -25,6 +25,21 @@ function rms(
   return Math.sqrt(squareSum / frameCount);
 }
 
+function sampleStats(wav: Buffer): Readonly<{
+  peak: number;
+  samplesAtCeiling: number;
+}> {
+  const ceiling = Math.round(0.18 * 32_767);
+  let peak = 0;
+  let samplesAtCeiling = 0;
+  for (let offset = 44; offset < wav.length; offset += 2) {
+    const sample = Math.abs(wav.readInt16LE(offset));
+    peak = Math.max(peak, sample);
+    if (sample >= ceiling) samplesAtCeiling += 1;
+  }
+  return { peak: peak / 32_767, samplesAtCeiling };
+}
+
 test("the original music bed is deterministic stereo with a clear 100 BPM pulse", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-music-"));
   const firstPath = await createToneBed({
@@ -46,4 +61,6 @@ test("the original music bed is deterministic stereo with a clear 100 BPM pulse"
   assert.notEqual(rms(first, 2.4, 0.04, 0), rms(first, 2.4, 0.04, 1));
   assert.ok(rms(first, 2.4, 0.04, 0) > rms(first, 2.7, 0.04, 0) * 1.08);
   assert.ok(rms(first, 0.6, 10.8, 0) > 0.04);
+  assert.ok(sampleStats(first).peak < 0.18);
+  assert.equal(sampleStats(first).samplesAtCeiling, 0);
 });

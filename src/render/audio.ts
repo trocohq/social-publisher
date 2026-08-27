@@ -5,7 +5,7 @@ const SAMPLE_RATE = 48_000;
 const CHANNELS = 2;
 const BITS_PER_SAMPLE = 16;
 const MAXIMUM_AMPLITUDE = 0.18;
-const MUSIC_GAIN = 1.7;
+const MUSIC_GAIN = 1.75;
 const BPM = 100;
 const BEAT_SECONDS = 60 / BPM;
 const BAR_SECONDS = BEAT_SECONDS * 4;
@@ -23,8 +23,8 @@ const melody = [
   523.25, 349.23, 440, 523.25, 440, 392, 523.25, 659.25, 783.99,
 ] as const;
 
-function clamp(value: number, minimum: number, maximum: number): number {
-  return Math.min(maximum, Math.max(minimum, value));
+function softLimit(value: number): number {
+  return MAXIMUM_AMPLITUDE * Math.tanh(value / MAXIMUM_AMPLITUDE);
 }
 
 function sine(frequency: number, time: number): number {
@@ -145,19 +145,15 @@ export async function createToneBed({
           (sine(659.25, cueTimeLocal) + 0.5 * sine(783.99, cueTimeLocal))
       );
     }, 0);
-    const left = clamp(
+    const left = softLimit(
       MUSIC_GAIN *
         (leftPad + bass + kick + pluck * 0.58 + shaker * 0.72 + cue) *
         Math.max(0, edgeEnvelope),
-      -MAXIMUM_AMPLITUDE,
-      MAXIMUM_AMPLITUDE,
     );
-    const right = clamp(
+    const right = softLimit(
       MUSIC_GAIN *
         (rightPad + bass + kick + pluck * 0.9 + shaker + cue * 0.82) *
         Math.max(0, edgeEnvelope),
-      -MAXIMUM_AMPLITUDE,
-      MAXIMUM_AMPLITUDE,
     );
     const frameOffset = index * CHANNELS * 2;
     samples.writeInt16LE(Math.round(left * 32_767), frameOffset);
