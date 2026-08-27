@@ -67,7 +67,7 @@
     "video": "078001a6ffae188bda5007b64f7f700537381206a1ae0a6ee720ae7b0107c9ea"
   },
   "media": {
-    "stage": "deploying",
+    "stage": "media_verified",
     "attempts": 0,
     "transitions": [
       {
@@ -79,12 +79,17 @@
         "from": "rendered",
         "to": "deploying",
         "at": "2026-08-27T15:10:59.823Z"
+      },
+      {
+        "from": "deploying",
+        "to": "media_verified",
+        "at": "2026-08-27T16:58:37.685Z"
       }
     ]
   },
   "channels": {
     "instagram": {
-      "stage": "deploying",
+      "stage": "media_verified",
       "attempts": 0,
       "transitions": [
         {
@@ -96,11 +101,16 @@
           "from": "rendered",
           "to": "deploying",
           "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "deploying",
+          "to": "media_verified",
+          "at": "2026-08-27T16:58:37.685Z"
         }
       ]
     },
     "facebook": {
-      "stage": "deploying",
+      "stage": "media_verified",
       "attempts": 0,
       "transitions": [
         {
@@ -112,6 +122,11 @@
           "from": "rendered",
           "to": "deploying",
           "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "deploying",
+          "to": "media_verified",
+          "at": "2026-08-27T16:58:37.685Z"
         }
       ]
     },
@@ -127,7 +142,7 @@
       ]
     },
     "youtube": {
-      "stage": "deploying",
+      "stage": "media_verified",
       "attempts": 0,
       "transitions": [
         {
@@ -139,6 +154,11 @@
           "from": "rendered",
           "to": "deploying",
           "at": "2026-08-27T15:10:59.823Z"
+        },
+        {
+          "from": "deploying",
+          "to": "media_verified",
+          "at": "2026-08-27T16:58:37.685Z"
         }
       ]
     }
