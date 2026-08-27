@@ -21,6 +21,7 @@ type BufferPostBase = Readonly<{
   aiAssisted: false;
   assets: readonly BufferAsset[];
   metadata: Readonly<{
+    facebook?: Readonly<{ type: "post" | "reel" }>;
     instagram?: Readonly<{
       type: "post" | "reel";
       shouldShareToFeed: true;
@@ -96,22 +97,28 @@ export function createBufferPostInput({
         ]
       : urls.map((url) => ({ image: { url } }));
   const metadata: BufferPostInput["metadata"] =
-    channel === "instagram"
+    channel === "facebook"
       ? {
-          instagram: {
+          facebook: {
             type: mediaKind === "video" ? "reel" : "post",
-            shouldShareToFeed: true,
-            isAiGenerated: false,
           },
         }
-      : channel === "tiktok"
+      : channel === "instagram"
         ? {
-            tiktok: {
-              ...(mediaKind !== "video" && title ? { title } : {}),
+            instagram: {
+              type: mediaKind === "video" ? "reel" : "post",
+              shouldShareToFeed: true,
               isAiGenerated: false,
             },
           }
-        : {};
+        : channel === "tiktok"
+          ? {
+              tiktok: {
+                ...(mediaKind !== "video" && title ? { title } : {}),
+                isAiGenerated: false,
+              },
+            }
+          : {};
 
   return Object.freeze({
     channelId,
