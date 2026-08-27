@@ -188,8 +188,8 @@
       ]
     },
     "youtube": {
-      "stage": "retryable",
-      "attempts": 1,
+      "stage": "scheduling",
+      "attempts": 2,
       "transitions": [
         {
           "from": "planned",
@@ -220,6 +220,11 @@
           "from": "scheduled",
           "to": "retryable",
           "at": "2026-08-27T16:21:12.303Z"
+        },
+        {
+          "from": "retryable",
+          "to": "scheduling",
+          "at": "2026-08-27T16:55:49.354Z"
         }
       ]
     }
