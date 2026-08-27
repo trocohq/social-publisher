@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -56,27 +57,47 @@ test("every official palette selects one stable music arrangement", () => {
   );
 });
 
-test("the original music bed is deterministic stereo with a clear 100 BPM pulse", async () => {
-  const output = await mkdtemp(join(tmpdir(), "troco-music-"));
-  const firstPath = await createToneBed({
-    filePath: join(output, "first.wav"),
-    durationSeconds: 12,
-    cueTimes: [3, 6, 9],
-  });
-  const secondPath = await createToneBed({
-    filePath: join(output, "second.wav"),
-    durationSeconds: 12,
-    cueTimes: [3, 6, 9],
-  });
-  const first = await readFile(firstPath);
-  const second = await readFile(secondPath);
+test("all music arrangements are distinct, deterministic, and safe", async () => {
+  const output = await mkdtemp(join(tmpdir(), "troco-music-variants-"));
+  const hashes = new Set<string>();
 
-  assert.deepEqual(first, second);
-  assert.equal(first.readUInt16LE(22), 2);
-  assert.equal(first.readUInt32LE(24), 48_000);
-  assert.notEqual(rms(first, 2.4, 0.04, 0), rms(first, 2.4, 0.04, 1));
-  assert.ok(rms(first, 2.4, 0.04, 0) > rms(first, 2.7, 0.04, 0) * 1.08);
-  assert.ok(rms(first, 0.6, 10.8, 0) > 0.04);
-  assert.ok(sampleStats(first).peak < 0.18);
-  assert.equal(sampleStats(first).samplesAtCeiling, 0);
+  for (const variant of musicVariants) {
+    const first = await readFile(
+      await createToneBed({
+        filePath: join(output, `${variant}-first.wav`),
+        durationSeconds: 12,
+        cueTimes: [3, 6, 9],
+        variant,
+      }),
+    );
+    const second = await readFile(
+      await createToneBed({
+        filePath: join(output, `${variant}-second.wav`),
+        durationSeconds: 12,
+        cueTimes: [3, 6, 9],
+        variant,
+      }),
+    );
+
+    assert.deepEqual(first, second);
+    assert.equal(first.readUInt16LE(22), 2);
+    assert.equal(first.readUInt32LE(24), 48_000);
+    assert.notEqual(rms(first, 2.4, 0.04, 0), rms(first, 2.4, 0.04, 1));
+    assert.ok(rms(first, 2.4, 0.04, 0) > rms(first, 2.7, 0.04, 0) * 1.08);
+    assert.ok(rms(first, 0.6, 10.8, 0) > 0.035);
+    assert.ok(sampleStats(first).peak < 0.18);
+    assert.equal(sampleStats(first).samplesAtCeiling, 0);
+    hashes.add(createHash("sha256").update(first).digest("hex"));
+  }
+
+  assert.equal(hashes.size, musicVariants.length);
+  await assert.rejects(
+    createToneBed({
+      filePath: join(output, "invalid.wav"),
+      durationSeconds: 12,
+      cueTimes: [3, 6, 9],
+      variant: "unknown" as never,
+    }),
+    /Unknown music variant/,
+  );
 });

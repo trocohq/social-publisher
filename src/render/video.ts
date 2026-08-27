@@ -71,6 +71,7 @@ export async function renderVideo({
       filePath: join(temporaryRoot, "brand-music.wav"),
       durationSeconds: TOTAL_SECONDS,
       cueTimes: [SCENE_SECONDS, SCENE_SECONDS * 2, SCENE_SECONDS * 3],
+      variant: "warm",
     });
     const args: string[] = ["-y", "-hide_banner", "-loglevel", "error"];
     for (const scenePath of sceneFiles) {
