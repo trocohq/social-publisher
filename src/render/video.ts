@@ -8,10 +8,11 @@ import type { BrandAssets } from "../brand/load-brand.js";
 import type { CampaignPlan } from "../editorial/schema.js";
 import { sha256 } from "../shared/determinism.js";
 import {
-  createToneBed,
-  musicVariantForPalette,
-  type MusicVariant,
-} from "./audio.js";
+  enterpriseMusicPath,
+  musicExcerptForDate,
+  verifyEnterpriseMusicSource,
+  type MusicExcerpt,
+} from "./music.js";
 import {
   resolveMediaBinaries,
   runProcess,
@@ -28,7 +29,7 @@ export type RenderedVideo = Readonly<{
   hash: string;
   probe: VideoProbe;
   binaries: MediaBinaries;
-  musicVariant: MusicVariant;
+  musicExcerpt: MusicExcerpt;
 }>;
 
 export async function renderVideo({
@@ -49,7 +50,8 @@ export async function renderVideo({
     ...(ffprobePath ? { ffprobePath } : {}),
   });
   const outputRoot = resolve(output);
-  const musicVariant = musicVariantForPalette(plan.palette);
+  const musicExcerpt = musicExcerptForDate(plan.localDate);
+  await verifyEnterpriseMusicSource(binaries.ffprobePath);
   await mkdir(outputRoot, { recursive: true });
   const temporaryRoot = await mkdtemp(join(tmpdir(), "troco-video-scenes-"));
   const videoPath = join(outputRoot, "short.mp4");
@@ -73,12 +75,6 @@ export async function renderVideo({
       sceneFiles.push(scenePath);
     }
 
-    const audioPath = await createToneBed({
-      filePath: join(temporaryRoot, "brand-music.wav"),
-      durationSeconds: TOTAL_SECONDS,
-      cueTimes: [SCENE_SECONDS, SCENE_SECONDS * 2, SCENE_SECONDS * 3],
-      variant: musicVariant,
-    });
     const args: string[] = ["-y", "-hide_banner", "-loglevel", "error"];
     for (const scenePath of sceneFiles) {
       args.push(
@@ -92,7 +88,7 @@ export async function renderVideo({
         scenePath,
       );
     }
-    args.push("-i", audioPath);
+    args.push("-i", enterpriseMusicPath);
     const videoFilters = sceneFiles
       .map(
         (_, index) =>
@@ -100,13 +96,22 @@ export async function renderVideo({
       )
       .join(";");
     const concatInputs = sceneFiles.map((_, index) => `[v${index}]`).join("");
+    const audioInputIndex = sceneFiles.length;
+    const audioFilter =
+      `[${audioInputIndex}:a:0]` +
+      `atrim=start=${musicExcerpt.startSeconds}:duration=${musicExcerpt.durationSeconds},` +
+      "asetpts=PTS-STARTPTS," +
+      "volume=0.70," +
+      "afade=t=in:st=0:d=0.35," +
+      "afade=t=out:st=11.35:d=0.65," +
+      "alimiter=limit=0.88:attack=5:release=50:level=false[a]";
     args.push(
       "-filter_complex",
-      `${videoFilters};${concatInputs}concat=n=${sceneFiles.length}:v=1:a=0[v]`,
+      `${videoFilters};${concatInputs}concat=n=${sceneFiles.length}:v=1:a=0[v];${audioFilter}`,
       "-map",
       "[v]",
       "-map",
-      `${sceneFiles.length}:a:0`,
+      "[a]",
       "-c:v",
       "libx264",
       "-preset",
@@ -150,7 +155,7 @@ export async function renderVideo({
       hash: sha256(bytes),
       probe,
       binaries,
-      musicVariant,
+      musicExcerpt,
     });
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });

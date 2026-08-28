@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { parseArguments } from "../src/cli/arguments.js";
 import { createReview } from "../src/dry-run/create-review.js";
-import { musicVariantForPalette } from "../src/render/audio.js";
+import { musicExcerptForDate } from "../src/render/music.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 
 test("dry run writes a complete review bundle and no durable state", async () => {
@@ -33,9 +33,13 @@ test("dry run writes a complete review bundle and no durable state", async () =>
   const manifest = JSON.parse(
     await readFile(join(output, "manifest.json"), "utf8"),
   );
-  const expectedMusicVariant = musicVariantForPalette(review.plan.palette);
-  assert.equal(review.media.video.musicVariant, expectedMusicVariant);
-  assert.equal(manifest.video.musicVariant, expectedMusicVariant);
+  const expectedExcerpt = musicExcerptForDate(review.plan.localDate);
+  assert.deepEqual(review.media.video.musicExcerpt, expectedExcerpt);
+  assert.deepEqual(manifest.video.musicExcerpt, expectedExcerpt);
+  assert.match(
+    await readFile(join(output, "index.html"), "utf8"),
+    new RegExp(`${expectedExcerpt.id}.*${expectedExcerpt.startSeconds}s`, "s"),
+  );
   await assert.rejects(stat(join(output, "state")), /ENOENT/);
   assert.ok(review.media.video.hash.length === 64);
 });

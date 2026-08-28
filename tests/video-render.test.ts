@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -7,14 +7,15 @@ import test from "node:test";
 import { probeVideo } from "../src/render/probe.js";
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
-import { musicVariantForPalette } from "../src/render/audio.js";
+import { musicExcerptForDate } from "../src/render/music.js";
 import { createVerticalSceneSvg } from "../src/render/svg.js";
+import { renderVideo } from "../src/render/video.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 import { renderFixtureCampaign } from "./support/render-fixture.js";
 
 const frontendPublic = canonicalBrandRoot();
 
-test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
+test("short output uses its deterministic Enterprise excerpt", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));
   const { plan, video } = await renderFixtureCampaign(output);
   const probe = await probeVideo(video.file);
@@ -25,21 +26,35 @@ test("short output is a muted-safe H.264 AAC 1080 by 1920 MP4", async () => {
       height: probe.height,
       videoCodec: probe.videoCodec,
       audioCodec: probe.audioCodec,
+      audioSampleRate: probe.audioSampleRate,
+      audioChannels: probe.audioChannels,
       frameRate: probe.frameRate,
+      duration: probe.duration,
     },
     {
       width: 1080,
       height: 1920,
       videoCodec: "h264",
       audioCodec: "aac",
+      audioSampleRate: 48_000,
+      audioChannels: 2,
       frameRate: 30,
+      duration: 12,
     },
   );
-  assert.ok(probe.duration >= 8 && probe.duration <= 20);
+  assert.deepEqual(video.musicExcerpt, musicExcerptForDate(plan.localDate));
   assert.ok(video.hash.length === 64);
   assert.match(video.binaries.ffmpegVersion, /^ffmpeg version/);
   assert.match(video.binaries.ffprobeVersion, /^ffprobe version/);
-  assert.equal(video.musicVariant, musicVariantForPalette(plan.palette));
+
+  const brand = await loadBrand(frontendPublic);
+  const repeated = await renderVideo({
+    plan,
+    brand,
+    output: join(output, "repeat"),
+  });
+  assert.equal(repeated.hash, video.hash);
+  assert.deepEqual(await readFile(repeated.file), await readFile(video.file));
 });
 
 test("vertical scenes prioritize larger hook, values, answer, and CTA", async () => {

@@ -71,6 +71,7 @@ function reviewHtml(
   <section><h2>Vídeo vertical</h2>
     <video controls preload="metadata" src="${escapeXml(localAssetPath(root, video.file))}"></video>
     <p><code>${probe.width}×${probe.height}</code> <code>${probe.videoCodec}</code> <code>${probe.audioCodec}</code> <code>${probe.frameRate} fps</code> <code>${probe.duration}s</code></p>
+    <p>Música: <code>${escapeXml(video.musicExcerpt.id)}</code> · início ${video.musicExcerpt.startSeconds}s · duração ${video.musicExcerpt.durationSeconds}s</p>
     <p>SHA-256 ${escapeXml(video.hash)}</p>
   </section>
   <section><h2>Textos finais</h2><div class="copy">${channelMarkup}</div></section>
@@ -121,7 +122,7 @@ export async function createReview({
     video: {
       path: localAssetPath(outputRoot, video.file),
       hash: video.hash,
-      musicVariant: video.musicVariant,
+      musicExcerpt: video.musicExcerpt,
       ...video.probe,
       ffmpegVersion: video.binaries.ffmpegVersion,
       ffprobeVersion: video.binaries.ffprobeVersion,

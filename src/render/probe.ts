@@ -12,6 +12,8 @@ type ProbeStream = Readonly<{
   avg_frame_rate?: string;
   r_frame_rate?: string;
   duration?: string;
+  sample_rate?: string;
+  channels?: number;
 }>;
 
 type ProbeOutput = Readonly<{
@@ -28,6 +30,8 @@ export type VideoProbe = Readonly<{
   height: number;
   videoCodec: string;
   audioCodec: string;
+  audioSampleRate: number;
+  audioChannels: number;
   frameRate: number;
   duration: number;
   bytes: number;
@@ -68,6 +72,8 @@ export async function probeVideo(
     height: Number(video?.height),
     videoCodec: video?.codec_name ?? "",
     audioCodec: audio?.codec_name ?? "",
+    audioSampleRate: Number(audio?.sample_rate),
+    audioChannels: Number(audio?.channels),
     frameRate,
     duration,
     bytes,
@@ -78,11 +84,12 @@ export async function probeVideo(
     probe.format.split(",").includes("mp4") &&
     probe.videoCodec === "h264" &&
     probe.audioCodec === "aac" &&
+    probe.audioSampleRate === 48_000 &&
+    probe.audioChannels === 2 &&
     probe.width === 1080 &&
     probe.height === 1920 &&
     probe.frameRate === 30 &&
-    probe.duration >= 8 &&
-    probe.duration <= 20 &&
+    probe.duration === 12 &&
     probe.bytes <= 50_000_000;
   if (!valid) {
     throw new Error(
