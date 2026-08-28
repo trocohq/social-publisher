@@ -1,6 +1,10 @@
 !docs/
 !docs/**
 
+# Local operating-system and agent workspaces.
+.DS_Store
+.superpowers/
+
 node_modules/
 dependencies/
 .tmp/
