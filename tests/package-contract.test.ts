@@ -108,3 +108,19 @@ test("the README documents the approved Enterprise excerpt rotation", async () =
   assert.match(readme, /nine deterministic 12-second excerpts/u);
   assert.doesNotMatch(readme, /100\s+BPM\s+arrangements/u);
 });
+
+test("operations document the deterministic crop-safe video cover", async () => {
+  const readme = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+  const operations = await readFile(
+    new URL("../docs/operations.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(readme, /dedicated 1080×1920 video thumbnail/u);
+  assert.match(readme, /same\s+opening scene/iu);
+  assert.match(operations, /40-pixel gaps/u);
+  assert.match(operations, /two-second frame/u);
+  assert.match(operations, /square crop-safe region/u);
+});

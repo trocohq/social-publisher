@@ -61,6 +61,7 @@ bundle also contains:
 - `captions.json`: the final attributed text for all four channels;
 - `manifest.json`: dimensions, codecs, durations, hashes, and binary versions;
 - `feed/slide-01.jpg` through `slide-05.jpg` when a carousel needs them;
+- `video/thumbnail.jpg`: the deterministic vertical video cover;
 - `video/short.mp4`: the H.264/AAC vertical video.
 
 The command writes only inside the selected output directory. It creates no
@@ -164,6 +165,12 @@ Every newly generated video uses one of nine deterministic 12-second excerpts
 from the approved Enterprise source. Consecutive dates use different excerpts,
 and the review manifest records the selected ID and start time. The same
 campaign always produces the same visual and audio choice.
+
+Every new video also receives a dedicated 1080×1920 video thumbnail. The same
+opening scene remains on screen through Buffer's two-second selection point, so
+the reviewed JPEG and social cover share one deterministic layout. Brand,
+question, and CTA form one centered crop-safe block; the answer remains inside
+the video.
 
 ## What the workflow does
 
