@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "campaignId": "2026-08-28-safe-checkout-v1-4",
+  "thumbnail": {
+    "hash": "051aa889461508d1cd24bc72ec9df83f35cd77b30563f1130161d1ae013485cb",
+    "width": 1080,
+    "height": 1920,
+    "format": "jpeg"
+  },
+  "channels": {
+    "instagram": {
+      "status": "pending",
+      "attempts": 0,
+      "bufferProviderId": "6a905cf7aa201a688ed4cff2"
+    },
+    "facebook": {
+      "status": "pending",
+      "attempts": 0,
+      "bufferProviderId": "6a905eb47c213ecc38dd0551"
+    },
+    "youtube": {
+      "status": "updated",
+      "attempts": 1,
+      "bufferProviderId": "6a906c177c213ecc38ddef9b",
+      "nativeProviderId": "Ap42fKc7-Sg",
+      "permalink": "https://youtube.com/shorts/Ap42fKc7-Sg",
+      "attemptedAt": "2026-08-28T18:33:17.044Z",
+      "verifiedAt": "2026-08-28T18:33:17.044Z"
+    }
+  }
+}
