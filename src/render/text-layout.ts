@@ -22,20 +22,21 @@ export type CopyTextLayouts = Readonly<{
 
 export const feedTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
-    maxWidth: 888,
+    maxWidth: 1020,
     maxHeight: 420,
     maximumFontSize: 96,
     minimumFontSize: 72,
   }),
   explanation: Object.freeze({
-    maxWidth: 888,
-    maxHeight: 140,
-    maximumFontSize: 42,
-    minimumFontSize: 38,
+    maxWidth: 1020,
+    maxHeight: 150,
+    maximumFontSize: 54,
+    minimumFontSize: 48,
+    lineHeightRatio: 1.04,
   }),
   cta: Object.freeze({
-    maxWidth: 792,
-    maxHeight: 96,
+    maxWidth: 924,
+    maxHeight: 100,
     maximumFontSize: 40,
     minimumFontSize: 36,
   }),
@@ -43,19 +44,20 @@ export const feedTextLayouts: CopyTextLayouts = Object.freeze({
 
 export const carouselTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
-    maxWidth: 888,
+    maxWidth: 1020,
     maxHeight: 690,
     maximumFontSize: 92,
     minimumFontSize: 64,
   }),
   explanation: Object.freeze({
-    maxWidth: 888,
+    maxWidth: 1020,
     maxHeight: 600,
-    maximumFontSize: 48,
-    minimumFontSize: 34,
+    maximumFontSize: 60,
+    minimumFontSize: 46,
+    lineHeightRatio: 1.1,
   }),
   cta: Object.freeze({
-    maxWidth: 888,
+    maxWidth: 924,
     maxHeight: 170,
     maximumFontSize: 42,
     minimumFontSize: 34,
@@ -64,19 +66,20 @@ export const carouselTextLayouts: CopyTextLayouts = Object.freeze({
 
 export const verticalTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
-    maxWidth: 888,
+    maxWidth: 1020,
     maxHeight: 980,
     maximumFontSize: 124,
     minimumFontSize: 76,
   }),
   explanation: Object.freeze({
-    maxWidth: 888,
+    maxWidth: 1020,
     maxHeight: 760,
-    maximumFontSize: 64,
-    minimumFontSize: 44,
+    maximumFontSize: 72,
+    minimumFontSize: 52,
+    lineHeightRatio: 1.1,
   }),
   cta: Object.freeze({
-    maxWidth: 780,
+    maxWidth: 924,
     maxHeight: 260,
     maximumFontSize: 56,
     minimumFontSize: 46,

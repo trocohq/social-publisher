@@ -10,6 +10,7 @@ import fixture from "../assets/fixtures/worst-case-campaign.json" with { type: "
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
 import { renderFeed } from "../src/render/image.js";
+import { safeAreaFor } from "../src/render/safe-area.js";
 import { createFeedSlideSvg } from "../src/render/svg.js";
 import { feedTextLayouts, fitText } from "../src/render/text-layout.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
@@ -56,16 +57,19 @@ test("a carousel campaign renders two to five equal-size slides", async () => {
   }
 });
 
-test("worst-case editorial text fits inside the 96 pixel safe area", () => {
+test("worst-case editorial text fits inside the proportional feed frame", () => {
+  const feedFrame = safeAreaFor(1080, 1350);
   const display = fitText(fixture.headline, feedTextLayouts.headline);
   const body = fitText(fixture.explanation, feedTextLayouts.explanation);
   const cta = fitText(fixture.cta, feedTextLayouts.cta);
 
-  assert.ok(display.width <= 888 && display.height <= 420);
-  assert.ok(body.width <= 888 && body.height <= 140);
-  assert.ok(cta.width <= 792 && cta.height <= 96);
+  assert.equal(feedFrame.x, 30);
+  assert.equal(feedFrame.y, 60);
+  assert.ok(display.width <= feedFrame.width && display.height <= 420);
+  assert.ok(body.width <= feedFrame.width && body.height <= 150);
+  assert.ok(cta.width <= feedFrame.width - 96 && cta.height <= 100);
   assert.ok(display.fontSize >= 72);
-  assert.ok(body.fontSize >= 38);
+  assert.ok(body.fontSize >= 48);
   assert.ok(cta.fontSize >= 36);
 });
 
@@ -79,19 +83,47 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   const svg = createFeedSlideSvg({ plan, brand, slide: 0 });
   const headlineSize = Number(
     svg.match(
-      /<text x="96" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
+      /<text x="30" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
     )?.[1],
   );
 
   assert.ok(headlineSize >= 88, `headline rendered at ${headlineSize}px`);
+  assert.match(svg, /<image x="30" y="60" width="72" height="72"/u);
   assert.match(svg, /font-family="Stolzl" font-size="54">R\$/u);
   assert.match(svg, /font-family="Stolzl" font-size="68">R\$/u);
   assert.match(
     svg,
-    /<rect x="96" y="1160" width="888" height="118"[^>]*fill="#213130"/u,
+    /<rect x="30" y="610" width="1020" height="390"/u,
   );
   assert.match(
     svg,
-    /<text x="144" y="\d+" fill="#FEFDFB" font-family="Figtree" font-size="40" font-weight="700">/u,
+    /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"><tspan x="30"/u,
+  );
+  assert.match(
+    svg,
+    /<rect x="30" y="1160" width="1020" height="130"[^>]*fill="#213130"/u,
+  );
+  assert.match(
+    svg,
+    /<text x="78" y="\d+" fill="#FEFDFB" font-family="Figtree" font-size="40" font-weight="700">/u,
+  );
+
+  const carousel = createCampaign({
+    localDate: "2026-08-25",
+    publishTime: "12:17",
+    history: [],
+  });
+  const lastSlide = createFeedSlideSvg({
+    plan: carousel,
+    brand,
+    slide: carousel.slideCount - 1,
+  });
+  assert.match(
+    lastSlide,
+    /<rect x="30" y="980" width="1020" height="200"/u,
+  );
+  assert.match(
+    lastSlide,
+    /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"><tspan x="30"/u,
   );
 });
