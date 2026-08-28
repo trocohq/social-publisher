@@ -8,7 +8,10 @@ import { probeVideo } from "../src/render/probe.js";
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
 import { musicExcerptForDate } from "../src/render/music.js";
-import { createVerticalSceneSvg } from "../src/render/svg.js";
+import {
+  createVerticalSceneSvg,
+  createVerticalThumbnailSvg,
+} from "../src/render/svg.js";
 import { renderVideo } from "../src/render/video.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 import { renderFixtureCampaign } from "./support/render-fixture.js";
@@ -68,12 +71,11 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
   const scenario = createVerticalSceneSvg({ plan, brand, scene: "scenario" });
   const answer = createVerticalSceneSvg({ plan, brand, scene: "answer" });
   const endCard = createVerticalSceneSvg({ plan, brand, scene: "end_card" });
-  const hookSize = Number(
-    hook.match(/font-family="Stolzl" font-size="(\d+)"/)?.[1],
-  );
 
-  assert.ok(hookSize >= 112, `hook rendered at ${hookSize}px`);
-  assert.match(hook, /<image x="30" y="85" width="82" height="82"/u);
+  assert.equal(hook, createVerticalThumbnailSvg({ plan, brand }));
+  assert.match(hook, />FAÇA A CONTA<\/text>/u);
+  assert.match(hook, />DESCUBRA NO VÍDEO<\/text>/u);
+  assert.doesNotMatch(hook, /01\/04/u);
   assert.match(scenario, /<rect x="30" y="670" width="1020" height="620"/u);
   assert.match(scenario, /font-family="Stolzl" font-size="72">R\$/u);
   assert.match(answer, /<rect x="30" y="980" width="1020" height="470"/u);

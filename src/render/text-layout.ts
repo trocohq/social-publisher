@@ -86,6 +86,14 @@ export const verticalTextLayouts: CopyTextLayouts = Object.freeze({
   }),
 });
 
+export const thumbnailHeadlineLayout: FitTextOptions = Object.freeze({
+  maxWidth: 1020,
+  maxHeight: 600,
+  maximumFontSize: 124,
+  minimumFontSize: 80,
+  lineHeightRatio: 1.02,
+});
+
 export function measureText(value: string, fontSize: number): number {
   let units = 0;
   for (const character of value) {

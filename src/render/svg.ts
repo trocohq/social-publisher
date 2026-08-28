@@ -4,10 +4,12 @@ import { designTokens } from "@trocohq/design-tokens";
 import type { BrandAssets } from "../brand/load-brand.js";
 import type { CampaignFamily } from "../config/schedule.js";
 import type { CampaignPlan, Palette } from "../editorial/schema.js";
+import { createThumbnailCopy } from "./thumbnail-copy.js";
 import {
   carouselTextLayouts,
   feedTextLayouts,
   fitText,
+  thumbnailHeadlineLayout,
   verticalTextLayouts,
   type TextLayout,
 } from "./text-layout.js";
@@ -26,6 +28,14 @@ const VERTICAL_HEIGHT = 1920;
 const FEED_FRAME = safeAreaFor(WIDTH, HEIGHT);
 const VERTICAL_FRAME = safeAreaFor(WIDTH, VERTICAL_HEIGHT);
 const CONTAINER_INSET = 48;
+
+export const THUMBNAIL_SECTION_GAP = 40;
+export const THUMBNAIL_CROP_TOP = 420;
+export const THUMBNAIL_CROP_BOTTOM = 1500;
+const THUMBNAIL_HEADER_HEIGHT = 82;
+const THUMBNAIL_KICKER_HEIGHT = 38;
+const THUMBNAIL_MESSAGE_INSET = 16;
+const THUMBNAIL_CTA_HEIGHT = 190;
 
 const familyLabels: Readonly<Record<CampaignFamily, string>> = {
   change_challenge: "DESAFIO DO TROCO",
@@ -211,6 +221,77 @@ export function createFeedSlideSvg({
   </svg>`;
 }
 
+export type ThumbnailStackLayout = Readonly<{
+  top: number;
+  headerBottom: number;
+  messageTop: number;
+  messageBottom: number;
+  ctaTop: number;
+  bottom: number;
+  headline: TextLayout;
+}>;
+
+export function thumbnailStackLayout(
+  plan: Pick<CampaignPlan, "scenario">,
+): ThumbnailStackLayout {
+  const headline = fitText(createThumbnailCopy(plan), thumbnailHeadlineLayout);
+  const messageHeight =
+    THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET + headline.height;
+  const totalHeight =
+    THUMBNAIL_HEADER_HEIGHT +
+    THUMBNAIL_SECTION_GAP +
+    messageHeight +
+    THUMBNAIL_SECTION_GAP +
+    THUMBNAIL_CTA_HEIGHT;
+  const cropHeight = THUMBNAIL_CROP_BOTTOM - THUMBNAIL_CROP_TOP;
+  if (totalHeight > cropHeight) {
+    throw new Error("Thumbnail stack escapes its centered square crop");
+  }
+  const top = THUMBNAIL_CROP_TOP + Math.floor((cropHeight - totalHeight) / 2);
+  const headerBottom = top + THUMBNAIL_HEADER_HEIGHT;
+  const messageTop = headerBottom + THUMBNAIL_SECTION_GAP;
+  const messageBottom = messageTop + messageHeight;
+  const ctaTop = messageBottom + THUMBNAIL_SECTION_GAP;
+  return Object.freeze({
+    top,
+    headerBottom,
+    messageTop,
+    messageBottom,
+    ctaTop,
+    bottom: ctaTop + THUMBNAIL_CTA_HEIGHT,
+    headline,
+  });
+}
+
+export function createVerticalThumbnailSvg({
+  plan,
+  brand,
+}: Readonly<{
+  plan: CampaignPlan;
+  brand: BrandAssets;
+}>): string {
+  const background = backgroundByPalette[plan.palette];
+  const mark = Buffer.from(brand.markSvg).toString("base64");
+  const label = familyLabels[plan.family];
+  const layout = thumbnailStackLayout(plan);
+  const messageTop = layout.messageTop;
+  const questionTop =
+    messageTop + THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET;
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${VERTICAL_HEIGHT}" viewBox="0 0 ${WIDTH} ${VERTICAL_HEIGHT}">
+    ${embeddedFonts(brand)}
+    <rect width="${WIDTH}" height="${VERTICAL_HEIGHT}" fill="${background}"/>
+    <image x="${VERTICAL_FRAME.x}" y="${layout.top}" width="82" height="82" href="data:image/svg+xml;base64,${mark}"/>
+    <text x="${VERTICAL_FRAME.x + 106}" y="${layout.top + 65}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="32" font-weight="700">TROCO</text>
+    <rect x="706" y="${layout.top + 10}" width="344" height="62" rx="31" fill="${designTokens.colors.paper}" fill-opacity="0.78"/>
+    <text x="878" y="${layout.top + 50}" text-anchor="middle" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="22" font-weight="700">${escapeXml(label)}</text>
+    <text x="${VERTICAL_FRAME.x}" y="${messageTop + THUMBNAIL_KICKER_HEIGHT}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="800">FAÇA A CONTA</text>
+    ${textBlock(layout.headline, VERTICAL_FRAME.x, questionTop, "Stolzl")}
+    <rect x="${VERTICAL_FRAME.x}" y="${layout.ctaTop}" width="${VERTICAL_FRAME.width}" height="${THUMBNAIL_CTA_HEIGHT}" rx="40" fill="${designTokens.colors.ink}"/>
+    <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="${layout.ctaTop + 116}" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="46" font-weight="700">DESCUBRA NO VÍDEO</text>
+    <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="${layout.ctaTop + 116}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="40" font-weight="700">12s →</text>
+  </svg>`;
+}
+
 export const verticalScenes = [
   "hook",
   "scenario",
@@ -237,13 +318,6 @@ function verticalSceneContent(
   plan: CampaignPlan,
   scene: VerticalScene,
 ): string {
-  if (scene === "hook") {
-    const headline = fitText(plan.copy.headline, verticalTextLayouts.headline);
-    return `${textBlock(headline, VERTICAL_FRAME.x, 320, "Stolzl")}
-      <rect x="${VERTICAL_FRAME.x}" y="1490" width="${VERTICAL_FRAME.width}" height="190" rx="40" fill="${designTokens.colors.ink}"/>
-      <text x="540" y="1606" text-anchor="middle" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="46" font-weight="700">CALCULE ANTES DA RESPOSTA</text>`;
-  }
-
   if (scene === "scenario") {
     const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
     const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
@@ -310,6 +384,9 @@ export function createVerticalSceneSvg({
   brand: BrandAssets;
   scene: VerticalScene;
 }>): string {
+  if (scene === "hook") {
+    return createVerticalThumbnailSvg({ plan, brand });
+  }
   const sceneIndex = verticalScenes.indexOf(scene);
   if (sceneIndex < 0)
     throw new Error(`Invalid vertical scene: ${String(scene)}`);
