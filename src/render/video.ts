@@ -19,7 +19,12 @@ import {
   type MediaBinaries,
 } from "./binaries.js";
 import { probeVideo, type VideoProbe } from "./probe.js";
-import { createVerticalSceneSvg, verticalScenes } from "./svg.js";
+import {
+  createVerticalSceneSvg,
+  createVerticalThumbnailSvg,
+  verticalScenes,
+} from "./svg.js";
+import { renderVideoThumbnail, type RenderedThumbnail } from "./thumbnail.js";
 
 const SCENE_SECONDS = 3;
 const TOTAL_SECONDS = SCENE_SECONDS * verticalScenes.length;
@@ -30,6 +35,7 @@ export type RenderedVideo = Readonly<{
   probe: VideoProbe;
   binaries: MediaBinaries;
   musicExcerpt: MusicExcerpt;
+  thumbnail: RenderedThumbnail;
 }>;
 
 export async function renderVideo({
@@ -55,6 +61,11 @@ export async function renderVideo({
   await mkdir(outputRoot, { recursive: true });
   const temporaryRoot = await mkdtemp(join(tmpdir(), "troco-video-scenes-"));
   const videoPath = join(outputRoot, "short.mp4");
+  const thumbnailSvg = createVerticalThumbnailSvg({ plan, brand });
+  const thumbnail = await renderVideoThumbnail({
+    svg: thumbnailSvg,
+    output: outputRoot,
+  });
 
   try {
     const sceneFiles: string[] = [];
@@ -63,7 +74,10 @@ export async function renderVideo({
         temporaryRoot,
         `scene-${String(index + 1).padStart(2, "0")}.png`,
       );
-      const svg = createVerticalSceneSvg({ plan, brand, scene });
+      const svg =
+        scene === "hook"
+          ? thumbnailSvg
+          : createVerticalSceneSvg({ plan, brand, scene });
       await sharp(Buffer.from(svg))
         .toColourspace("srgb")
         .png({ compressionLevel: 9, adaptiveFiltering: false })
@@ -156,6 +170,7 @@ export async function renderVideo({
       probe,
       binaries,
       musicExcerpt,
+      thumbnail,
     });
   } finally {
     await rm(temporaryRoot, { recursive: true, force: true });

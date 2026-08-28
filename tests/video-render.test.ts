@@ -4,9 +4,12 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
+import sharp from "sharp";
+
 import { probeVideo } from "../src/render/probe.js";
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
+import { runProcess } from "../src/render/binaries.js";
 import { musicExcerptForDate } from "../src/render/music.js";
 import {
   createVerticalSceneSvg,
@@ -49,6 +52,20 @@ test("short output uses its deterministic Enterprise excerpt", async () => {
   assert.ok(video.hash.length === 64);
   assert.match(video.binaries.ffmpegVersion, /^ffmpeg version/);
   assert.match(video.binaries.ffprobeVersion, /^ffprobe version/);
+  const thumbnailMetadata = await sharp(video.thumbnail.file).metadata();
+  assert.deepEqual(
+    [
+      thumbnailMetadata.width,
+      thumbnailMetadata.height,
+      thumbnailMetadata.format,
+      thumbnailMetadata.space,
+    ],
+    [1080, 1920, "jpeg", "srgb"],
+  );
+  assert.equal(video.thumbnail.hash.length, 64);
+  assert.equal(video.thumbnail.width, 1080);
+  assert.equal(video.thumbnail.height, 1920);
+  assert.equal(video.thumbnail.format, "jpeg");
 
   const brand = await loadBrand(frontendPublic);
   const repeated = await renderVideo({
@@ -58,6 +75,43 @@ test("short output uses its deterministic Enterprise excerpt", async () => {
   });
   assert.equal(repeated.hash, video.hash);
   assert.deepEqual(await readFile(repeated.file), await readFile(video.file));
+  assert.equal(repeated.thumbnail.hash, video.thumbnail.hash);
+  assert.deepEqual(
+    await readFile(repeated.thumbnail.file),
+    await readFile(video.thumbnail.file),
+  );
+
+  const selectedFrame = join(output, "selected-frame.png");
+  await runProcess(video.binaries.ffmpegPath, [
+    "-y",
+    "-hide_banner",
+    "-loglevel",
+    "error",
+    "-ss",
+    "2",
+    "-i",
+    video.file,
+    "-frames:v",
+    "1",
+    selectedFrame,
+  ]);
+  const thumbnailPixels = await sharp(video.thumbnail.file)
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  const selectedPixels = await sharp(selectedFrame)
+    .removeAlpha()
+    .raw()
+    .toBuffer();
+  assert.equal(selectedPixels.length, thumbnailPixels.length);
+  let absoluteDifference = 0;
+  for (let index = 0; index < selectedPixels.length; index += 1) {
+    absoluteDifference += Math.abs(
+      selectedPixels[index]! - thumbnailPixels[index]!,
+    );
+  }
+  const meanDifference = absoluteDifference / selectedPixels.length;
+  assert.ok(meanDifference < 18, `thumbnail mean difference ${meanDifference}`);
 });
 
 test("vertical scenes prioritize larger hook, values, answer, and CTA", async () => {
