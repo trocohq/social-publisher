@@ -3,7 +3,7 @@
 Troco Social Publisher creates one deterministic Brazilian Portuguese campaign
 for each local day. A campaign contains reviewed copy for Instagram, Facebook,
 TikTok, and YouTube; 1080×1350 feed or carousel images; and a 1080×1920 short
-video with original generated audio.
+video with approved Enterprise music.
 
 This package is the reviewable content core. **No provider writes** happen in a
 dry run or in the validation command. Provider delivery is a separate boundary
@@ -85,11 +85,11 @@ come from `@trocohq/core`. Repository-owned facts include their source and
 review date. Candidate selection blocks repeated scenarios, copy, palettes, and
 calls to action within the configured windows.
 
-Rendering consumes only a validated plan and verified brand bytes. Image output
-is deterministic for the same Sharp runtime. Video timing, source scenes, PCM
-audio samples, encoder arguments, and metadata are deterministic; binary
-versions are recorded because byte-for-byte MP4 output can vary across FFmpeg
-builds or operating systems.
+Rendering consumes only a validated plan, verified brand bytes, and the verified
+Enterprise music source. Image output is deterministic for the same Sharp
+runtime. Video timing, source scenes, excerpt selection, audio filters, encoder
+arguments, and metadata are deterministic; binary versions are recorded because
+byte-for-byte MP4 output can vary across FFmpeg builds or operating systems.
 
 Run the complete content and media validation in an isolated temporary folder:
 
@@ -159,10 +159,11 @@ safety, practical scenarios, and product education. Each channel receives its
 own attributed `troco.net` download URL with `utm_source`, `utm_medium`,
 `utm_campaign`, and `utm_content`.
 
-The renderer rotates the official green, blue, yellow, and purple palettes. A
-palette deterministically selects one original generated 100 BPM arrangement:
-warm, airy, bright, or pulse. The same campaign always produces the same visual
-and audio choice.
+The renderer rotates the official green, blue, yellow, and purple palettes.
+Every newly generated video uses one of nine deterministic 12-second excerpts
+from the approved Enterprise source. Consecutive dates use different excerpts,
+and the review manifest records the selected ID and start time. The same
+campaign always produces the same visual and audio choice.
 
 ## What the workflow does
 

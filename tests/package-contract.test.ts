@@ -99,3 +99,12 @@ test("the README explains production schedule, volume, status, and remaining wor
     assert.ok(readme.includes(phrase), `README is missing ${phrase}`);
   }
 });
+
+test("the README documents the approved Enterprise excerpt rotation", async () => {
+  const readme = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(readme, /nine deterministic 12-second excerpts/u);
+  assert.doesNotMatch(readme, /100\s+BPM\s+arrangements/u);
+});

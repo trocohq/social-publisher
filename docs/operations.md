@@ -58,6 +58,11 @@ Complete these steps in order.
    exactly `1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d`. Brand hashes and the packaged
    token source must match those reviewed commits.
 
+The approved music source is `assets/music/enterprise.mp3`. Changing this file
+is a reviewed source change: update its approved SHA-256 contract, run the full
+media validation, and apply the new audio only to future campaigns. Never
+rewrite immutable scheduled or published campaign hashes.
+
 ## Controlled activation
 
 1. Run the validation workflow. Require formatting, types, all tests, media
@@ -67,6 +72,9 @@ Complete these steps in order.
 2. Download and inspect the review artifact. Check the canonical logo, all
    image slides, the complete 12-second video, amounts, answer, calls to action,
    and the four final captions. Open every attributed `troco.net` download link.
+   Confirm that the manifest's Enterprise excerpt ID matches the video, the
+   music starts and ends with clean fades, the level is comfortable, and no
+   clipping or silence is audible before the final frame.
 3. Choose one campaign dated in the future. Dispatch the production workflow
    in `controlled` mode with its exact campaign ID and confirmation
    `PUBLISH_ONE_CAMPAIGN`.
