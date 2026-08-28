@@ -36,8 +36,19 @@ test("dry run writes a complete review bundle and no durable state", async () =>
   const expectedExcerpt = musicExcerptForDate(review.plan.localDate);
   assert.deepEqual(review.media.video.musicExcerpt, expectedExcerpt);
   assert.deepEqual(manifest.video.musicExcerpt, expectedExcerpt);
+  assert.deepEqual(manifest.video.thumbnail, {
+    path: "video/thumbnail.jpg",
+    hash: review.media.video.thumbnail.hash,
+    width: 1080,
+    height: 1920,
+    format: "jpeg",
+  });
+  const reviewHtml = await readFile(join(output, "index.html"), "utf8");
+  assert.match(reviewHtml, /Capa vertical/u);
+  assert.match(reviewHtml, /video\/thumbnail\.jpg/u);
+  assert.match(reviewHtml, new RegExp(review.media.video.thumbnail.hash));
   assert.match(
-    await readFile(join(output, "index.html"), "utf8"),
+    reviewHtml,
     new RegExp(`${expectedExcerpt.id}.*${expectedExcerpt.startSeconds}s`, "s"),
   );
   await assert.rejects(stat(join(output, "state")), /ENOENT/);

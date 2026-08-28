@@ -69,6 +69,10 @@ function reviewHtml(
   <p class="meta"><strong>${escapeXml(campaignId)}</strong><br>Publicação planejada: ${escapeXml(targetAt)}</p>
   <section><h2>Feed e carrossel</h2><div class="media">${imageMarkup}</div></section>
   <section><h2>Vídeo vertical</h2>
+    <figure>
+      <img src="${escapeXml(localAssetPath(root, video.thumbnail.file))}" alt="Capa vertical da campanha ${escapeXml(campaignId)}">
+      <figcaption>Capa vertical · SHA-256 ${escapeXml(video.thumbnail.hash)}</figcaption>
+    </figure>
     <video controls preload="metadata" src="${escapeXml(localAssetPath(root, video.file))}"></video>
     <p><code>${probe.width}×${probe.height}</code> <code>${probe.videoCodec}</code> <code>${probe.audioCodec}</code> <code>${probe.frameRate} fps</code> <code>${probe.duration}s</code></p>
     <p>Música: <code>${escapeXml(video.musicExcerpt.id)}</code> · início ${video.musicExcerpt.startSeconds}s · duração ${video.musicExcerpt.durationSeconds}s</p>
@@ -122,6 +126,13 @@ export async function createReview({
     video: {
       path: localAssetPath(outputRoot, video.file),
       hash: video.hash,
+      thumbnail: {
+        path: localAssetPath(outputRoot, video.thumbnail.file),
+        hash: video.thumbnail.hash,
+        width: video.thumbnail.width,
+        height: video.thumbnail.height,
+        format: video.thumbnail.format,
+      },
       musicExcerpt: video.musicExcerpt,
       ...video.probe,
       ffmpegVersion: video.binaries.ffmpegVersion,

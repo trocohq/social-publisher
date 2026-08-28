@@ -25,6 +25,10 @@ export async function runDryRun(
         width: review.media.video.probe.width,
         height: review.media.video.probe.height,
         duration: review.media.video.probe.duration,
+        thumbnail: {
+          width: review.media.video.thumbnail.width,
+          height: review.media.video.thumbnail.height,
+        },
       },
     })}\n`,
   );

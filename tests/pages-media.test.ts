@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { mkdir, mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
@@ -35,11 +35,13 @@ test("Pages copies only verified rolling campaign assets", async () => {
   const campaignId = "2026-08-26-troco-explains-v1-0";
   const feed = Buffer.from("feed-bytes");
   const video = Buffer.from("video-bytes");
+  const thumbnail = Buffer.from("thumbnail-bytes");
   const campaignRoot = join(renderRoot, localDate, campaignId);
   await mkdir(join(campaignRoot, "feed"), { recursive: true });
   await mkdir(join(campaignRoot, "video"), { recursive: true });
   await writeFile(join(campaignRoot, "feed", "slide-01.jpg"), feed);
   await writeFile(join(campaignRoot, "video", "short.mp4"), video);
+  await writeFile(join(campaignRoot, "video", "thumbnail.jpg"), thumbnail);
 
   const [record] = await createPagesPayload({
     today: localDate,
@@ -73,6 +75,12 @@ test("Pages copies only verified rolling campaign assets", async () => {
     await readFile(join(pagesRoot, "index.json"), "utf8"),
   );
   assert.equal(index.campaigns[0].campaignId, campaignId);
+  await assert.rejects(
+    stat(
+      join(pagesRoot, "media", localDate, campaignId, "video", "thumbnail.jpg"),
+    ),
+    /ENOENT/,
+  );
 });
 
 test("public media URLs encode segments and stay below the Pages origin", () => {
