@@ -26,6 +26,7 @@
 ### Task 1: Add the proportional safe-area contract
 
 **Files:**
+
 - Create: `src/render/safe-area.ts`
 - Create: `tests/safe-area.test.ts`
 
@@ -97,7 +98,12 @@ export type SafeArea = Readonly<{
 }>;
 
 export function safeAreaFor(width: number, height: number): SafeArea {
-  if (!Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0) {
+  if (
+    !Number.isInteger(width) ||
+    !Number.isInteger(height) ||
+    width <= 0 ||
+    height <= 0
+  ) {
     throw new Error("Canvas dimensions must be positive integers");
   }
   const x = Math.round((width * REFERENCE_HORIZONTAL_MARGIN) / REFERENCE_WIDTH);
@@ -129,6 +135,7 @@ git commit -m "feat: add proportional social safe area"
 ### Task 2: Apply the frame and stronger explanation hierarchy
 
 **Files:**
+
 - Modify: `src/render/svg.ts`
 - Modify: `src/render/text-layout.ts`
 - Modify: `tests/image-render.test.ts`
@@ -313,6 +320,7 @@ git commit -m "feat: refine social asset hierarchy"
 ### Task 3: Move acquisition links to troco.net
 
 **Files:**
+
 - Modify: `src/editorial/copy.ts`
 - Modify: `src/planning/create-campaign.ts`
 - Modify: `src/cli/plan.ts`
@@ -335,7 +343,9 @@ In `tests/editorial-copy.test.ts`, add:
 test("channel acquisition links use troco.net with deterministic attribution", () => {
   const copy = createCampaignCopy({ ...input, hook: "Quanto volta?" });
   const instagram = new URL(
-    copy.channels.instagram.caption.split("\n").find((line) => line.startsWith("https://"))!,
+    copy.channels.instagram.caption
+      .split("\n")
+      .find((line) => line.startsWith("https://"))!,
   );
   assert.equal(instagram.origin, "https://troco.net");
   assert.equal(instagram.pathname, "/");
@@ -442,6 +452,7 @@ git commit -m "feat: route social acquisition through troco.net"
 ### Task 4: Verify the complete system and refresh the local review
 
 **Files:**
+
 - Generated only: `.tmp/final-verification/**` (ignored)
 
 - [ ] **Step 1: Format and run the complete test suite**

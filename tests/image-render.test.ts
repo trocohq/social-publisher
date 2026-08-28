@@ -91,10 +91,7 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   assert.match(svg, /<image x="30" y="60" width="72" height="72"/u);
   assert.match(svg, /font-family="Stolzl" font-size="54">R\$/u);
   assert.match(svg, /font-family="Stolzl" font-size="68">R\$/u);
-  assert.match(
-    svg,
-    /<rect x="30" y="610" width="1020" height="390"/u,
-  );
+  assert.match(svg, /<rect x="30" y="610" width="1020" height="390"/u);
   assert.match(
     svg,
     /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"><tspan x="30"/u,
@@ -118,10 +115,7 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
     brand,
     slide: carousel.slideCount - 1,
   });
-  assert.match(
-    lastSlide,
-    /<rect x="30" y="980" width="1020" height="200"/u,
-  );
+  assert.match(lastSlide, /<rect x="30" y="980" width="1020" height="200"/u);
   assert.match(
     lastSlide,
     /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"><tspan x="30"/u,

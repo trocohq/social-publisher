@@ -22,12 +22,8 @@ export function safeAreaFor(width: number, height: number): SafeArea {
     throw new Error("Canvas dimensions must be positive integers");
   }
 
-  const x = Math.round(
-    (width * REFERENCE_HORIZONTAL_MARGIN) / REFERENCE_WIDTH,
-  );
-  const y = Math.round(
-    (height * REFERENCE_VERTICAL_MARGIN) / REFERENCE_HEIGHT,
-  );
+  const x = Math.round((width * REFERENCE_HORIZONTAL_MARGIN) / REFERENCE_WIDTH);
+  const y = Math.round((height * REFERENCE_VERTICAL_MARGIN) / REFERENCE_HEIGHT);
 
   return Object.freeze({
     x,

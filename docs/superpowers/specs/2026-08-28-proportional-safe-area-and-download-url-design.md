@@ -33,10 +33,10 @@ format-specific constants:
 
 Margins are rounded to the nearest whole pixel. This produces:
 
-| Canvas | Horizontal margin | Vertical margin |
-| --- | ---: | ---: |
-| 1080×1350 feed or carousel | 30 px | 60 px |
-| 1080×1920 vertical video | 30 px | 85 px |
+| Canvas                     | Horizontal margin | Vertical margin |
+| -------------------------- | ----------------: | --------------: |
+| 1080×1350 feed or carousel |             30 px |           60 px |
+| 1080×1920 vertical video   |             30 px |           85 px |
 
 The safe area is the minimum outer boundary. Cards, buttons, and text groups
 retain their own internal padding so content never appears attached to a
