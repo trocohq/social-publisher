@@ -1,9 +1,6 @@
 import { z } from "zod";
 
-import {
-  sanitizedErrorSchema,
-  type SanitizedError,
-} from "../state/schema.js";
+import { sanitizedErrorSchema, type SanitizedError } from "../state/schema.js";
 
 export const thumbnailBackfillCampaignIdSchema = z
   .string()
@@ -198,9 +195,7 @@ export function recordThumbnailBackfillOutcome({
           ...(outcome.permalink ? { permalink: outcome.permalink } : {}),
         }
       : {}),
-    ...(outcome.status === "failed"
-      ? { lastError: outcome.lastError }
-      : {}),
+    ...(outcome.status === "failed" ? { lastError: outcome.lastError } : {}),
   };
 
   return thumbnailBackfillAuditSchema.parse({

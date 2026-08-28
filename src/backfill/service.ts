@@ -66,9 +66,12 @@ export async function executeYouTubeThumbnailBackfill({
       return { action: "not_found", audit: current };
     }
     if (video.status?.privacyStatus !== "public") {
-      throw Object.assign(new Error("YouTube backfill requires a public Short"), {
-        category: "youtube_thumbnail_visibility",
-      });
+      throw Object.assign(
+        new Error("YouTube backfill requires a public Short"),
+        {
+          category: "youtube_thumbnail_visibility",
+        },
+      );
     }
     const provider = await setThumbnail({
       accessToken,

@@ -40,10 +40,13 @@ async function request(
       signal: AbortSignal.timeout(30_000),
     });
   } catch {
-    throw Object.assign(new Error("YouTube thumbnail request was interrupted"), {
-      category: "youtube_thumbnail_network",
-      retryable: true,
-    });
+    throw Object.assign(
+      new Error("YouTube thumbnail request was interrupted"),
+      {
+        category: "youtube_thumbnail_network",
+        retryable: true,
+      },
+    );
   }
 }
 
@@ -59,7 +62,9 @@ export async function setYouTubeThumbnail({
   fetchImplementation?: typeof fetch;
 }>): Promise<Readonly<{ videoId: string; permalink: string }>> {
   if (!accessToken || !videoId) {
-    throw new Error("YouTube thumbnail authorization and video ID are required");
+    throw new Error(
+      "YouTube thumbnail authorization and video ID are required",
+    );
   }
   const bytes = await readFile(filePath);
   if (bytes.length === 0 || bytes.length > MAXIMUM_BYTES) {
