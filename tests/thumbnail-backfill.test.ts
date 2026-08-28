@@ -21,6 +21,7 @@ import {
   executeYouTubeThumbnailBackfill,
   recordNativeThumbnailBackfill,
 } from "../src/backfill/service.js";
+import { createCampaign } from "../src/planning/create-campaign.js";
 import { campaignStateSchema } from "../src/state/schema.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
@@ -33,7 +34,7 @@ const thumbnail = {
   format: "jpeg" as const,
 };
 
-function historicalPublishedState() {
+function historicalPublishedState(localDate = "2026-08-27") {
   const state = campaignStateFixture({
     instagram: "published",
     facebook: "published",
@@ -42,6 +43,7 @@ function historicalPublishedState() {
   });
   return campaignStateSchema.parse({
     ...state,
+    plan: createCampaign({ localDate, publishTime: "12:17", history: [] }),
     channels: Object.fromEntries(
       Object.entries(state.channels).map(([channel, record]) => [
         channel,
@@ -87,6 +89,35 @@ test("thumbnail backfill audit is atomic and channel independent", async () => {
   );
   assert.match(bytes, /"schemaVersion": 1/u);
   assert.doesNotMatch(bytes, /access.?token|authorization|secret/iu);
+});
+
+test("non-video Meta campaigns are excluded while YouTube remains eligible", async () => {
+  const state = historicalPublishedState("2026-08-28");
+  assert.equal(state.plan.mediaKind, "carousel");
+  assert.throws(
+    () => requirePublishedBackfillChannel(state, state.plan.id, "instagram"),
+    /video media/i,
+  );
+  assert.equal(
+    requirePublishedBackfillChannel(state, state.plan.id, "youtube").providerId,
+    "buffer_youtube",
+  );
+
+  const root = await mkdtemp(join(tmpdir(), "troco-thumbnail-carousel-"));
+  const prepared = await preparePublishedThumbnail({
+    state,
+    campaignId: state.plan.id,
+    brandRoot: canonicalBrandRoot(),
+    outputRoot: root,
+  });
+  const review = JSON.parse(await readFile(prepared.reviewJson, "utf8")) as {
+    channels: Record<string, unknown>;
+  };
+  assert.deepEqual(Object.keys(review.channels), ["youtube"]);
+  assert.doesNotMatch(
+    await readFile(prepared.reviewHtml, "utf8"),
+    /instagram/u,
+  );
 });
 
 test("a successful audit rejects a different thumbnail", () => {

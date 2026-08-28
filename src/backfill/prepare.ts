@@ -11,6 +11,13 @@ import type { BackfillThumbnail, ThumbnailBackfillChannel } from "./schema.js";
 const MAXIMUM_YOUTUBE_THUMBNAIL_BYTES = 2_000_000;
 const channels = ["instagram", "facebook", "youtube"] as const;
 
+function supportsVideoThumbnail(
+  state: CampaignState,
+  channel: ThumbnailBackfillChannel,
+): boolean {
+  return channel === "youtube" || state.plan.mediaKind === "video";
+}
+
 export function requirePublishedBackfillChannel(
   state: CampaignState,
   campaignId: string,
@@ -21,6 +28,9 @@ export function requirePublishedBackfillChannel(
   }
   if (state.plan.localDate > "2026-08-28") {
     throw new Error("Campaign already uses the current thumbnail contract");
+  }
+  if (!supportsVideoThumbnail(state, channel)) {
+    throw new Error(`Backfill requires video media for ${channel}`);
   }
   const record = state.channels[channel];
   if (record.stage !== "published") {
@@ -52,8 +62,9 @@ function reviewHtml(
   state: CampaignState,
   thumbnailPath: string,
   thumbnail: BackfillThumbnail,
+  eligible: readonly ThumbnailBackfillChannel[],
 ): string {
-  const rows = channels
+  const rows = eligible
     .map((channel) => {
       const record = state.channels[channel];
       return `<article><h2>${escapeXml(channel)}</h2><p>Buffer: ${escapeXml(record.providerId ?? "ausente")}</p><pre>${escapeXml(recognitionCopy(state, channel))}</pre></article>`;
@@ -74,7 +85,9 @@ export async function preparePublishedThumbnail({
   outputRoot: string;
 }>) {
   const eligible = channels.filter(
-    (channel) => state.channels[channel].stage === "published",
+    (channel) =>
+      state.channels[channel].stage === "published" &&
+      supportsVideoThumbnail(state, channel),
   );
   if (state.plan.id !== campaignId || eligible.length === 0) {
     throw new Error("Backfill requires one exact published campaign");
@@ -131,7 +144,10 @@ export async function preparePublishedThumbnail({
 
   await Promise.all([
     atomicText(reviewJson, `${JSON.stringify(review, null, 2)}\n`),
-    atomicText(reviewHtmlPath, reviewHtml(state, relativeThumbnail, thumbnail)),
+    atomicText(
+      reviewHtmlPath,
+      reviewHtml(state, relativeThumbnail, thumbnail, eligible),
+    ),
   ]);
   return Object.freeze({
     campaignId,
