@@ -172,6 +172,14 @@ the reviewed JPEG and social cover share one deterministic layout. Brand,
 question, and CTA form one centered crop-safe block; the answer remains inside
 the video.
 
+Published videos can receive the same reviewed cover through the controlled
+`backfill-thumbnails` maintenance command. Its default mode renders a local
+review only and does not replace the published video, caption, audio, comments,
+views, or provider identity. YouTube execution and native Instagram or Facebook
+outcome recording each require the complete campaign ID as an explicit
+confirmation. See [Published thumbnail backfill](docs/operations.md#published-thumbnail-backfill)
+for the guarded sequence and audit rules.
+
 ## What the workflow does
 
 For scheduled or controlled execution, the workflow:

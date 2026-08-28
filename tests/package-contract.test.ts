@@ -124,3 +124,20 @@ test("operations document the deterministic crop-safe video cover", async () => 
   assert.match(operations, /two-second frame/u);
   assert.match(operations, /square crop-safe region/u);
 });
+
+test("operations document immutable published thumbnail backfills", async () => {
+  const readme = await readFile(
+    new URL("../README.md", import.meta.url),
+    "utf8",
+  );
+  const operations = await readFile(
+    new URL("../docs/operations.md", import.meta.url),
+    "utf8",
+  );
+  assert.match(readme, /backfill-thumbnails/u);
+  assert.match(readme, /does not replace the published video/u);
+  assert.match(operations, /exact campaign ID/u);
+  assert.match(operations, /ALTERE SOMENTE A CAPA/u);
+  assert.match(operations, /thumbnails\.set/u);
+  assert.match(operations, /never delete or republish/u);
+});

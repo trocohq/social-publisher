@@ -111,6 +111,58 @@ MIGRATE_PRIVATE_YOUTUBE_TO_BUFFER`. The command is one-time, future-only, and
 records the `scheduled` to `retryable` transition before Buffer creates the
 public scheduled Short.
 
+## Published thumbnail backfill
+
+Use this maintenance operation only to apply the current reviewed video cover
+to an existing published campaign. It preserves the original video, caption,
+audio, comments, views, permalink, and provider identity. Resolve one exact
+campaign ID from `state/campaigns/YYYY-MM-DD.json`; never infer a target from a
+date, title fragment, account position, or visual similarity.
+
+First generate the cover and local review. This step performs no provider write
+and creates no durable audit entry:
+
+```sh
+npm run backfill-thumbnails -- --campaign CAMPAIGN_ID --brand-root ../frontend/public
+```
+
+Open `.tmp/thumbnail-backfill/CAMPAIGN_ID/index.html`. Confirm the account,
+Buffer provider ID, recognition copy, and thumbnail hash for all three published
+channels. The page is intentionally headed `ALTERE SOMENTE A CAPA`: do not edit
+the video, caption, music, audience, visibility, or any other post field.
+
+For YouTube, inject `YOUTUBE_CLIENT_ID`, `YOUTUBE_CLIENT_SECRET`, and
+`YOUTUBE_REFRESH_TOKEN` through the shell or secret store, never a tracked file.
+Then repeat the exact campaign ID as the write confirmation:
+
+```sh
+npm run backfill-thumbnails -- --campaign CAMPAIGN_ID --brand-root ../frontend/public --channel youtube --execute --confirm CAMPAIGN_ID
+```
+
+The command finds the single public video by its immutable campaign tag, uploads
+the reviewed JPEG with YouTube `thumbnails.set`, verifies thumbnail metadata,
+and writes only a sanitized audit under
+`state/thumbnail-backfills/CAMPAIGN_ID.json`. A completed YouTube result is
+idempotent: rerunning the same command with the same thumbnail hash skips the
+provider write.
+
+Instagram and Facebook are updated in their authenticated native interfaces.
+Before saving, verify the exact account, published post, existing caption, and
+video. Change only the cover, verify the saved public result, and then record
+the outcome independently:
+
+```sh
+npm run backfill-thumbnails -- --campaign CAMPAIGN_ID --brand-root ../frontend/public --channel instagram --record updated --confirm CAMPAIGN_ID
+npm run backfill-thumbnails -- --campaign CAMPAIGN_ID --brand-root ../frontend/public --channel facebook --record updated --confirm CAMPAIGN_ID
+```
+
+Allowed native outcomes are `updated`, `unsupported`, `not_found`, and `failed`.
+The audit begins at `pending`, records an attempt timestamp per channel, and
+keeps sanitized failure metadata only. A successful retry clears the previous
+failure. One channel never changes a sibling channel's status. If a platform no
+longer supports cover editing or the exact target cannot be proven, record the
+corresponding outcome and stop; never delete or republish a post as a fallback.
+
 ## Routine operation
 
 The scheduled workflow runs every three hours and is serialized. It maintains a
