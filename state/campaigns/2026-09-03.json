@@ -1,0 +1,162 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-03-quick-calculation-v1-0",
+    "localDate": "2026-09-03",
+    "targetAt": "2026-09-03T12:17:00-03:00",
+    "family": "quick_calculation",
+    "recipeId": "quick-calculation-v1",
+    "recipeVersion": 1,
+    "candidate": 0,
+    "seed": "2026-09-03:quick_calculation:v1",
+    "palette": "green",
+    "ctaKind": "download",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 8265,
+      "receivedMinor": 10000,
+      "resultMinor": 1735,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 1000,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 500,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 10,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "R$ 82,65 na compra. Pagou com R$ 100,00. Quanto volta?",
+      "answer": "R$ 17,35",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Baixe o Troco grátis no Android.",
+      "channels": {
+        "instagram": {
+          "caption": "R$ 82,65 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 17,35.\nUma forma: 1 nota de R$ 10,00 + 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25 + 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=instagram&utm_medium=social&utm_campaign=2026-09-03-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "R$ 82,65 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 17,35.\nUma forma: 1 nota de R$ 10,00 + 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25 + 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=facebook&utm_medium=social&utm_campaign=2026-09-03-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "R$ 82,65 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 17,35.\nUma forma: 1 nota de R$ 10,00 + 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25 + 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-03-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Quanto volta?"
+        },
+        "youtube": {
+          "title": "R$ 82,65 na compra. Pagou com R$ 100,00. Quanto volta?",
+          "description": "R$ 82,65 na compra. Pagou com R$ 100,00. Quanto volta?\n\nA resposta é R$ 17,35.\nUma forma: 1 nota de R$ 10,00 + 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25 + 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://play.google.com/store/apps/details?id=trocofacil.app&utm_source=youtube&utm_medium=social&utm_campaign=2026-09-03-quick-calculation-v1-0&utm_content=quick_calculation\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "ac150d891930db06e6df15a9d9ea7138ddce71ea35b255ae40f55c4f76675296",
+      "caption": "e56f6353e961fead5696ebce1d62c610ffe0a7c4c7c2ff5d0852edf3eefccf2c"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "ed7148d55432da055b26b2a0576d3b91629015df171a8942730c3487de02415e"
+    ],
+    "video": "4fa21ed2ef585aad545782365a9fa2fcb54568e54c8c766d29283b18ddad8edf"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-28T15:22:33.471Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-28T15:22:33.471Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-28T15:22:33.471Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-28T15:22:33.471Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-28T15:22:33.471Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-28T15:22:33.471Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-28T15:22:33.471Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-28T15:22:33.471Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-28T15:22:33.471Z"
+        }
+      ]
+    }
+  }
+}
