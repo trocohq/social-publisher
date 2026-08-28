@@ -14,8 +14,7 @@ const valid = {
   BUFFER_TIKTOK_CHANNEL_ID: "tt_1",
   BUFFER_YOUTUBE_CHANNEL_ID: "yt_1",
   YOUTUBE_CHANNEL_ID: "UC123",
-  PLAY_STORE_URL:
-    "https://play.google.com/store/apps/details?id=trocofacil.app",
+  APP_DOWNLOAD_URL: "https://troco.net",
   BRAND_SOURCE_SHA: "298381c8e6c3220cde11a8109ddb727a28223d7c",
   DESIGN_TOKENS_SOURCE_SHA: "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d",
 };
@@ -25,6 +24,20 @@ test("automatic publishing defaults false and accepts only allowlisted HTTPS ori
   assert.equal(environment.autoPublish, false);
   assert.equal(environment.youtube.publicationVerified, false);
   assert.equal(environment.origins.buffer, "https://api.buffer.com");
+  assert.equal(environment.appDownloadUrl, "https://troco.net");
+  const { APP_DOWNLOAD_URL: _downloadUrl, ...withoutDownloadUrl } = valid;
+  assert.equal(
+    parseEnvironment(withoutDownloadUrl).appDownloadUrl,
+    "https://troco.net",
+  );
+  assert.throws(
+    () =>
+      parseEnvironment({
+        ...valid,
+        APP_DOWNLOAD_URL: "https://example.com/download",
+      }),
+    /APP_DOWNLOAD_URL/,
+  );
   assert.throws(
     () => parseEnvironment({ ...valid, AUTO_PUBLISH: "yes" }),
     /AUTO_PUBLISH/,

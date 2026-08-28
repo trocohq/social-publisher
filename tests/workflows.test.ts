@@ -30,6 +30,8 @@ test("production workflow is serialized, disabled by default, and runs every thr
     workflow,
     /BUFFER_YOUTUBE_CHANNEL_ID: \$\{\{ vars\.BUFFER_YOUTUBE_CHANNEL_ID \}\}/,
   );
+  assert.match(workflow, /APP_DOWNLOAD_URL: https:\/\/troco\.net/u);
+  assert.doesNotMatch(workflow, /PLAY_STORE_URL/u);
   assert.doesNotMatch(workflow, /secrets\.YOUTUBE_(?:CLIENT|REFRESH)/);
   assert.match(workflow, /echo "value=disabled"/);
   assert.doesNotMatch(workflow, /steps\.mode\.outputs\.value != 'dry-run'/);

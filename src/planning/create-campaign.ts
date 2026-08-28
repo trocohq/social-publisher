@@ -93,14 +93,14 @@ export type CreateCampaignInput = Readonly<{
   localDate: string;
   publishTime: string;
   history: readonly HistoryEntry[];
-  playStoreUrl?: string;
+  appDownloadUrl?: string;
 }>;
 
 export function createCampaign({
   localDate,
   publishTime,
   history,
-  playStoreUrl,
+  appDownloadUrl,
 }: CreateCampaignInput): CampaignPlan {
   const family = campaignFamilyForDate(localDate);
   const recipe = recipeForFamily(family);
@@ -128,7 +128,7 @@ export function createCampaign({
         fact,
         ...(calendarMoment ? { calendarMoment } : {}),
         ctaKind,
-        ...(playStoreUrl ? { playStoreUrl } : {}),
+        ...(appDownloadUrl ? { appDownloadUrl } : {}),
       });
       const identity: CandidateIdentity = {
         localDate,

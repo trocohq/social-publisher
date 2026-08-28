@@ -10,8 +10,7 @@ import type {
   Scenario,
 } from "./schema.js";
 
-export const DEFAULT_PLAY_STORE_URL =
-  "https://play.google.com/store/apps/details?id=trocofacil.app";
+export const DEFAULT_APP_DOWNLOAD_URL = "https://troco.net";
 
 const channelLimits = {
   instagram: 2_200,
@@ -98,7 +97,7 @@ export type CreateCampaignCopyInput = Readonly<{
   fact: Fact;
   calendarMoment?: CalendarMoment;
   ctaKind: CtaKind;
-  playStoreUrl?: string;
+  appDownloadUrl?: string;
 }>;
 
 export function createCampaignCopy({
@@ -109,7 +108,7 @@ export function createCampaignCopy({
   fact,
   calendarMoment,
   ctaKind,
-  playStoreUrl = DEFAULT_PLAY_STORE_URL,
+  appDownloadUrl = DEFAULT_APP_DOWNLOAD_URL,
 }: CreateCampaignCopyInput): CampaignCopy {
   const purchase = formatMinor(scenario.purchaseMinor, "BRL", "pt-BR");
   const received = formatMinor(scenario.receivedMinor, "BRL", "pt-BR");
@@ -138,7 +137,7 @@ export function createCampaignCopy({
     assertLength(
       [
         ...common,
-        attributedUrl(playStoreUrl, channel, campaignId, family),
+        attributedUrl(appDownloadUrl, channel, campaignId, family),
         "",
         hashtags,
       ].join("\n"),

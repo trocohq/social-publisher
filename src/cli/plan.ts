@@ -97,7 +97,7 @@ export async function runPlanning(
       localDate,
       publishTime: environment.publishTime,
       history,
-      playStoreUrl: environment.playStoreUrl,
+      appDownloadUrl: environment.appDownloadUrl,
     });
     const rendered = await renderCampaign(
       { plan },

@@ -63,18 +63,7 @@ const environmentSchema = z.object({
   BUFFER_TIKTOK_CHANNEL_ID: optionalNonEmpty,
   BUFFER_YOUTUBE_CHANNEL_ID: optionalNonEmpty,
   YOUTUBE_CHANNEL_ID: optionalNonEmpty,
-  PLAY_STORE_URL: z.string().refine((value) => {
-    try {
-      const url = new URL(value);
-      return (
-        url.protocol === "https:" &&
-        url.hostname === "play.google.com" &&
-        url.pathname === "/store/apps/details"
-      );
-    } catch {
-      return false;
-    }
-  }),
+  APP_DOWNLOAD_URL: z.literal("https://troco.net").default("https://troco.net"),
   BRAND_SOURCE_SHA: shaSchema,
   DESIGN_TOKENS_SOURCE_SHA: shaSchema,
   BRAND_ROOT: z.string().min(1).default("dependencies/frontend/public"),
@@ -99,7 +88,7 @@ export type PublisherEnvironment = Readonly<{
   publicationTimeZone: string;
   publishTime: string;
   pagesOrigin: string;
-  playStoreUrl: string;
+  appDownloadUrl: string;
   brandSourceSha: string;
   designTokensSourceSha: string;
   brandRoot: string;
@@ -197,7 +186,7 @@ export function parseEnvironment(
     publicationTimeZone: parsed.PUBLICATION_TIME_ZONE,
     publishTime: parsed.PUBLISH_TIME,
     pagesOrigin: parsed.PAGES_ORIGIN.replace(/\/$/, ""),
-    playStoreUrl: parsed.PLAY_STORE_URL,
+    appDownloadUrl: parsed.APP_DOWNLOAD_URL,
     brandSourceSha: parsed.BRAND_SOURCE_SHA,
     designTokensSourceSha: parsed.DESIGN_TOKENS_SOURCE_SHA,
     brandRoot: parsed.BRAND_ROOT,

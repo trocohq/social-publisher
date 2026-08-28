@@ -35,6 +35,22 @@ test("a question hook follows the values needed to answer it", () => {
   );
 });
 
+test("channel acquisition links use troco.net with deterministic attribution", () => {
+  const copy = createCampaignCopy({ ...input, hook: "Quanto volta?" });
+  const instagram = new URL(
+    copy.channels.instagram.caption
+      .split("\n")
+      .find((line) => line.startsWith("https://"))!,
+  );
+
+  assert.equal(instagram.origin, "https://troco.net");
+  assert.equal(instagram.pathname, "/");
+  assert.equal(instagram.searchParams.get("utm_source"), "instagram");
+  assert.equal(instagram.searchParams.get("utm_medium"), "social");
+  assert.equal(instagram.searchParams.get("utm_campaign"), input.campaignId);
+  assert.equal(instagram.searchParams.get("utm_content"), input.family);
+});
+
 test("headline generation enforces the editorial limit before channel limits", () => {
   assert.throws(
     () =>

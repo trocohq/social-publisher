@@ -156,8 +156,8 @@ target volume is:
 Every active day also produces one public YouTube Short. Copy is written in
 Brazilian Portuguese around change calculations, cashier routines, checkout
 safety, practical scenarios, and product education. Each channel receives its
-own Google Play URL with `utm_source`, `utm_medium`, `utm_campaign`, and
-`utm_content`.
+own attributed `troco.net` download URL with `utm_source`, `utm_medium`,
+`utm_campaign`, and `utm_content`.
 
 The renderer rotates the official green, blue, yellow, and purple palettes. A
 palette deterministically selects one original generated 100 BPM arrangement:

@@ -20,6 +20,18 @@ test("a Wednesday campaign is immutable, attributed, and complete for four chann
   assert.match(plan.copy.channels.facebook.caption, /utm_source=facebook/);
   assert.match(plan.copy.channels.tiktok.caption, /utm_source=tiktok/);
   assert.match(plan.copy.channels.youtube.description, /utm_source=youtube/);
+  for (const copy of [
+    plan.copy.channels.instagram.caption,
+    plan.copy.channels.facebook.caption,
+    plan.copy.channels.tiktok.caption,
+    plan.copy.channels.youtube.description,
+  ]) {
+    const acquisitionUrl = copy
+      .split("\n")
+      .find((line) => line.startsWith("https://"));
+    assert.ok(acquisitionUrl);
+    assert.equal(new URL(acquisitionUrl).origin, "https://troco.net");
+  }
   assert.equal(Object.isFrozen(plan), true);
   assert.equal(Object.isFrozen(plan.copy.channels), true);
   assert.equal(Object.isFrozen(plan.scenario.breakdown), true);

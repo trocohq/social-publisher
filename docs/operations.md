@@ -39,6 +39,11 @@ Complete these steps in order.
    - `BUFFER_YOUTUBE_CHANNEL_ID`
    - `YOUTUBE_CHANNEL_ID`
 
+   The non-secret download destination is fixed in the workflow as
+   `APP_DOWNLOAD_URL=https://troco.net`. Keep this provider-neutral URL intact
+   so the website can route visitors to the appropriate app download while the
+   publisher adds channel and campaign attribution.
+
 5. Add these repository secrets:
 
    - `PACKAGES_READ_TOKEN` for read-only GitHub Packages access;
@@ -61,7 +66,7 @@ Complete these steps in order.
    three active channels without contacting the provider.
 2. Download and inspect the review artifact. Check the canonical logo, all
    image slides, the complete 12-second video, amounts, answer, calls to action,
-   and the four final captions. Open every attributed Google Play link.
+   and the four final captions. Open every attributed `troco.net` download link.
 3. Choose one campaign dated in the future. Dispatch the production workflow
    in `controlled` mode with its exact campaign ID and confirmation
    `PUBLISH_ONE_CAMPAIGN`.

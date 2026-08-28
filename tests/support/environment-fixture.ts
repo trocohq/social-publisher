@@ -35,8 +35,7 @@ export function publisherEnvironmentFixture(
             YOUTUBE_CHANNEL_ID: "UC123",
           }
         : {}),
-      PLAY_STORE_URL:
-        "https://play.google.com/store/apps/details?id=trocofacil.app",
+      APP_DOWNLOAD_URL: "https://troco.net",
       BRAND_SOURCE_SHA: "298381c8e6c3220cde11a8109ddb727a28223d7c",
       DESIGN_TOKENS_SOURCE_SHA: "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d",
       BUFFER_API_KEY: "buffer-value",
