@@ -17,6 +17,10 @@ import {
   preparePublishedThumbnail,
   requirePublishedBackfillChannel,
 } from "../src/backfill/prepare.js";
+import {
+  executeYouTubeThumbnailBackfill,
+  recordNativeThumbnailBackfill,
+} from "../src/backfill/service.js";
 import { campaignStateSchema } from "../src/state/schema.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
@@ -207,4 +211,66 @@ test("historical preparation writes a provider-ready cover and no durable state"
     await readThumbnailBackfill(root, publishedState.plan.id),
     undefined,
   );
+});
+
+test("YouTube execution resolves one public video and skips an existing success", async () => {
+  const root = await mkdtemp(join(tmpdir(), "troco-thumbnail-service-"));
+  const audit = createThumbnailBackfillAudit({
+    campaignId,
+    thumbnail,
+    bufferProviderIds: { youtube: "buffer_yt" },
+  });
+  let writes = 0;
+  const first = await executeYouTubeThumbnailBackfill({
+    stateRoot: root,
+    audit,
+    thumbnailFile: "/tmp/thumbnail.jpg",
+    accessToken: "access-token",
+    now: new Date("2026-08-28T18:00:00Z"),
+    resolveVideo: async () => ({
+      id: "youtube_1",
+      status: { uploadStatus: "processed", privacyStatus: "public" },
+    }),
+    setThumbnail: async () => {
+      writes += 1;
+      return {
+        videoId: "youtube_1",
+        permalink: "https://www.youtube.com/watch?v=youtube_1",
+      };
+    },
+  });
+  assert.equal(first.action, "updated");
+  const second = await executeYouTubeThumbnailBackfill({
+    stateRoot: root,
+    audit,
+    thumbnailFile: "/tmp/thumbnail.jpg",
+    accessToken: "access-token",
+    now: new Date("2026-08-28T18:05:00Z"),
+    resolveVideo: async () => {
+      throw new Error("resolver must not run");
+    },
+    setThumbnail: async () => {
+      throw new Error("provider must not run");
+    },
+  });
+  assert.equal(second.action, "skipped");
+  assert.equal(writes, 1);
+});
+
+test("a native Meta result updates one sibling only after preparation", async () => {
+  const root = await mkdtemp(join(tmpdir(), "troco-thumbnail-service-"));
+  const audit = createThumbnailBackfillAudit({
+    campaignId,
+    thumbnail,
+    bufferProviderIds: { instagram: "buffer_ig", facebook: "buffer_fb" },
+  });
+  const result = await recordNativeThumbnailBackfill({
+    stateRoot: root,
+    audit,
+    channel: "instagram",
+    status: "updated",
+    now: new Date("2026-08-28T18:00:00Z"),
+  });
+  assert.equal(result.channels.instagram.status, "updated");
+  assert.equal(result.channels.facebook.status, "pending");
 });
