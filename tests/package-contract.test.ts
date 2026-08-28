@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
@@ -19,6 +20,16 @@ test("the publisher is a public ESM package with deterministic validation script
     "node --import tsx src/validation/run.ts",
   );
   assert.equal(packageJson.devDependencies.typescript, "6.0.3");
+});
+
+test("the approved Enterprise music source is available to packaged renders", async () => {
+  const bytes = await readFile(
+    new URL("../assets/music/enterprise.mp3", import.meta.url),
+  );
+  assert.equal(
+    createHash("sha256").update(bytes).digest("hex"),
+    "d3884500099f06adc74583242056be7249f7758c4d1919efc6de3ccdf468029e",
+  );
 });
 
 test("the npm registry configuration uses current supported keys", async () => {
