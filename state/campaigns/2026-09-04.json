@@ -145,8 +145,8 @@
       "scheduledAt": "2026-09-04T15:17:00.000Z"
     },
     "facebook": {
-      "stage": "media_verified",
-      "attempts": 0,
+      "stage": "scheduling",
+      "attempts": 1,
       "transitions": [
         {
           "from": "planned",
@@ -162,6 +162,11 @@
           "from": "deploying",
           "to": "media_verified",
           "at": "2026-08-29T03:12:50.536Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-08-29T03:12:57.368Z"
         }
       ]
     },
