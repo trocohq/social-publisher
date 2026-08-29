@@ -1,0 +1,169 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-04-safe-checkout-v1-0",
+    "localDate": "2026-09-04",
+    "targetAt": "2026-09-04T12:17:00-03:00",
+    "family": "safe_checkout",
+    "recipeId": "safe-checkout-v1",
+    "recipeVersion": 1,
+    "candidate": 0,
+    "seed": "2026-09-04:safe_checkout:v1",
+    "palette": "blue",
+    "ctaKind": "calculator",
+    "mediaKind": "carousel",
+    "slideCount": 4,
+    "scenario": {
+      "purchaseMinor": 31890,
+      "receivedMinor": 50000,
+      "resultMinor": 18110,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 10000,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 5000,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 2000,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 1000,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 100,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 10,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Confira antes de concluir. R$ 318,90 na compra. Recebeu R$ 500,00.",
+      "answer": "R$ 181,10",
+      "explanation": "Antes de pagar, confira nome e valor no banco. Veja também se há adesivo ou outro QR code por cima.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "Confira antes de concluir. R$ 318,90 na compra. Recebeu R$ 500,00.\n\nA resposta é R$ 181,10.\nUma forma: 1 nota de R$ 100,00 + 1 nota de R$ 50,00 + 1 nota de R$ 20,00 + 1 nota de R$ 10,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,10.\n\nAntes de pagar, confira nome e valor no banco. Veja também se há adesivo ou outro QR code por cima.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-04-safe-checkout-v1-0&utm_content=safe_checkout\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Confira antes de concluir. R$ 318,90 na compra. Recebeu R$ 500,00.\n\nA resposta é R$ 181,10.\nUma forma: 1 nota de R$ 100,00 + 1 nota de R$ 50,00 + 1 nota de R$ 20,00 + 1 nota de R$ 10,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,10.\n\nAntes de pagar, confira nome e valor no banco. Veja também se há adesivo ou outro QR code por cima.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-04-safe-checkout-v1-0&utm_content=safe_checkout\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Confira antes de concluir. R$ 318,90 na compra. Recebeu R$ 500,00.\n\nA resposta é R$ 181,10.\nUma forma: 1 nota de R$ 100,00 + 1 nota de R$ 50,00 + 1 nota de R$ 20,00 + 1 nota de R$ 10,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,10.\n\nAntes de pagar, confira nome e valor no banco. Veja também se há adesivo ou outro QR code por cima.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-04-safe-checkout-v1-0&utm_content=safe_checkout\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Confira antes de concluir"
+        },
+        "youtube": {
+          "title": "Confira antes de concluir. R$ 318,90 na compra. Recebeu R$ 500,00.",
+          "description": "Confira antes de concluir. R$ 318,90 na compra. Recebeu R$ 500,00.\n\nA resposta é R$ 181,10.\nUma forma: 1 nota de R$ 100,00 + 1 nota de R$ 50,00 + 1 nota de R$ 20,00 + 1 nota de R$ 10,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,10.\n\nAntes de pagar, confira nome e valor no banco. Veja também se há adesivo ou outro QR code por cima.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-04-safe-checkout-v1-0&utm_content=safe_checkout\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "safety.verify-qr-recipient"
+    ],
+    "fingerprints": {
+      "headline": "e5e2ba8721c16e83a6051a62866256704ead2e1c1436f825312bd00a1a22ccd7",
+      "caption": "17e61d06a22c5d19e3ef5c93ac5a80acb1ee8c0b1178107adbb1e763ad964362"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "d70cf486054f643cb81fb017032b5b953c7986034d352f29beddcb4b9904f6d4",
+      "5af1862f4b028c2afd0e7867ea389ad466de6c6d03fb9606d0e676f45df493a5",
+      "ed27be61dea9419478f4c4b7bce5fb3e3fda7c74ae490b306729642c21e875a9",
+      "1a7c13152bd1360db988bd8757ce15b76a8696e3cc4c4c5c2ed80ef3019e094f"
+    ],
+    "video": "bd5e84b29e9ce32b3f2e7d2ab0ca9643ca24f497599d32d6a66d88f0610a80c1"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-29T03:11:24.081Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-29T03:11:24.081Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-29T03:11:24.081Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-29T03:11:24.081Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-29T03:11:24.081Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-29T03:11:24.081Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-29T03:11:24.081Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-29T03:11:24.081Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-29T03:11:24.081Z"
+        }
+      ]
+    }
+  }
+}
