@@ -1,0 +1,150 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-05-checkout-situation-v1-1",
+    "localDate": "2026-09-05",
+    "targetAt": "2026-09-05T12:17:00-03:00",
+    "family": "checkout_situation",
+    "recipeId": "checkout-situation-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-05:checkout_situation:v1",
+    "palette": "green",
+    "ctaKind": "save_share",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 1775,
+      "receivedMinor": 2000,
+      "resultMinor": 225,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "No ritmo do caixa. R$ 17,75 na compra. Pagou com R$ 20,00. Quanto volta?",
+      "answer": "R$ 2,25",
+      "explanation": "Separe as notas e moedas e confira o total antes de entregar o troco.",
+      "cta": "Salve para consultar no próximo atendimento.",
+      "channels": {
+        "instagram": {
+          "caption": "No ritmo do caixa. R$ 17,75 na compra. Pagou com R$ 20,00. Quanto volta?\n\nA resposta é R$ 2,25.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nSepare as notas e moedas e confira o total antes de entregar o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-05-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "No ritmo do caixa. R$ 17,75 na compra. Pagou com R$ 20,00. Quanto volta?\n\nA resposta é R$ 2,25.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nSepare as notas e moedas e confira o total antes de entregar o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-05-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "No ritmo do caixa. R$ 17,75 na compra. Pagou com R$ 20,00. Quanto volta?\n\nA resposta é R$ 2,25.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nSepare as notas e moedas e confira o total antes de entregar o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-05-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #TrocoCerto #Caixa",
+          "title": "No ritmo do caixa"
+        },
+        "youtube": {
+          "title": "No ritmo do caixa. R$ 17,75 na compra. Pagou com R$ 20,00. Quanto volta?",
+          "description": "No ritmo do caixa. R$ 17,75 na compra. Pagou com R$ 20,00. Quanto volta?\n\nA resposta é R$ 2,25.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nSepare as notas e moedas e confira o total antes de entregar o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-05-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "cashier.count-breakdown"
+    ],
+    "fingerprints": {
+      "headline": "5e67d0809476833dfdc3c1ce505be310cbdf0966657f7b2d93a8b28f3930b568",
+      "caption": "204585431475406d782308cf6b87113f2ec979b260617e104aa82993ee4fd8df"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "b12b02298002593b9fcd52910df5e4de78b591587a2dac6632e044b66be9dc7e"
+    ],
+    "video": "365c9309ae1af69d393d8aacc06458531e361659bc88d9336af8926dccfceb96"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-08-30T05:24:29.510Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-08-30T05:24:29.510Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-30T05:24:29.510Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-30T05:24:29.510Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-30T05:24:29.510Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-30T05:24:29.510Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-08-30T05:24:29.510Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-08-30T05:24:29.510Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-08-30T05:24:29.510Z"
+        }
+      ]
+    }
+  }
+}
