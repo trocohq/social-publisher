@@ -174,8 +174,8 @@
       ]
     },
     "youtube": {
-      "stage": "media_verified",
-      "attempts": 0,
+      "stage": "scheduling",
+      "attempts": 1,
       "transitions": [
         {
           "from": "planned",
@@ -191,6 +191,11 @@
           "from": "deploying",
           "to": "media_verified",
           "at": "2026-09-01T08:40:21.145Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-01T08:40:31.797Z"
         }
       ]
     }
