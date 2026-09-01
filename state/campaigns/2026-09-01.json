@@ -96,7 +96,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "scheduled",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -123,13 +123,19 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-27T17:00:06.253Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "published",
+          "at": "2026-09-01T18:32:26.812Z"
         }
       ],
       "providerId": "6a906d175b365168c5c85953",
-      "scheduledAt": "2026-09-01T15:17:00.000Z"
+      "scheduledAt": "2026-09-01T15:17:00.000Z",
+      "publishedAt": "2026-09-01T18:32:26.812Z"
     },
     "facebook": {
-      "stage": "scheduled",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -156,10 +162,16 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-27T17:00:12.753Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "published",
+          "at": "2026-09-01T18:32:27.224Z"
         }
       ],
       "providerId": "6a906d1d31d64512d897eebc",
-      "scheduledAt": "2026-09-01T15:17:00.000Z"
+      "scheduledAt": "2026-09-01T15:17:00.000Z",
+      "publishedAt": "2026-09-01T18:32:27.224Z"
     },
     "tiktok": {
       "stage": "skipped_disabled",
@@ -173,7 +185,7 @@
       ]
     },
     "youtube": {
-      "stage": "scheduled",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -200,10 +212,16 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-27T17:00:17.256Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "published",
+          "at": "2026-09-01T18:32:27.425Z"
         }
       ],
       "providerId": "6a906d2131d64512d897f000",
-      "scheduledAt": "2026-09-01T15:17:00.000Z"
+      "scheduledAt": "2026-09-01T15:17:00.000Z",
+      "publishedAt": "2026-09-01T18:32:27.425Z"
     }
   }
 }
