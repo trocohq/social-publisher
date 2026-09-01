@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-07-change-challenge-v1-0",
+    "localDate": "2026-09-07",
+    "targetAt": "2026-09-07T12:17:00-03:00",
+    "family": "change_challenge",
+    "recipeId": "change-challenge-v1",
+    "recipeVersion": 1,
+    "candidate": 0,
+    "seed": "2026-09-07:change_challenge:v1",
+    "palette": "green",
+    "ctaKind": "calculator",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 4275,
+      "receivedMinor": 5000,
+      "resultMinor": 725,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 500,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Valendo o troco certo. R$ 42,75 na compra. Pagou com R$ 50,00. Quanto volta?",
+      "answer": "R$ 7,25",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "Valendo o troco certo. R$ 42,75 na compra. Pagou com R$ 50,00. Quanto volta?\n\nA resposta é R$ 7,25.\nUma forma: 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-07-change-challenge-v1-0&utm_content=change_challenge\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Valendo o troco certo. R$ 42,75 na compra. Pagou com R$ 50,00. Quanto volta?\n\nA resposta é R$ 7,25.\nUma forma: 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-07-change-challenge-v1-0&utm_content=change_challenge\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Valendo o troco certo. R$ 42,75 na compra. Pagou com R$ 50,00. Quanto volta?\n\nA resposta é R$ 7,25.\nUma forma: 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-07-change-challenge-v1-0&utm_content=change_challenge\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Valendo o troco certo"
+        },
+        "youtube": {
+          "title": "Valendo o troco certo. R$ 42,75 na compra. Pagou com R$ 50,00. Quanto volta?",
+          "description": "Valendo o troco certo. R$ 42,75 na compra. Pagou com R$ 50,00. Quanto volta?\n\nA resposta é R$ 7,25.\nUma forma: 1 nota de R$ 5,00 + 1 nota de R$ 2,00 + 1 moeda de R$ 0,25.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-07-change-challenge-v1-0&utm_content=change_challenge\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "e3c8b5159bc3278ce6c919718b635947e7481083d691babcd9cd02a4e474de50",
+      "caption": "f436d5f713962314b6b62e188d5285ed3f088ef47ae664906973ba5fe09de8df"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "45fab9ab098b96ba0ef05741a5c81d2a0b88009066b606ccef7520c44ebb7951"
+    ],
+    "video": "3768f3889eeb2526835ab6cdf64f5a5e24f25c63b2ec001a38f3a81de439ccaa"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-01T08:39:02.409Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-01T08:39:02.409Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-01T08:39:02.409Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-01T08:39:02.409Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-01T08:39:02.409Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-01T08:39:02.409Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-01T08:39:02.409Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-01T08:39:02.409Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-01T08:39:02.409Z"
+        }
+      ]
+    }
+  }
+}
