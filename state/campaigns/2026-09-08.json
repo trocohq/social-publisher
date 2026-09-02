@@ -125,7 +125,7 @@
       "scheduledAt": "2026-09-08T15:17:00.000Z"
     },
     "facebook": {
-      "stage": "scheduling",
+      "stage": "scheduled",
       "attempts": 1,
       "transitions": [
         {
@@ -147,8 +147,15 @@
           "from": "media_verified",
           "to": "scheduling",
           "at": "2026-09-02T04:35:48.212Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-09-02T04:35:49.882Z"
         }
-      ]
+      ],
+      "providerId": "6a97a7a66312498c06699cf0",
+      "scheduledAt": "2026-09-08T15:17:00.000Z"
     },
     "tiktok": {
       "stage": "skipped_disabled",
