@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-08-cashier-shortcut-v1-1",
+    "localDate": "2026-09-08",
+    "targetAt": "2026-09-08T12:17:00-03:00",
+    "family": "cashier_shortcut",
+    "recipeId": "cashier-shortcut-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-08:cashier_shortcut:v1",
+    "palette": "purple",
+    "ctaKind": "save_share",
+    "mediaKind": "carousel",
+    "slideCount": 4,
+    "scenario": {
+      "purchaseMinor": 9500,
+      "receivedMinor": 10000,
+      "resultMinor": 500,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 500,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Confira sem refazer a conta. R$ 95,00 na compra. Recebeu R$ 100,00.",
+      "answer": "R$ 5,00",
+      "explanation": "Confirme o valor da compra e quanto recebeu. Depois calcule o troco.",
+      "cta": "Salve para consultar no próximo atendimento.",
+      "channels": {
+        "instagram": {
+          "caption": "Confira sem refazer a conta. R$ 95,00 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 5,00.\nUma forma: 1 nota de R$ 5,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-08-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Confira sem refazer a conta. R$ 95,00 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 5,00.\nUma forma: 1 nota de R$ 5,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-08-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Confira sem refazer a conta. R$ 95,00 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 5,00.\nUma forma: 1 nota de R$ 5,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-08-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Confira sem refazer a conta"
+        },
+        "youtube": {
+          "title": "Confira sem refazer a conta. R$ 95,00 na compra. Recebeu R$ 100,00.",
+          "description": "Confira sem refazer a conta. R$ 95,00 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 5,00.\nUma forma: 1 nota de R$ 5,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-08-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "cashier.confirm-received"
+    ],
+    "fingerprints": {
+      "headline": "e7d836ce6aa6b8ecbcf003b39a2d8dc0596c40731580f872752be1df8505b3b5",
+      "caption": "a8573c1ae80c948b991786dba665437187d19c854d69093d6f68e186f0ee9cc0"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "ba6f0347bf9b022d0de5b271af72b4bfdb51d83b5f8bed268802ec3380ebedb8",
+      "33546806d23fc83abfc24bc1d10720d9b057e90c347e4ef8e8a84b5590d6875a",
+      "6ea3c5d3c4398cb72130506718eaed07340951348199f6098685b053d3e893a5",
+      "c664d12c500235904a79ed25b4ede96ebed8b93725cb84e45ba264ac92a35aa2"
+    ],
+    "video": "0c90238f999cb94d56b728155282d9ae079171887e045f083fa0cd3d04b5782d"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-02T04:34:15.880Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-02T04:34:15.880Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-02T04:34:15.880Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-02T04:34:15.880Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-02T04:34:15.880Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-02T04:34:15.880Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-02T04:34:15.880Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-02T04:34:15.880Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-02T04:34:15.880Z"
+        }
+      ]
+    }
+  }
+}
