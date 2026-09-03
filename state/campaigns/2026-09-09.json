@@ -1,0 +1,154 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-09-troco-explains-v1-0",
+    "localDate": "2026-09-09",
+    "targetAt": "2026-09-09T12:17:00-03:00",
+    "family": "troco_explains",
+    "recipeId": "troco-explains-v1",
+    "recipeVersion": 1,
+    "candidate": 0,
+    "seed": "2026-09-09:troco_explains:v1",
+    "palette": "blue",
+    "ctaKind": "calculator",
+    "mediaKind": "feed",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 9350,
+      "receivedMinor": 10000,
+      "resultMinor": 650,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 500,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 100,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "De onde saiu esse troco? R$ 93,50 na compra. Recebeu R$ 100,00.",
+      "answer": "R$ 6,50",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "De onde saiu esse troco? R$ 93,50 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 6,50.\nUma forma: 1 nota de R$ 5,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-09-troco-explains-v1-0&utm_content=troco_explains\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "De onde saiu esse troco? R$ 93,50 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 6,50.\nUma forma: 1 nota de R$ 5,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-09-troco-explains-v1-0&utm_content=troco_explains\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "De onde saiu esse troco? R$ 93,50 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 6,50.\nUma forma: 1 nota de R$ 5,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-09-troco-explains-v1-0&utm_content=troco_explains\n\n#Troco #TrocoCerto #Caixa",
+          "title": "De onde saiu esse troco?"
+        },
+        "youtube": {
+          "title": "De onde saiu esse troco? R$ 93,50 na compra. Recebeu R$ 100,00.",
+          "description": "De onde saiu esse troco? R$ 93,50 na compra. Recebeu R$ 100,00.\n\nA resposta é R$ 6,50.\nUma forma: 1 nota de R$ 5,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50.\n\nO app completo do Troco está na Google Play.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-09-troco-explains-v1-0&utm_content=troco_explains\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "d90512d24e956ed28a5734e421ebef5a964f78d3c24001f6f043c104219d8baf",
+      "caption": "d6bfbbdc0079ac49d2aca242236040ea13a5db1244eba27e53516bfa5807c9ab"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "54fc124611cc6664b8a28af593285857b4f68a24deeab9e56644029245613bb0"
+    ],
+    "video": "20ee6cfa64930eaeb92c3353fa0612e049b2c2b5b61d968d2d761a7bc880507e"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-03T04:33:36.354Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-03T04:33:36.354Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-03T04:33:36.354Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-03T04:33:36.354Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-03T04:33:36.354Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-03T04:33:36.354Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-03T04:33:36.354Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-03T04:33:36.354Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-03T04:33:36.354Z"
+        }
+      ]
+    }
+  }
+}
