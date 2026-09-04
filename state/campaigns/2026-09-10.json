@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-10-quick-calculation-v1-2",
+    "localDate": "2026-09-10",
+    "targetAt": "2026-09-10T12:17:00-03:00",
+    "family": "quick_calculation",
+    "recipeId": "quick-calculation-v1",
+    "recipeVersion": 1,
+    "candidate": 2,
+    "seed": "2026-09-10:quick_calculation:v1",
+    "palette": "purple",
+    "ctaKind": "download",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 49990,
+      "receivedMinor": 50000,
+      "resultMinor": 10,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 10,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "R$ 499,90 na compra. Pagou com R$ 500,00. Faz essa conta comigo?",
+      "answer": "R$ 0,10",
+      "explanation": "O app completo do Troco está na Google Play.",
+      "cta": "Baixe o Troco grátis no Android.",
+      "channels": {
+        "instagram": {
+          "caption": "R$ 499,90 na compra. Pagou com R$ 500,00. Faz essa conta comigo?\n\nA resposta é R$ 0,10.\nUma forma: 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-10-quick-calculation-v1-2&utm_content=quick_calculation\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "R$ 499,90 na compra. Pagou com R$ 500,00. Faz essa conta comigo?\n\nA resposta é R$ 0,10.\nUma forma: 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-10-quick-calculation-v1-2&utm_content=quick_calculation\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "R$ 499,90 na compra. Pagou com R$ 500,00. Faz essa conta comigo?\n\nA resposta é R$ 0,10.\nUma forma: 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-10-quick-calculation-v1-2&utm_content=quick_calculation\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Faz essa conta comigo?"
+        },
+        "youtube": {
+          "title": "R$ 499,90 na compra. Pagou com R$ 500,00. Faz essa conta comigo?",
+          "description": "R$ 499,90 na compra. Pagou com R$ 500,00. Faz essa conta comigo?\n\nA resposta é R$ 0,10.\nUma forma: 1 moeda de R$ 0,10.\n\nO app completo do Troco está na Google Play.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-10-quick-calculation-v1-2&utm_content=quick_calculation\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.android-download"
+    ],
+    "fingerprints": {
+      "headline": "4322d4c6e8c731bb587079fb20434af16b0ec7fedc62e75605a8875ed5aa0fcd",
+      "caption": "932d51b4baddb587954de484feb62b0c3926d2e8ad1501c677a7b87183d5cf86"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "e58477b6ac33f9fb92911ac7ff70b042b37c46f3e1677d3ef2704934ce6d1c27"
+    ],
+    "video": "e14af9f56999b913ea1c7b343b8d6f473ce5be570466f43ec9a691efded5a945"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-04T04:33:08.526Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-04T04:33:08.526Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-04T04:33:08.526Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-04T04:33:08.526Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-04T04:33:08.526Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-04T04:33:08.526Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-04T04:33:08.526Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-04T04:33:08.526Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-04T04:33:08.526Z"
+        }
+      ]
+    }
+  }
+}
