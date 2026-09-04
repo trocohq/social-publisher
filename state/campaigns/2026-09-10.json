@@ -89,7 +89,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "scheduling",
+      "stage": "scheduled",
       "attempts": 1,
       "transitions": [
         {
@@ -111,8 +111,15 @@
           "from": "media_verified",
           "to": "scheduling",
           "at": "2026-09-04T04:34:31.561Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-09-04T04:34:33.062Z"
         }
-      ]
+      ],
+      "providerId": "6a9a4a593c62018785142cc3",
+      "scheduledAt": "2026-09-10T15:17:00.000Z"
     },
     "facebook": {
       "stage": "media_verified",
