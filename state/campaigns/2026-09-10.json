@@ -89,8 +89,8 @@
   },
   "channels": {
     "instagram": {
-      "stage": "media_verified",
-      "attempts": 0,
+      "stage": "scheduling",
+      "attempts": 1,
       "transitions": [
         {
           "from": "planned",
@@ -106,6 +106,11 @@
           "from": "deploying",
           "to": "media_verified",
           "at": "2026-09-04T04:34:29.636Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-04T04:34:31.561Z"
         }
       ]
     },
