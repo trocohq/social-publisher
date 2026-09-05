@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 
-import { toPlatformShadowEnvelope } from "../src/publishing/platform-envelope.js";
+import {
+  preparePlatformHandoff,
+  toPlatformShadowEnvelope,
+} from "../src/publishing/platform-envelope.js";
 import { campaignStateFixture } from "./support/state-fixture.js";
 
 function media() {
@@ -78,5 +81,19 @@ describe("publishing platform shadow envelope", () => {
         }),
       /Platform artifacts require verified byte sizes/,
     );
+  });
+
+  it("binds verified media files without leaking paths into the envelope", () => {
+    const state = campaignStateFixture();
+    const handoff = preparePlatformHandoff(
+      { state, media: media() },
+      "/runtime/troco",
+    );
+
+    assert.deepEqual(
+      handoff.uploads.map(({ filePath }) => filePath),
+      ["/runtime/troco/slide-01.jpg", "/runtime/troco/short.mp4"],
+    );
+    assert.doesNotMatch(JSON.stringify(handoff.envelope), /\/runtime\/troco/u);
   });
 });

@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { isAbsolute, relative, resolve } from "node:path";
 
 import {
   campaignMediaRecordSchema,
@@ -180,4 +181,34 @@ export function toPlatformShadowEnvelope(
       };
     }),
   };
+}
+
+export function preparePlatformHandoff(
+  input: Parameters<typeof toPlatformShadowEnvelope>[0],
+  mediaDirectory: string,
+) {
+  const media = campaignMediaRecordSchema.parse(input.media);
+  const envelope = toPlatformShadowEnvelope(input);
+  const sourceByHash = new Map(
+    media.assets.map((asset) => [
+      asset.hash,
+      containedPath(mediaDirectory, asset.filename),
+    ]),
+  );
+  const uploads = envelope.artifacts.map((reference) => {
+    const filePath = sourceByHash.get(reference.sha256);
+    if (!filePath) throw new Error("Platform artifact path is missing");
+    return { reference, filePath } as const;
+  });
+  return { envelope, uploads } as const;
+}
+
+function containedPath(root: string, candidate: string): string {
+  const absoluteRoot = resolve(root);
+  const absoluteCandidate = resolve(absoluteRoot, candidate);
+  const fromRoot = relative(absoluteRoot, absoluteCandidate);
+  if (fromRoot.startsWith("..") || isAbsolute(fromRoot)) {
+    throw new Error("Platform artifact path escapes media directory");
+  }
+  return absoluteCandidate;
 }
