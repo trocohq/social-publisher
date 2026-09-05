@@ -44,6 +44,13 @@ describe("publishing platform shadow envelope", () => {
     assert.match(envelope.identity.revision, /^sha256:[a-f0-9]{64}$/);
     assert.equal(envelope.artifacts.length, 2);
     assert.deepEqual(
+      envelope.artifacts.map(({ locator }) => locator),
+      [
+        `temporary/troco/${state.plan.id}/feed/${"a".repeat(64)}.jpg`,
+        `temporary/troco/${state.plan.id}/video/${"b".repeat(64)}.mp4`,
+      ],
+    );
+    assert.deepEqual(
       envelope.deliveries.map(({ id, adapter, required }) => ({
         id,
         adapter,

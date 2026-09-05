@@ -71,6 +71,12 @@ function artifactId(asset: MediaAsset): string {
   return `media-${asset.hash}`;
 }
 
+function artifactExtension(asset: MediaAsset): string {
+  if (asset.contentType === "image/jpeg") return "jpg";
+  if (asset.contentType === "video/mp4") return "mp4";
+  throw new Error(`Unsupported platform artifact type: ${asset.contentType}`);
+}
+
 function channelText(
   state: CampaignState,
   channel: PublicationChannel,
@@ -127,7 +133,7 @@ export function toPlatformShadowEnvelope(
     sha256: asset.hash,
     byteSize: asset.bytes!,
     mediaType: asset.contentType,
-    locator: `temporary/troco/${media.campaignId}/${asset.kind}/${asset.filename}`,
+    locator: `temporary/troco/${media.campaignId}/${asset.kind}/${asset.hash}.${artifactExtension(asset)}`,
   }));
   const contentRevision = revision(state, media);
   const channels: readonly PublicationChannel[] = [
