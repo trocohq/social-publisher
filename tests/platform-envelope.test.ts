@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { stagePlatformHandoff } from "@trebla/publishing-client";
 
 import {
   preparePlatformHandoff,
@@ -95,5 +96,25 @@ describe("publishing platform shadow envelope", () => {
       ["/runtime/troco/slide-01.jpg", "/runtime/troco/short.mp4"],
     );
     assert.doesNotMatch(JSON.stringify(handoff.envelope), /\/runtime\/troco/u);
+  });
+
+  it("stages the handoff through the shared client without network access", async () => {
+    const state = campaignStateFixture();
+    const handoff = preparePlatformHandoff(
+      { state, media: media() },
+      "/runtime/troco",
+    );
+    let staged: unknown;
+    await stagePlatformHandoff(handoff, {
+      prepare: (envelope) => {
+        staged = envelope;
+        return Promise.resolve({
+          id: "local",
+          path: "/runtime/outbox/local.json",
+          envelope,
+        });
+      },
+    });
+    assert.equal(staged, handoff.envelope);
   });
 });
