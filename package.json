@@ -30,6 +30,7 @@
     "check": "npm run format:check && npm run typecheck && npm test"
   },
   "dependencies": {
+    "@trebla/publishing-client": "0.1.1",
     "@trocohq/core": "0.7.3",
     "@trocohq/design-tokens": "0.1.2",
     "ffmpeg-static": "5.3.0",
