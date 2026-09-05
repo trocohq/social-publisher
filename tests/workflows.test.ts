@@ -2,6 +2,15 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+test("validation is manual during the platform migration", async () => {
+  const workflow = await readFile(
+    new URL("../.github/workflows/validate.yml", import.meta.url),
+    "utf8",
+  );
+  assert.match(workflow, /workflow_dispatch:/);
+  assert.doesNotMatch(workflow, /^\s+(?:push|pull_request):/mu);
+});
+
 test("production workflow is serialized, disabled by default, and runs every three hours", async () => {
   const workflow = await readFile(
     new URL("../.github/workflows/publish.yml", import.meta.url),
