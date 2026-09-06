@@ -114,7 +114,7 @@ export function createCampaignCopy({
   const received = formatMinor(scenario.receivedMinor, "BRL", "pt-BR");
   const answer = formatMinor(scenario.resultMinor, "BRL", "pt-BR");
   const headline = assertLength(
-    headlineFor({ family, hook, purchase, received }),
+    fact.lesson?.headline ?? headlineFor({ family, hook, purchase, received }),
     100,
     "Headline",
   );
@@ -124,8 +124,9 @@ export function createCampaignCopy({
   const common = [
     headline,
     "",
-    `A resposta é ${answer}.`,
-    ...(breakdown ? [breakdown] : []),
+    ...(fact.lesson
+      ? [fact.lesson.setup, fact.lesson.takeaway]
+      : [`A resposta é ${answer}.`, ...(breakdown ? [breakdown] : [])]),
     "",
     explanation,
     ...(calendarMoment ? [calendarMoment.statement] : []),
@@ -148,6 +149,7 @@ export function createCampaignCopy({
   const youtubeTitle = assertLength(headline, 100, "YouTube title");
 
   return {
+    ...(fact.lesson ? { lesson: fact.lesson } : {}),
     headline,
     answer,
     explanation,
@@ -160,7 +162,7 @@ export function createCampaignCopy({
         caption: captionFor("facebook", "#Troco #Varejo"),
       },
       tiktok: {
-        title: assertLength(hook, 150, "TikTok title"),
+        title: assertLength(fact.lesson?.headline ?? hook, 150, "TikTok title"),
         caption: captionFor("tiktok", "#Troco #TrocoCerto #Caixa"),
       },
       youtube: {

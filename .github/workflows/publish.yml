@@ -20,6 +20,7 @@ on:
         required: false
 
 permissions:
+  actions: read
   contents: write
   pages: write
   id-token: write
@@ -137,10 +138,45 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
+      - name: Verify Pages destination
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if ! gh api "repos/$GITHUB_REPOSITORY/pages" --silent; then
+            echo "::error::GitHub Pages is unavailable. Configure the media hosting destination before publishing."
+            exit 1
+          fi
+
+      - name: Restore immutable media archive
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          runs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '.artifacts[] | select(.name == "campaign-media-archive" and .expired == false and .workflow_run.head_branch == "main") | .workflow_run.id')"
+          archive_run="${runs%%$'\n'*}"
+          if [[ -n "$archive_run" ]]; then
+            [[ "$archive_run" =~ ^[0-9]+$ ]]
+            gh run download "$archive_run" --name campaign-media-archive --dir .tmp/render
+          fi
+
       - name: Plan rolling campaigns
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: npm run plan
+
+      - name: Preserve immutable media archive
+        if: success() && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: campaign-media-archive
+          path: publisher/.tmp/pages/media
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Commit campaign plans
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
@@ -240,6 +276,22 @@ jobs:
         run: |
           reconcile_status="${{ steps.reconciliation.outputs.status }}"
           if (( reconcile_status != 0 )); then exit "$reconcile_status"; fi
+
+      - name: Publish companion Instagram Stories
+        if: steps.mode.outputs.value == 'scheduled'
+        working-directory: publisher
+        env:
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+        run: |
+          set -euo pipefail
+          fresh="$(env -u BUFFER_API_KEY node --import tsx src/cli/stories.ts --phase intent)"
+          scripts/commit-state.sh "chore(state): record Story intents [skip ci]"
+          set +e
+          node --import tsx src/cli/stories.ts --phase execute --new-intents "$fresh"
+          story_status=$?
+          set -e
+          scripts/commit-state.sh "chore(state): record Story results [skip ci]"
+          exit "$story_status"
 
       - name: Verify publication health
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'

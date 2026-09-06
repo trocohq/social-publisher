@@ -1,0 +1,146 @@
+[
+  {
+    "id": "safety.statement",
+    "statement": "Abra o app do banco por conta própria antes de liberar a venda.",
+    "source": "https://www.bcb.gov.br/meubc/faqs/s/golpes",
+    "reviewedOn": "2026-09-06",
+    "families": ["safe_checkout"],
+    "lesson": {
+      "headline": "Print de Pix não é pagamento.",
+      "setup": "O cliente mostrou um comprovante e pediu pressa?",
+      "takeaway": "Confira o crédito no seu extrato."
+    }
+  },
+  {
+    "id": "safety.return",
+    "statement": "Confira o extrato. Se recebeu por engano, devolva pela transação original.",
+    "source": "https://bcb.gov.br/meubc/faqs/p/devolucao-de-dinheiro-com-pix",
+    "reviewedOn": "2026-09-06",
+    "families": ["safe_checkout"],
+    "lesson": {
+      "headline": "Pedem para devolver um Pix?",
+      "setup": "Alguém diz que enviou dinheiro por engano.",
+      "takeaway": "Use a devolução da transação."
+    }
+  },
+  {
+    "id": "safety.other-key",
+    "statement": "Use a função de devolução no recebimento original.",
+    "source": "https://bcb.gov.br/meubc/faqs/p/devolucao-de-dinheiro-com-pix",
+    "reviewedOn": "2026-09-06",
+    "families": ["save_this_rule"],
+    "lesson": {
+      "headline": "Outra chave? Pare por aí.",
+      "setup": "A pessoa pede que você devolva o Pix para outra conta.",
+      "takeaway": "Não faça um novo Pix."
+    }
+  },
+  {
+    "id": "safety.urgent",
+    "statement": "Verifique o recebimento no seu banco. Um print pode ser falso.",
+    "source": "https://www.bcb.gov.br/meubc/faqs/s/golpes",
+    "reviewedOn": "2026-09-06",
+    "families": ["save_this_rule"],
+    "lesson": {
+      "headline": "Pressa não confirma pagamento.",
+      "setup": "A pessoa insiste: já paguei, pode liberar.",
+      "takeaway": "Confira antes de agir."
+    }
+  },
+  {
+    "id": "math.fifteen",
+    "statement": "10% é dividir por 10. Para achar 5%, use a metade.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["quick_calculation"],
+    "lesson": {
+      "headline": "Seu chefe pediu 15% de R$ 200?",
+      "setup": "Separe em duas partes: 10% e 5%.",
+      "takeaway": "R$ 20 + R$ 10 = R$ 30."
+    }
+  },
+  {
+    "id": "math.five",
+    "statement": "Confira a base da porcentagem antes de passar o resultado.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["quick_calculation"],
+    "lesson": {
+      "headline": "5% de R$ 80, de cabeça.",
+      "setup": "Primeiro ache 10%: R$ 8.",
+      "takeaway": "Metade de R$ 8: R$ 4."
+    }
+  },
+  {
+    "id": "math.nineteen",
+    "statement": "Arredonde a quantidade, faça a conta e ajuste a diferença.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["cashier_shortcut"],
+    "lesson": {
+      "headline": "19 peças a R$ 12. E agora?",
+      "setup": "Calcule 20 peças: R$ 240.",
+      "takeaway": "Tire uma peça: R$ 228."
+    }
+  },
+  {
+    "id": "math.change",
+    "statement": "Complete até um valor redondo e some os passos.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["cashier_shortcut"],
+    "lesson": {
+      "headline": "Troco de R$ 37 para R$ 50?",
+      "setup": "De R$ 37 a R$ 40 faltam R$ 3.",
+      "takeaway": "Mais R$ 10: troco de R$ 13."
+    }
+  },
+  {
+    "id": "work.assumptions",
+    "statement": "Repita os valores em voz alta e confira o resultado antes de enviar.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["checkout_situation"],
+    "lesson": {
+      "headline": "Quer passar confiança na conta?",
+      "setup": "Antes de calcular, confirme quantidade e preço.",
+      "takeaway": "Explique de onde saiu o total."
+    }
+  },
+  {
+    "id": "work.handoff",
+    "statement": "Anote o assunto, o próximo passo e quem precisa acompanhar.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["checkout_situation"],
+    "lesson": {
+      "headline": "Seu colega vai assumir o caixa?",
+      "setup": "Deixe registrado o que ficou pendente.",
+      "takeaway": "Uma passagem de turno clara."
+    }
+  },
+  {
+    "id": "work.mistake",
+    "statement": "Explique o que mudou e siga o procedimento da equipe para corrigir.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["save_this_rule"],
+    "lesson": {
+      "headline": "Percebeu um erro na conta?",
+      "setup": "Confira o valor e avise quem precisa saber.",
+      "takeaway": "Mostre a correção com clareza."
+    }
+  },
+  {
+    "id": "work.brief",
+    "statement": "Exemplo: 12 unidades a R$ 8 somam R$ 96, sem incluir o frete.",
+    "source": "repo://social-publisher/docs/editorial/practical-lessons.md",
+    "reviewedOn": "2026-09-06",
+    "families": ["cashier_shortcut"],
+    "lesson": {
+      "headline": "O chefe pediu uma conta rápida.",
+      "setup": "Confirme a pergunta antes de sair calculando.",
+      "takeaway": "Dê o total e diga a base."
+    }
+  }
+]

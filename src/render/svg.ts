@@ -295,6 +295,17 @@ function verticalItems(
       );
       add("message", headline.height, VERTICAL_SECTION_GAP, headline);
       add("cta", THUMBNAIL_CTA_HEIGHT);
+    } else if (
+      plan.copy.lesson &&
+      (scene === "scenario" || scene === "answer")
+    ) {
+      const text = fitText(
+        scene === "scenario"
+          ? plan.copy.lesson.setup
+          : plan.copy.lesson.takeaway,
+        verticalTextLayouts.explanation,
+      );
+      add("message", text.height, VERTICAL_SECTION_GAP, text);
     } else if (scene === "scenario") {
       const title = fitText("Dois valores. Uma conta.", {
         maxWidth: VERTICAL_FRAME.width,
@@ -534,7 +545,11 @@ function verticalItemSvg(
       return label(familyLabels[plan.family], top + height, 24);
     case "kicker":
       return label(
-        scene === "hook" ? "FAÇA A CONTA" : "O TROCO CERTO É",
+        plan.copy.lesson
+          ? "NA PRÁTICA"
+          : scene === "hook"
+            ? "FAÇA A CONTA"
+            : "O TROCO CERTO É",
         top + height,
         38,
         treatment.foreground,

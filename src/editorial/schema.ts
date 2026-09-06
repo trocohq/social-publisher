@@ -38,6 +38,12 @@ const safePublicText = (maximum: number) =>
     .max(maximum)
     .refine((value) => !/[<>]/.test(value), "Markup is forbidden");
 
+export const lessonSchema = z.object({
+  headline: safePublicText(100),
+  setup: safePublicText(180),
+  takeaway: safePublicText(180),
+});
+
 export const factSchema = z.object({
   id: z.string().regex(/^[a-z0-9._-]+$/),
   statement: safePublicText(600),
@@ -45,6 +51,7 @@ export const factSchema = z.object({
   reviewedOn: z.iso.date(),
   expiresOn: z.iso.date().optional(),
   families: z.array(z.enum(campaignFamilies)).min(1),
+  lesson: lessonSchema.optional(),
 });
 export type Fact = z.infer<typeof factSchema>;
 
@@ -86,6 +93,7 @@ const captionSchema = (maximum: number) =>
   z.object({ caption: safePublicText(maximum) });
 
 export const campaignCopySchema = z.object({
+  lesson: lessonSchema.optional(),
   headline: safePublicText(100),
   answer: safePublicText(80),
   explanation: safePublicText(600),

@@ -7,6 +7,22 @@ export function assertPublisherHealthy(
   states: readonly CampaignState[],
   now = new Date(),
 ): void {
+  const storyFailures = states.filter((state) => {
+    const story = state.instagramStory;
+    if (!story) return false;
+    if (story.stage === "failed" || story.lastError) return true;
+    const since = story.intentAt ?? state.channels.instagram.publishedAt;
+    return (
+      story.stage !== "published" &&
+      since &&
+      now.valueOf() - new Date(since).valueOf() > 6 * 60 * 60_000
+    );
+  });
+  if (storyFailures.length) {
+    throw new Error(
+      `Unresolved Instagram Stories: ${storyFailures.map((state) => state.plan.id).join(", ")}`,
+    );
+  }
   const unresolved = states.flatMap((state) =>
     channels.flatMap((channel) => {
       const stage = state.channels[channel].stage;

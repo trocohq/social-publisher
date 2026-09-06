@@ -83,8 +83,21 @@ function deepFreeze<T>(value: T): T {
 function compatibleFacts(
   family: CampaignPlan["family"],
   localDate: string,
+  history: readonly HistoryEntry[],
 ): readonly Fact[] {
-  const values = usableFactsForCampaign(facts, localDate, family);
+  const eligible = usableFactsForCampaign(facts, localDate, family);
+  const lessons = eligible.filter(
+    (fact) =>
+      fact.lesson &&
+      !history.some(
+        (entry) =>
+          entry.headlineFingerprint === fingerprintCopy(fact.lesson!.headline),
+      ),
+  );
+  const values =
+    localDate >= "2026-09-07" && lessons.length
+      ? lessons
+      : eligible.filter((fact) => !fact.lesson);
   if (values.length === 0) throw new Error(`Missing fact for ${family}`);
   return values;
 }
@@ -103,10 +116,20 @@ export function createCampaign({
   appDownloadUrl,
 }: CreateCampaignInput): CampaignPlan {
   const family = campaignFamilyForDate(localDate);
-  const recipe = recipeForFamily(family);
+  const originalRecipe = recipeForFamily(family);
+  const recipe =
+    localDate >= "2026-09-07"
+      ? {
+          ...originalRecipe,
+          id: originalRecipe.id.replace(/-v1$/, "-v2"),
+          version: 2,
+          mediaKind: "video" as const,
+          slideCount: 1,
+        }
+      : originalRecipe;
   const seed = `${localDate}:${family}:v${recipe.version}`;
   const campaignTargetAt = targetAt(localDate, publishTime);
-  const familyFacts = compatibleFacts(family, localDate);
+  const familyFacts = compatibleFacts(family, localDate, history);
   const calendarMoment = calendarMomentForDate(localDate, family);
 
   const selected = selectCandidate({

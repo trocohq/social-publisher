@@ -115,7 +115,11 @@ async function rejectExistingSymlink(path: string): Promise<void> {
   }
 }
 
-async function requireSafeSource(root: string, path: string): Promise<void> {
+export async function requireSafeSource(
+  root: string,
+  path: string,
+): Promise<void> {
+  await rejectExistingSymlink(root);
   const rootRealPath = await realpath(root);
   const pathRelative = relative(root, path);
   if (pathRelative === ".." || pathRelative.startsWith(`..${sep}`)) {

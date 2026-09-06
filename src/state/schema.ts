@@ -51,12 +51,22 @@ export const stageRecordSchema = z.object({
 });
 export type StageRecord = z.infer<typeof stageRecordSchema>;
 
+export const instagramStorySchema = z.object({
+  stage: z.enum(["pending", "uncertain", "accepted", "published", "failed"]),
+  intentAt: z.iso.datetime({ offset: true }).optional(),
+  providerId: z.string().min(1).max(300).optional(),
+  publishedAt: z.iso.datetime({ offset: true }).optional(),
+  lastError: sanitizedErrorSchema.optional(),
+});
+export type InstagramStory = z.infer<typeof instagramStorySchema>;
+
 const commitSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const hashSchema = z.string().regex(/^[a-f0-9]{64}$/);
 
 export const campaignStateSchema = z.object({
   schemaVersion: z.literal(1),
   plan: campaignPlanSchema,
+  instagramStory: instagramStorySchema.optional(),
   sourceCommits: z.object({
     brand: commitSchema,
     designTokens: commitSchema,

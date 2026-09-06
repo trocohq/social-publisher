@@ -23,8 +23,8 @@ type BufferPostBase = Readonly<{
   metadata: Readonly<{
     facebook?: Readonly<{ type: "post" | "reel" }>;
     instagram?: Readonly<{
-      type: "post" | "reel";
-      shouldShareToFeed: true;
+      type: "post" | "reel" | "story";
+      shouldShareToFeed: boolean;
       isAiGenerated: false;
     }>;
     tiktok?: Readonly<{ title?: string; isAiGenerated: false }>;
@@ -67,6 +67,7 @@ export function createBufferPostInput({
   mediaKind,
   mediaUrls,
   title,
+  placement = "primary",
 }: Readonly<{
   channel: BufferChannel;
   channelId: string;
@@ -76,7 +77,14 @@ export function createBufferPostInput({
   mediaKind: BufferMediaKind;
   mediaUrls: readonly string[];
   title?: string;
+  placement?: "primary" | "story";
 }>): BufferPostInput {
+  if (
+    placement === "story" &&
+    (channel !== "instagram" || mediaKind !== "video")
+  ) {
+    throw new Error("Companion Stories require one Instagram vertical video");
+  }
   if (!channelId || !text.trim()) throw new Error("Buffer post is incomplete");
   if (channel === "youtube" && (!title?.trim() || title.length > 100)) {
     throw new Error("Buffer YouTube title is invalid");
@@ -124,8 +132,13 @@ export function createBufferPostInput({
       : channel === "instagram"
         ? {
             instagram: {
-              type: mediaKind === "video" ? "reel" : "post",
-              shouldShareToFeed: true,
+              type:
+                placement === "story"
+                  ? "story"
+                  : mediaKind === "video"
+                    ? "reel"
+                    : "post",
+              shouldShareToFeed: placement !== "story",
               isAiGenerated: false,
             },
           }

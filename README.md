@@ -252,3 +252,28 @@ retries, incidents, and token rotation.
   Automatic Play Console ingestion and attribution export are not implemented.
 - Periodically review editorial facts, copy quality, palette and music rotation,
   Buffer limits, and provider contracts as external platforms change.
+
+# Companion Stories and practical lessons
+
+New campaigns and existing unpublished Instagram plans include one companion
+Story using the same 9:16 video. The scheduled workflow submits it after the
+primary post is confirmed as published, on the next workflow cycle (currently
+every three hours). It does not reshare a Reel using an interactive native sticker.
+Instagram must be enabled and the account must support automatic Story delivery.
+
+Story intent is committed before the provider request. The workflow passes fresh
+intent IDs only within that execution; later runs reconcile uncertain requests
+without blindly creating duplicates. Story failures and missing confirmations
+are included in health checks. Inspect the campaign's `instagramStory` record
+before manually retrying any ambiguous request. Controlled and dry-run executions
+do not submit Stories. Historic published campaigns are not backfilled.
+
+From September 7, 2026, newly generated v2 recipes include twelve practical
+lessons covering scam awareness, mental arithmetic, and workplace habits.
+Lessons use dedicated scene copy and captions, with the approved brand and music.
+Each lesson is used once in retained history, then existing calculation recipes
+continue so a finite lesson pool cannot exhaust the planner. Persisted plans are
+never rewritten to substitute new copy.
+
+Reviewed content: [practical lessons](assets/facts/practical-lessons.json).
+Sources and arithmetic: [editorial review](docs/editorial/practical-lessons.md).

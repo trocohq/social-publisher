@@ -1,4 +1,5 @@
 import productCapabilities from "../../assets/facts/product-capabilities.json" with { type: "json" };
+import practicalLessons from "../../assets/facts/practical-lessons.json" with { type: "json" };
 import cashierTips from "../../assets/facts/cashier-tips.json" with { type: "json" };
 import safetyRules from "../../assets/facts/safety-rules.json" with { type: "json" };
 import calendarMomentValues from "../../assets/facts/calendar-moments.json" with { type: "json" };
@@ -123,7 +124,12 @@ export const hooks: Readonly<Record<CampaignFamily, readonly string[]>> = {
 
 export const facts: readonly Fact[] = factSchema
   .array()
-  .parse([...productCapabilities, ...cashierTips, ...safetyRules]);
+  .parse([
+    ...productCapabilities,
+    ...cashierTips,
+    ...safetyRules,
+    ...practicalLessons,
+  ]);
 
 export const calendarMoments: readonly CalendarMoment[] = calendarMomentSchema
   .array()
