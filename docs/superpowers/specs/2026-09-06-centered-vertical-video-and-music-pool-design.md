@@ -11,6 +11,7 @@ Update Troco's shared 1080×1920 short-form video so Instagram Reels and TikTok 
 - Keep Facebook and YouTube publishing behavior unchanged.
 - Preserve the existing 12-second video, four 3-second scenes, encoding contract, palettes, and copy.
 - Use the canonical Troco mark from `frontend/public/brand/troco-mark.svg`; no placeholder, redrawn, or substitute logo is allowed.
+- Reproduce the web brand lockup: a `22%` corner radius on the mark, followed by `Troco` in Figtree 700 with `-0.04em` letter spacing and proportional spacing between mark and word label.
 - Store the two approved audio files under `assets/music/` with their source attribution and integrity hashes.
 
 ## Visual Layout
@@ -22,6 +23,24 @@ The renderer will calculate the stack's total height and place it at the vertica
 The stack must remain inside the safe area for Instagram Reels and TikTok overlays. Variable-length text will continue to use the existing fitting rules. If fitted content cannot fit within the available centered stack, rendering will fail with a clear layout error instead of clipping.
 
 The video thumbnail uses the same centered layout contract as the hook scene so the cover and first video frame remain visually consistent.
+
+## Color Variations
+
+Each campaign selects one of seven official background colors from the shared design tokens and keeps it throughout all four scenes:
+
+- `paper` (`#FEFDFB`)
+- `ink` (`#213130`)
+- `primary` (`#B0EC9C`)
+- `purple` (`#E6DBFF`)
+- `yellow` (`#FFD88A`)
+- `blue` (`#ADDAFF`)
+- `coral` (`#FFB2A8`)
+
+The choice is derived deterministically from the campaign ID. This creates variation between campaigns without allowing a rerender to change the output.
+
+The `ink` background uses `frontend/public/brand/troco-mark-inverse.svg` and Paper foreground text. All six light backgrounds use `frontend/public/brand/troco-mark.svg` and Ink foreground text. Supporting cards and CTAs use only the Ink/Paper pair required for strong contrast. Soft color variants are excluded to keep the set distinct and minimal.
+
+Typography mirrors the web design system: Stolzl Regular for display headlines and Figtree Variable for the brand word label, supporting text, values, labels, and CTAs. The renderer embeds the same hash-verified files from `frontend/public/fonts/`.
 
 ## Music Selection
 
@@ -38,8 +57,8 @@ Both sources must pass digest, duration, channel-count, and sample-rate validati
 
 - `src/render/music.ts`: define the two-track catalog, source metadata, validation, and campaign-ID-based selection.
 - `src/render/video.ts`: request the selected soundtrack using `plan.id` and pass its file to FFmpeg.
-- `src/render/svg.ts`: calculate and render centered vertical stacks without changing feed SVGs.
-- `src/brand/load-brand.ts`: continue loading and integrity-checking the canonical frontend mark; the vertical renderer receives it through `BrandAssets`.
+- `src/render/svg.ts`: select the campaign color treatment, render the canonical lockup, and calculate centered vertical stacks without changing feed SVGs.
+- `src/brand/load-brand.ts`: continue loading and integrity-checking the canonical frontend marks and fonts; the vertical renderer receives them through `BrandAssets`.
 - `assets/music/`: contain the approved source audio and attribution documentation.
 - Tests: cover deterministic music selection, both-track reachability, source integrity, centered stack bounds, thumbnail consistency, and unchanged output contracts.
 
@@ -55,5 +74,8 @@ Rendering stops before publishing when an audio source is missing, has a digest 
 4. Each campaign selects either `funked-up` or `funky-house` from its campaign ID, and rerenders select the same track.
 5. A representative set of campaign IDs reaches both tracks.
 6. Feed/carousel rendering and non-video publishing contracts do not change.
-7. Every vertical scene embeds the hash-verified `frontend/public/brand/troco-mark.svg`, with no substitute mark.
-8. `npm run check` and `npm run validate` pass.
+7. Every vertical scene embeds a hash-verified canonical mark with a `22%` corner radius and renders `Troco` in Figtree 700 with `-0.04em` letter spacing.
+8. Every campaign selects one official background treatment from its campaign ID and uses it consistently across all scenes and its thumbnail.
+9. The Ink treatment uses the inverse mark and Paper foreground; all light treatments use the regular mark and Ink foreground.
+10. Display headlines use Stolzl Regular, while supporting and functional text uses Figtree Variable.
+11. `npm run check` and `npm run validate` pass.
