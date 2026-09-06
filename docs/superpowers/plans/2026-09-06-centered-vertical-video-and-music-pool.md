@@ -13,6 +13,7 @@
 ### Task 1: Bundle and verify the approved music sources
 
 **Files:**
+
 - Create: `assets/music/funked-up.mp3`
 - Create: `assets/music/funky-house.mp3`
 - Create: `assets/music/README.md`
@@ -23,8 +24,14 @@
 ```ts
 test("the approved Openings music sources are available to packaged renders", async () => {
   const expected = new Map([
-    ["funked-up.mp3", "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828"],
-    ["funky-house.mp3", "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435"],
+    [
+      "funked-up.mp3",
+      "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828",
+    ],
+    [
+      "funky-house.mp3",
+      "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435",
+    ],
   ]);
 
   for (const [filename, digest] of expected) {
@@ -78,6 +85,7 @@ git commit -m "feat: bundle approved vertical video soundtracks"
 ### Task 2: Select and validate a deterministic soundtrack
 
 **Files:**
+
 - Modify: `src/render/music.ts`
 - Create: `tests/music.test.ts`
 
@@ -94,8 +102,10 @@ import {
 } from "../src/render/music.js";
 
 test("soundtrack selection is stable and reaches both approved tracks", () => {
-  const ids = Array.from({ length: 40 }, (_, index) =>
-    `2026-09-${String(index + 1).padStart(2, "0")}-quick-calculation-v1-0`,
+  const ids = Array.from(
+    { length: 40 },
+    (_, index) =>
+      `2026-09-${String(index + 1).padStart(2, "0")}-quick-calculation-v1-0`,
   );
   const selected = ids.map((id) => soundtrackForCampaign(id));
   assert.deepEqual(
@@ -143,31 +153,40 @@ export type VerticalSoundtrack = Readonly<{
   durationSeconds: 9;
 }>;
 
-export const verticalSoundtracks: readonly VerticalSoundtrack[] = Object.freeze([
-  Object.freeze({
-    id: "funked-up",
-    title: "Funked Up",
-    artist: "Joth",
-    license: "CC0-1.0",
-    source: "https://opengameart.org/content/funked-up",
-    filePath: fileURLToPath(new URL("../../assets/music/funked-up.mp3", import.meta.url)),
-    sha256: "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828",
-    durationSeconds: 9,
-  }),
-  Object.freeze({
-    id: "funky-house",
-    title: "Funky House",
-    artist: "Of Far Different Nature",
-    license: "CC0-1.0",
-    source: "https://opengameart.org/content/funky-house",
-    filePath: fileURLToPath(new URL("../../assets/music/funky-house.mp3", import.meta.url)),
-    sha256: "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435",
-    durationSeconds: 9,
-  }),
-]);
+export const verticalSoundtracks: readonly VerticalSoundtrack[] = Object.freeze(
+  [
+    Object.freeze({
+      id: "funked-up",
+      title: "Funked Up",
+      artist: "Joth",
+      license: "CC0-1.0",
+      source: "https://opengameart.org/content/funked-up",
+      filePath: fileURLToPath(
+        new URL("../../assets/music/funked-up.mp3", import.meta.url),
+      ),
+      sha256:
+        "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828",
+      durationSeconds: 9,
+    }),
+    Object.freeze({
+      id: "funky-house",
+      title: "Funky House",
+      artist: "Of Far Different Nature",
+      license: "CC0-1.0",
+      source: "https://opengameart.org/content/funky-house",
+      filePath: fileURLToPath(
+        new URL("../../assets/music/funky-house.mp3", import.meta.url),
+      ),
+      sha256:
+        "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435",
+      durationSeconds: 9,
+    }),
+  ],
+);
 
 export function soundtrackForCampaign(campaignId: string): VerticalSoundtrack {
-  if (!campaignId.trim()) throw new Error("Campaign ID is required for soundtrack selection");
+  if (!campaignId.trim())
+    throw new Error("Campaign ID is required for soundtrack selection");
   return chooseSeeded(verticalSoundtracks, campaignId, 41);
 }
 
@@ -175,16 +194,17 @@ export function verifyVerticalSoundtrack(
   track: VerticalSoundtrack,
   ffprobePath?: string,
 ): Promise<MusicSourceProbe> {
-  return resolveMediaBinaries(ffprobePath ? { ffprobePath } : {}).then((binaries) =>
-    verifyMusicSource({
-      filePath: track.filePath,
-      expectedSha256: track.sha256,
-      minimumDurationSeconds: track.durationSeconds,
-      maximumDurationSeconds: track.durationSeconds,
-      expectedChannels: 2,
-      expectedSampleRate: 48_000,
-      ffprobePath: binaries.ffprobePath,
-    }),
+  return resolveMediaBinaries(ffprobePath ? { ffprobePath } : {}).then(
+    (binaries) =>
+      verifyMusicSource({
+        filePath: track.filePath,
+        expectedSha256: track.sha256,
+        minimumDurationSeconds: track.durationSeconds,
+        maximumDurationSeconds: track.durationSeconds,
+        expectedChannels: 2,
+        expectedSampleRate: 48_000,
+        ffprobePath: binaries.ffprobePath,
+      }),
   );
 }
 ```
@@ -207,6 +227,7 @@ git commit -m "feat: select deterministic campaign soundtracks"
 ### Task 3: Select a deterministic vertical color treatment
 
 **Files:**
+
 - Create: `src/render/vertical-treatment.ts`
 - Create: `tests/vertical-treatment.test.ts`
 
@@ -222,9 +243,10 @@ import {
 } from "../src/render/vertical-treatment.js";
 
 test("vertical treatments use the seven official backgrounds", () => {
-  assert.deepEqual(verticalTreatments.map((item) => item.id), [
-    "paper", "ink", "primary", "purple", "yellow", "blue", "coral",
-  ]);
+  assert.deepEqual(
+    verticalTreatments.map((item) => item.id),
+    ["paper", "ink", "primary", "purple", "yellow", "blue", "coral"],
+  );
 });
 
 test("treatment selection is stable and reaches every treatment", () => {
@@ -264,16 +286,29 @@ export type VerticalTreatment = Readonly<{
   inverse: boolean;
 }>;
 
-const light = (id: VerticalTreatment["id"], background: string): VerticalTreatment =>
-  Object.freeze({ id, background, foreground: designTokens.colors.ink,
-    surface: designTokens.colors.paper, surfaceForeground: designTokens.colors.ink,
-    inverse: false });
+const light = (
+  id: VerticalTreatment["id"],
+  background: string,
+): VerticalTreatment =>
+  Object.freeze({
+    id,
+    background,
+    foreground: designTokens.colors.ink,
+    surface: designTokens.colors.paper,
+    surfaceForeground: designTokens.colors.ink,
+    inverse: false,
+  });
 
 export const verticalTreatments: readonly VerticalTreatment[] = Object.freeze([
   light("paper", designTokens.colors.paper),
-  Object.freeze({ id: "ink", background: designTokens.colors.ink,
-    foreground: designTokens.colors.paper, surface: designTokens.colors.paper,
-    surfaceForeground: designTokens.colors.ink, inverse: true }),
+  Object.freeze({
+    id: "ink",
+    background: designTokens.colors.ink,
+    foreground: designTokens.colors.paper,
+    surface: designTokens.colors.paper,
+    surfaceForeground: designTokens.colors.ink,
+    inverse: true,
+  }),
   light("primary", designTokens.colors.primary),
   light("purple", designTokens.colors.purple),
   light("yellow", designTokens.colors.yellow),
@@ -282,7 +317,8 @@ export const verticalTreatments: readonly VerticalTreatment[] = Object.freeze([
 ]);
 
 export function treatmentForCampaign(campaignId: string): VerticalTreatment {
-  if (!campaignId.trim()) throw new Error("Campaign ID is required for color selection");
+  if (!campaignId.trim())
+    throw new Error("Campaign ID is required for color selection");
   return chooseSeeded(verticalTreatments, campaignId, 43);
 }
 ```
@@ -303,6 +339,7 @@ git commit -m "feat: add vertical campaign color treatments"
 ### Task 4: Render centered scene stacks and the canonical web lockup
 
 **Files:**
+
 - Modify: `src/render/svg.ts`
 - Modify: `tests/thumbnail.test.ts`
 - Modify: `tests/video-render.test.ts`
@@ -318,7 +355,10 @@ for (const scene of scenes) {
   assert.match(svg, /data-vertical-stack="true"/u);
   assert.match(svg, /transform="translate\(540 [0-9]+\)"/u);
   assert.match(svg, /text-anchor="middle"/u);
-  assert.match(svg, /font-family="Figtree"[^>]*font-weight="700"[^>]*letter-spacing="-0\.04em"[^>]*>Troco<\/text>/u);
+  assert.match(
+    svg,
+    /font-family="Figtree"[^>]*font-weight="700"[^>]*letter-spacing="-0\.04em"[^>]*>Troco<\/text>/u,
+  );
   assert.match(svg, /rx="22%"/u);
 }
 ```
@@ -355,8 +395,13 @@ export type VerticalStackLayout = Readonly<{
   height: number;
 }>;
 
-function centeredTextBlock(layout: TextLayout, top: number, font: "Stolzl" | "Figtree",
-  weight = 400, fill = designTokens.colors.ink): string {
+function centeredTextBlock(
+  layout: TextLayout,
+  top: number,
+  font: "Stolzl" | "Figtree",
+  weight = 400,
+  fill = designTokens.colors.ink,
+): string {
   return textBlock(layout, 0, top, font, weight, fill, "middle");
 }
 
@@ -371,7 +416,13 @@ export function verticalStackLayout(
     throw new Error(`Vertical ${scene} stack escapes the platform safe area`);
   }
   const top = safeTop + Math.floor((safeBottom - safeTop - height) / 2);
-  return Object.freeze({ top, bottom: top + height, safeTop, safeBottom, height });
+  return Object.freeze({
+    top,
+    bottom: top + height,
+    safeTop,
+    safeBottom,
+    height,
+  });
 }
 ```
 
@@ -405,6 +456,7 @@ git commit -m "feat: center branded vertical video scenes"
 ### Task 5: Integrate looped soundtrack selection into video rendering
 
 **Files:**
+
 - Modify: `src/render/video.ts`
 - Modify: `src/dry-run/create-review.ts`
 - Modify: `tests/video-render.test.ts`
@@ -419,7 +471,10 @@ assert.deepEqual(
   args.slice(args.indexOf("-stream_loop"), args.indexOf("-stream_loop") + 4),
   ["-stream_loop", "-1", "-i", soundtrack.filePath],
 );
-assert.match(args[args.indexOf("-filter_complex") + 1]!, /atrim=start=0:duration=12/u);
+assert.match(
+  args[args.indexOf("-filter_complex") + 1]!,
+  /atrim=start=0:duration=12/u,
+);
 ```
 
 - [ ] **Step 2: Run video and dry-run tests and verify they fail**
@@ -455,6 +510,7 @@ git commit -m "feat: render vertical videos with campaign soundtracks"
 ### Task 6: Update validation and operator documentation
 
 **Files:**
+
 - Modify: `src/validation/run.ts`
 - Modify: `README.md`
 - Modify: `docs/operations.md`
@@ -473,7 +529,10 @@ for (const phrase of [
   "centered within the vertical safe area",
   "22% corner radius",
 ]) {
-  assert.ok(`${readme}\n${operations}`.includes(phrase), `Missing documentation: ${phrase}`);
+  assert.ok(
+    `${readme}\n${operations}`.includes(phrase),
+    `Missing documentation: ${phrase}`,
+  );
 }
 ```
 
@@ -505,6 +564,7 @@ git commit -m "docs: describe centered vertical campaign variants"
 ### Task 7: Run the complete verification and visual review
 
 **Files:**
+
 - Modify only if verification exposes a defect in an already listed implementation file.
 
 - [ ] **Step 1: Format the implementation**
