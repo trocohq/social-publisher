@@ -6,7 +6,7 @@ import test from "node:test";
 
 import { parseArguments } from "../src/cli/arguments.js";
 import { createReview } from "../src/dry-run/create-review.js";
-import { musicExcerptForDate } from "../src/render/music.js";
+import { soundtrackForCampaign } from "../src/render/music.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 
 test("dry run writes a complete review bundle and no durable state", async () => {
@@ -33,9 +33,17 @@ test("dry run writes a complete review bundle and no durable state", async () =>
   const manifest = JSON.parse(
     await readFile(join(output, "manifest.json"), "utf8"),
   );
-  const expectedExcerpt = musicExcerptForDate(review.plan.localDate);
-  assert.deepEqual(review.media.video.musicExcerpt, expectedExcerpt);
-  assert.deepEqual(manifest.video.musicExcerpt, expectedExcerpt);
+  const expectedSoundtrack = soundtrackForCampaign(review.plan.id);
+  const expectedMetadata = {
+    id: expectedSoundtrack.id,
+    title: expectedSoundtrack.title,
+    artist: expectedSoundtrack.artist,
+    license: expectedSoundtrack.license,
+    source: expectedSoundtrack.source,
+    durationSeconds: expectedSoundtrack.durationSeconds,
+  };
+  assert.deepEqual(review.media.video.soundtrack, expectedMetadata);
+  assert.deepEqual(manifest.video.soundtrack, expectedMetadata);
   assert.deepEqual(manifest.video.thumbnail, {
     path: "video/thumbnail.jpg",
     hash: review.media.video.thumbnail.hash,
@@ -47,9 +55,14 @@ test("dry run writes a complete review bundle and no durable state", async () =>
   assert.match(reviewHtml, /Capa vertical/u);
   assert.match(reviewHtml, /video\/thumbnail\.jpg/u);
   assert.match(reviewHtml, new RegExp(review.media.video.thumbnail.hash));
-  assert.match(
-    reviewHtml,
-    new RegExp(`${expectedExcerpt.id}.*${expectedExcerpt.startSeconds}s`, "s"),
+  assert.match(reviewHtml, new RegExp(expectedSoundtrack.title));
+  assert.match(reviewHtml, new RegExp(expectedSoundtrack.artist));
+  assert.match(reviewHtml, new RegExp(expectedSoundtrack.license));
+  assert.match(reviewHtml, new RegExp(expectedSoundtrack.source));
+  assert.doesNotMatch(reviewHtml, new RegExp(expectedSoundtrack.filePath));
+  assert.doesNotMatch(
+    JSON.stringify(manifest),
+    new RegExp(expectedSoundtrack.filePath),
   );
   await assert.rejects(stat(join(output, "state")), /ENOENT/);
   assert.ok(review.media.video.hash.length === 64);

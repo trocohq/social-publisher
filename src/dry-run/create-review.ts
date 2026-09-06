@@ -18,6 +18,16 @@ function localAssetPath(root: string, path: string): string {
   return relative(root, path).replaceAll("\\", "/");
 }
 
+function soundtrackSourceLink(source: string): string | undefined {
+  try {
+    const url = new URL(source);
+    if (url.protocol !== "https:") return undefined;
+    return `<a href="${escapeXml(url.toString())}">fonte</a>`;
+  } catch {
+    return undefined;
+  }
+}
+
 function reviewHtml(
   campaignId: string,
   targetAt: string,
@@ -46,6 +56,8 @@ function reviewHtml(
     )
     .join("\n");
   const probe = video.probe;
+  const soundtrack = video.soundtrack;
+  const sourceLink = soundtrackSourceLink(soundtrack.source);
 
   return `<!doctype html>
 <html lang="pt-BR">
@@ -75,7 +87,7 @@ function reviewHtml(
     </figure>
     <video controls preload="metadata" src="${escapeXml(localAssetPath(root, video.file))}"></video>
     <p><code>${probe.width}×${probe.height}</code> <code>${probe.videoCodec}</code> <code>${probe.audioCodec}</code> <code>${probe.frameRate} fps</code> <code>${probe.duration}s</code></p>
-    <p>Música: <code>${escapeXml(video.musicExcerpt.id)}</code> · início ${video.musicExcerpt.startSeconds}s · duração ${video.musicExcerpt.durationSeconds}s</p>
+    <p>Música: <code>${escapeXml(soundtrack.title)}</code> · ${escapeXml(soundtrack.artist)} · licença ${escapeXml(soundtrack.license)}${sourceLink ? ` · ${sourceLink}` : ""}</p>
     <p>SHA-256 ${escapeXml(video.hash)}</p>
   </section>
   <section><h2>Textos finais</h2><div class="copy">${channelMarkup}</div></section>
@@ -133,7 +145,7 @@ export async function createReview({
         height: video.thumbnail.height,
         format: video.thumbnail.format,
       },
-      musicExcerpt: video.musicExcerpt,
+      soundtrack: video.soundtrack,
       ...video.probe,
       ffmpegVersion: video.binaries.ffmpegVersion,
       ffprobeVersion: video.binaries.ffprobeVersion,

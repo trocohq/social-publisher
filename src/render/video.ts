@@ -8,10 +8,9 @@ import type { BrandAssets } from "../brand/load-brand.js";
 import type { CampaignPlan } from "../editorial/schema.js";
 import { sha256 } from "../shared/determinism.js";
 import {
-  enterpriseMusicPath,
-  musicExcerptForDate,
-  verifyEnterpriseMusicSource,
-  type MusicExcerpt,
+  soundtrackForCampaign,
+  verifyVerticalSoundtrack,
+  type VerticalSoundtrack,
 } from "./music.js";
 import {
   resolveMediaBinaries,
@@ -34,9 +33,112 @@ export type RenderedVideo = Readonly<{
   hash: string;
   probe: VideoProbe;
   binaries: MediaBinaries;
-  musicExcerpt: MusicExcerpt;
+  soundtrack: RenderedSoundtrack;
   thumbnail: RenderedThumbnail;
 }>;
+
+export type RenderedSoundtrack = Readonly<
+  Pick<
+    VerticalSoundtrack,
+    "id" | "title" | "artist" | "license" | "source" | "durationSeconds"
+  >
+>;
+
+function renderedSoundtrack(
+  soundtrack: VerticalSoundtrack,
+): RenderedSoundtrack {
+  return Object.freeze({
+    id: soundtrack.id,
+    title: soundtrack.title,
+    artist: soundtrack.artist,
+    license: soundtrack.license,
+    source: soundtrack.source,
+    durationSeconds: soundtrack.durationSeconds,
+  });
+}
+
+export function buildVideoFfmpegArguments({
+  plan,
+  sceneFiles,
+  soundtrack,
+  videoPath,
+}: Readonly<{
+  plan: CampaignPlan;
+  sceneFiles: readonly string[];
+  soundtrack: VerticalSoundtrack;
+  videoPath: string;
+}>): string[] {
+  const args: string[] = ["-y", "-hide_banner", "-loglevel", "error"];
+  for (const scenePath of sceneFiles) {
+    args.push(
+      "-loop",
+      "1",
+      "-framerate",
+      "30",
+      "-t",
+      String(SCENE_SECONDS),
+      "-i",
+      scenePath,
+    );
+  }
+  args.push("-stream_loop", "-1", "-i", soundtrack.filePath);
+  const videoFilters = sceneFiles
+    .map(
+      (_, index) =>
+        `[${index}:v]fps=30,scale=1080:1920:flags=lanczos,format=yuv420p[v${index}]`,
+    )
+    .join(";");
+  const concatInputs = sceneFiles.map((_, index) => `[v${index}]`).join("");
+  const audioInputIndex = sceneFiles.length;
+  const audioFilter =
+    `[${audioInputIndex}:a:0]` +
+    `atrim=start=0:duration=${TOTAL_SECONDS},` +
+    "asetpts=PTS-STARTPTS," +
+    "volume=0.70," +
+    "afade=t=in:st=0:d=0.35," +
+    "afade=t=out:st=11.35:d=0.65," +
+    "alimiter=limit=0.88:attack=5:release=50:level=false[a]";
+  args.push(
+    "-filter_complex",
+    `${videoFilters};${concatInputs}concat=n=${sceneFiles.length}:v=1:a=0[v];${audioFilter}`,
+    "-map",
+    "[v]",
+    "-map",
+    "[a]",
+    "-c:v",
+    "libx264",
+    "-preset",
+    "medium",
+    "-crf",
+    "20",
+    "-pix_fmt",
+    "yuv420p",
+    "-r",
+    "30",
+    "-threads",
+    "1",
+    "-c:a",
+    "aac",
+    "-b:a",
+    "128k",
+    "-ar",
+    "48000",
+    "-ac",
+    "2",
+    "-t",
+    String(TOTAL_SECONDS),
+    "-movflags",
+    "+faststart",
+    "-metadata",
+    `title=${plan.id}`,
+    "-metadata",
+    "creation_time=1970-01-01T00:00:00Z",
+    "-metadata",
+    "encoder=Troco Social Publisher",
+    videoPath,
+  );
+  return args;
+}
 
 export async function renderVideo({
   plan,
@@ -56,8 +158,8 @@ export async function renderVideo({
     ...(ffprobePath ? { ffprobePath } : {}),
   });
   const outputRoot = resolve(output);
-  const musicExcerpt = musicExcerptForDate(plan.localDate);
-  await verifyEnterpriseMusicSource(binaries.ffprobePath);
+  const soundtrack = soundtrackForCampaign(plan.id);
+  await verifyVerticalSoundtrack(soundtrack, binaries.ffprobePath);
   await mkdir(outputRoot, { recursive: true });
   const temporaryRoot = await mkdtemp(join(tmpdir(), "troco-video-scenes-"));
   const videoPath = join(outputRoot, "short.mp4");
@@ -89,75 +191,12 @@ export async function renderVideo({
       sceneFiles.push(scenePath);
     }
 
-    const args: string[] = ["-y", "-hide_banner", "-loglevel", "error"];
-    for (const scenePath of sceneFiles) {
-      args.push(
-        "-loop",
-        "1",
-        "-framerate",
-        "30",
-        "-t",
-        String(SCENE_SECONDS),
-        "-i",
-        scenePath,
-      );
-    }
-    args.push("-i", enterpriseMusicPath);
-    const videoFilters = sceneFiles
-      .map(
-        (_, index) =>
-          `[${index}:v]fps=30,scale=1080:1920:flags=lanczos,format=yuv420p[v${index}]`,
-      )
-      .join(";");
-    const concatInputs = sceneFiles.map((_, index) => `[v${index}]`).join("");
-    const audioInputIndex = sceneFiles.length;
-    const audioFilter =
-      `[${audioInputIndex}:a:0]` +
-      `atrim=start=${musicExcerpt.startSeconds}:duration=${musicExcerpt.durationSeconds},` +
-      "asetpts=PTS-STARTPTS," +
-      "volume=0.70," +
-      "afade=t=in:st=0:d=0.35," +
-      "afade=t=out:st=11.35:d=0.65," +
-      "alimiter=limit=0.88:attack=5:release=50:level=false[a]";
-    args.push(
-      "-filter_complex",
-      `${videoFilters};${concatInputs}concat=n=${sceneFiles.length}:v=1:a=0[v];${audioFilter}`,
-      "-map",
-      "[v]",
-      "-map",
-      "[a]",
-      "-c:v",
-      "libx264",
-      "-preset",
-      "medium",
-      "-crf",
-      "20",
-      "-pix_fmt",
-      "yuv420p",
-      "-r",
-      "30",
-      "-threads",
-      "1",
-      "-c:a",
-      "aac",
-      "-b:a",
-      "128k",
-      "-ar",
-      "48000",
-      "-ac",
-      "2",
-      "-t",
-      String(TOTAL_SECONDS),
-      "-movflags",
-      "+faststart",
-      "-metadata",
-      `title=${plan.id}`,
-      "-metadata",
-      "creation_time=1970-01-01T00:00:00Z",
-      "-metadata",
-      "encoder=Troco Social Publisher",
+    const args = buildVideoFfmpegArguments({
+      plan,
+      sceneFiles,
+      soundtrack,
       videoPath,
-    );
+    });
     await runProcess(binaries.ffmpegPath, args);
 
     const probe = await probeVideo(videoPath, {
@@ -169,7 +208,7 @@ export async function renderVideo({
       hash: sha256(bytes),
       probe,
       binaries,
-      musicExcerpt,
+      soundtrack: renderedSoundtrack(soundtrack),
       thumbnail,
     });
   } finally {

@@ -11,7 +11,7 @@ import { probeVideo } from "../src/render/probe.js";
 import { loadBrand } from "../src/brand/load-brand.js";
 import { createCampaign } from "../src/planning/create-campaign.js";
 import { runProcess } from "../src/render/binaries.js";
-import { musicExcerptForDate } from "../src/render/music.js";
+import { soundtrackForCampaign } from "../src/render/music.js";
 import {
   createVerticalSceneSvg,
   createVerticalThumbnailSvg,
@@ -22,7 +22,7 @@ import {
   treatmentForCampaign,
   verticalTreatments,
 } from "../src/render/vertical-treatment.js";
-import { renderVideo } from "../src/render/video.js";
+import { buildVideoFfmpegArguments, renderVideo } from "../src/render/video.js";
 import { canonicalBrandRoot } from "./support/brand-root.js";
 import { renderFixtureCampaign } from "./support/render-fixture.js";
 
@@ -122,7 +122,7 @@ test("canonical vertical glyph pixels stay inside the horizontal safe frame", as
   }
 });
 
-test("short output uses its deterministic Enterprise excerpt", async () => {
+test("short output uses its deterministic campaign soundtrack", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));
   const { plan, video } = await renderFixtureCampaign(output);
   const probe = await probeVideo(video.file);
@@ -149,7 +149,15 @@ test("short output uses its deterministic Enterprise excerpt", async () => {
       duration: 12,
     },
   );
-  assert.deepEqual(video.musicExcerpt, musicExcerptForDate(plan.localDate));
+  const soundtrack = soundtrackForCampaign(plan.id);
+  assert.deepEqual(video.soundtrack, {
+    id: soundtrack.id,
+    title: soundtrack.title,
+    artist: soundtrack.artist,
+    license: soundtrack.license,
+    source: soundtrack.source,
+    durationSeconds: soundtrack.durationSeconds,
+  });
   assert.ok(video.hash.length === 64);
   assert.match(video.binaries.ffmpegVersion, /^ffmpeg version/);
   assert.match(video.binaries.ffprobeVersion, /^ffprobe version/);
@@ -213,6 +221,34 @@ test("short output uses its deterministic Enterprise excerpt", async () => {
   }
   const meanDifference = absoluteDifference / selectedPixels.length;
   assert.ok(meanDifference < 18, `thumbnail mean difference ${meanDifference}`);
+});
+
+test("vertical render loops its short soundtrack for the twelve-second timeline", () => {
+  const plan = createCampaign({
+    localDate: "2026-08-26",
+    publishTime: "12:17",
+    history: [],
+  });
+  const soundtrack = soundtrackForCampaign(plan.id);
+  const args = buildVideoFfmpegArguments({
+    plan,
+    sceneFiles: ["/tmp/scene-01.png", "/tmp/scene-02.png"],
+    soundtrack,
+    videoPath: "/tmp/short.mp4",
+  });
+
+  const soundtrackInput = args.lastIndexOf(soundtrack.filePath);
+  assert.deepEqual(args.slice(soundtrackInput - 3, soundtrackInput + 1), [
+    "-stream_loop",
+    "-1",
+    "-i",
+    soundtrack.filePath,
+  ]);
+  const filter = args[args.indexOf("-filter_complex") + 1] ?? "";
+  assert.match(
+    filter,
+    /\[2:a:0\]atrim=start=0:duration=12,asetpts=PTS-STARTPTS,volume=0\.70,afade=t=in:st=0:d=0\.35,afade=t=out:st=11\.35:d=0\.65,alimiter=/u,
+  );
 });
 
 test("vertical scenes prioritize larger hook, values, answer, and CTA", async () => {
