@@ -77,8 +77,9 @@ lockup has a 22% corner radius, with Figtree 700 with -0.04em tracking for the
 wordmark and Stolzl titles.
 
 Review the hook, scenario, answer, end card, and thumbnail as a single system:
-each uses a centered horizontal stack, centered within the vertical safe area.
-The thumbnail is the hook scene. The feed and carousel remain unchanged.
+each has vertically stacked content, centered horizontally and vertically within
+the safe area. The thumbnail is the hook scene. The feed and carousel remain
+unchanged.
 
 ## Controlled activation
 

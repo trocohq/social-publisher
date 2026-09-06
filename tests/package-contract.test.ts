@@ -126,7 +126,7 @@ test("the campaign documentation describes the centered vertical catalog contrac
     "Funky House",
     "campaign ID",
     "seven official background treatments",
-    "centered within the vertical safe area",
+    "vertically stacked content, centered horizontally and vertically within the safe area",
     "22% corner radius",
     "deterministic two-track choice",
     "9-second source loops and trims to 12 seconds",

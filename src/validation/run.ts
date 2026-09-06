@@ -373,6 +373,33 @@ function assertValidation(value: unknown, message: string): asserts value {
   if (!value) throw new Error(message);
 }
 
+const approvedCampaignMappings = [
+  ["2026-01-01-quick-calculation-v1-0", "funked-up", "primary"],
+  ["2026-01-02-safe-checkout-v1-0", "funked-up", "blue"],
+  ["2026-01-03-checkout-situation-v1-0", "funky-house", "yellow"],
+  ["2026-01-04-save-this-rule-v1-0", "funky-house", "purple"],
+  ["2026-01-08-quick-calculation-v1-0", "funked-up", "paper"],
+  ["2026-01-13-cashier-shortcut-v1-0", "funky-house", "ink"],
+  ["2026-01-21-troco-explains-v1-0", "funked-up", "coral"],
+] as const;
+
+function validateApprovedCampaignMappings(): void {
+  for (const [
+    campaignId,
+    soundtrackId,
+    treatmentId,
+  ] of approvedCampaignMappings) {
+    assertValidation(
+      soundtrackForCampaign(campaignId).id === soundtrackId,
+      `Campaign ${campaignId} soundtrack mapping changed`,
+    );
+    assertValidation(
+      treatmentForCampaign(campaignId).id === treatmentId,
+      `Campaign ${campaignId} treatment mapping changed`,
+    );
+  }
+}
+
 function campaignIdFor<T extends Readonly<{ id: string }>>(
   expected: T,
   select: (campaignId: string) => T,
@@ -395,6 +422,7 @@ function campaignIdFor<T extends Readonly<{ id: string }>>(
 async function validateCenteredVerticalCampaigns(
   brandRoot: URL,
 ): Promise<void> {
+  validateApprovedCampaignMappings();
   assertValidation(
     verticalSoundtracks.length === 2,
     "The vertical catalog must contain exactly two soundtracks",

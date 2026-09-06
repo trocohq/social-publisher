@@ -12,7 +12,25 @@ import {
   verifyMusicSource,
   verifyVerticalSoundtrack,
 } from "../src/render/music.js";
+import { treatmentForCampaign } from "../src/render/vertical-treatment.js";
 import { sha256 } from "../src/shared/determinism.js";
+
+test("fixed campaign IDs preserve approved soundtrack and treatment mappings", () => {
+  const approvedMappings = [
+    ["2026-01-01-quick-calculation-v1-0", "funked-up", "primary"],
+    ["2026-01-02-safe-checkout-v1-0", "funked-up", "blue"],
+    ["2026-01-03-checkout-situation-v1-0", "funky-house", "yellow"],
+    ["2026-01-04-save-this-rule-v1-0", "funky-house", "purple"],
+    ["2026-01-08-quick-calculation-v1-0", "funked-up", "paper"],
+    ["2026-01-13-cashier-shortcut-v1-0", "funky-house", "ink"],
+    ["2026-01-21-troco-explains-v1-0", "funked-up", "coral"],
+  ] as const;
+
+  for (const [campaignId, soundtrackId, treatmentId] of approvedMappings) {
+    assert.equal(soundtrackForCampaign(campaignId).id, soundtrackId);
+    assert.equal(treatmentForCampaign(campaignId).id, treatmentId);
+  }
+});
 
 test("campaign IDs choose stable soundtracks across the approved catalog", () => {
   const alpha = soundtrackForCampaign("campaign-alpha");

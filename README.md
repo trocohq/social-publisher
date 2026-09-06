@@ -108,9 +108,10 @@ normal/inverse marks according to their contrast contract. The canonical web
 lockup has a 22% corner radius, with Figtree 700 with -0.04em tracking for the
 wordmark and Stolzl titles.
 
-Every vertical scene is a centered horizontal stack, centered within the
-vertical safe area. Review the hook, scenario, answer, and end card together:
-the thumbnail is exactly the hook scene. The feed and carousel remain unchanged.
+Every vertical scene has vertically stacked content, centered horizontally and
+vertically within the safe area. Review the hook, scenario, answer, and end card
+together: the thumbnail is exactly the hook scene. The feed and carousel remain
+unchanged.
 
 Run the complete content and media validation in an isolated temporary folder:
 
