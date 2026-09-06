@@ -109,6 +109,17 @@ test("vertical soundtracks satisfy their exact media contract", async () => {
   }
 });
 
+test("vertical soundtrack verification resolves ffprobe when no path is supplied", async () => {
+  const probe = await verifyVerticalSoundtrack(verticalSoundtracks[0]!);
+
+  assert.ok(
+    Math.abs(probe.durationSeconds - verticalSoundtracks[0]!.durationSeconds) <=
+      0.05,
+  );
+  assert.equal(probe.channels, 2);
+  assert.equal(probe.sampleRate, 48_000);
+});
+
 test("the approved Enterprise source matches its committed contract", async () => {
   const binaries = await resolveMediaBinaries();
   const probe = await verifyEnterpriseMusicSource(binaries.ffprobePath);

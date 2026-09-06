@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
 import { chooseSeeded, sha256 } from "../shared/determinism.js";
-import { runProcess } from "./binaries.js";
+import { resolveMediaBinaries, runProcess } from "./binaries.js";
 
 const MILLISECONDS_PER_DAY = 86_400_000;
 const FFPROBE_DURATION_TOLERANCE_SECONDS = 0.05;
@@ -203,17 +203,19 @@ export async function verifyMusicSource({
   return probe;
 }
 
-export function verifyVerticalSoundtrack(
+export async function verifyVerticalSoundtrack(
   soundtrack: VerticalSoundtrack,
-  ffprobePath: string,
+  ffprobePath?: string,
 ): Promise<MusicSourceProbe> {
+  const resolvedFfprobePath =
+    ffprobePath ?? (await resolveMediaBinaries()).ffprobePath;
   return verifyMusicSource({
     filePath: soundtrack.filePath,
     expectedSha256: soundtrack.sha256,
     exactDurationSeconds: soundtrack.durationSeconds,
     expectedChannels: 2,
     expectedSampleRate: 48_000,
-    ffprobePath,
+    ffprobePath: resolvedFfprobePath,
   });
 }
 
