@@ -9,11 +9,16 @@ import {
   carouselTextLayouts,
   feedTextLayouts,
   fitText,
+  measureText,
   thumbnailHeadlineLayout,
   verticalTextLayouts,
   type TextLayout,
 } from "./text-layout.js";
 import { safeAreaFor } from "./safe-area.js";
+import {
+  treatmentForCampaign,
+  type VerticalTreatment,
+} from "./vertical-treatment.js";
 
 export {
   fitText,
@@ -32,10 +37,23 @@ const CONTAINER_INSET = 48;
 export const THUMBNAIL_SECTION_GAP = 40;
 export const THUMBNAIL_CROP_TOP = 420;
 export const THUMBNAIL_CROP_BOTTOM = 1500;
-const THUMBNAIL_HEADER_HEIGHT = 82;
+const VERTICAL_MARK_SIZE = 82;
+const VERTICAL_BRAND_FONT_SIZE = VERTICAL_MARK_SIZE * (26 / 32);
+const VERTICAL_BRAND_GAP = VERTICAL_MARK_SIZE * (10 / 32);
+const VERTICAL_LABEL_HEIGHT = 28;
+const VERTICAL_LABEL_GAP = 16;
+const THUMBNAIL_HEADER_HEIGHT =
+  VERTICAL_MARK_SIZE + VERTICAL_LABEL_GAP + VERTICAL_LABEL_HEIGHT;
 const THUMBNAIL_KICKER_HEIGHT = 38;
 const THUMBNAIL_MESSAGE_INSET = 16;
 const THUMBNAIL_CTA_HEIGHT = 190;
+const VERTICAL_SECTION_GAP = 40;
+const VERTICAL_CARD_INSET = 48;
+const VERTICAL_SCENARIO_CARD_HEIGHT = 620;
+const VERTICAL_PROGRESS_HEIGHT = 28;
+const VERTICAL_SUPPORT_LABEL_HEIGHT = 36;
+const VERTICAL_SUPPORT_GAP = 24;
+const VERTICAL_URL_HEIGHT = 44;
 
 const familyLabels: Readonly<Record<CampaignFamily, string>> = {
   change_challenge: "DESAFIO DO TROCO",
@@ -221,6 +239,167 @@ export function createFeedSlideSvg({
   </svg>`;
 }
 
+export const verticalScenes = [
+  "hook",
+  "scenario",
+  "answer",
+  "end_card",
+] as const;
+export type VerticalScene = (typeof verticalScenes)[number];
+
+export type VerticalStackLayout = Readonly<{
+  top: number;
+  bottom: number;
+  safeTop: number;
+  safeBottom: number;
+  height: number;
+}>;
+
+type VerticalItem = Readonly<{
+  kind:
+    | "brand"
+    | "label"
+    | "kicker"
+    | "message"
+    | "scenario_card"
+    | "answer_card"
+    | "cta"
+    | "progress";
+  top: number;
+  height: number;
+  text?: TextLayout;
+}>;
+
+function verticalItems(
+  plan: Pick<CampaignPlan, "scenario" | "copy">,
+  scene: VerticalScene,
+): readonly VerticalItem[] {
+  const items: VerticalItem[] = [];
+  let cursor = 0;
+  const add = (
+    kind: VerticalItem["kind"],
+    height: number,
+    gap = VERTICAL_SECTION_GAP,
+    text?: TextLayout,
+  ) => {
+    items.push({ kind, top: cursor, height, ...(text ? { text } : {}) });
+    cursor += height + gap;
+  };
+  add("brand", VERTICAL_MARK_SIZE, VERTICAL_LABEL_GAP);
+  add("label", VERTICAL_LABEL_HEIGHT);
+  try {
+    if (scene === "hook") {
+      add("kicker", THUMBNAIL_KICKER_HEIGHT, THUMBNAIL_MESSAGE_INSET);
+      const headline = fitText(
+        createThumbnailCopy(plan),
+        thumbnailHeadlineLayout,
+      );
+      add("message", headline.height, VERTICAL_SECTION_GAP, headline);
+      add("cta", THUMBNAIL_CTA_HEIGHT);
+    } else if (scene === "scenario") {
+      const title = fitText("Dois valores. Uma conta.", {
+        maxWidth: VERTICAL_FRAME.width,
+        maxHeight: 260,
+        maximumFontSize: 96,
+        minimumFontSize: 72,
+      });
+      add("message", title.height, VERTICAL_SECTION_GAP, title);
+      add("scenario_card", VERTICAL_SCENARIO_CARD_HEIGHT);
+    } else if (scene === "answer") {
+      add("kicker", THUMBNAIL_KICKER_HEIGHT, THUMBNAIL_MESSAGE_INSET);
+      const answer = fitText(plan.copy.answer, {
+        maxWidth: VERTICAL_FRAME.width,
+        maxHeight: 390,
+        maximumFontSize: 180,
+        minimumFontSize: 80,
+      });
+      add("message", answer.height, VERTICAL_SECTION_GAP, answer);
+      const detail = plan.scenario.breakdown
+        .map(
+          (item) =>
+            `${item.quantity}× ${formatMinor(item.denominationMinor, "BRL", "pt-BR")}`,
+        )
+        .join("  •  ");
+      const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
+        maxWidth: VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2,
+        maxHeight: 420,
+        maximumFontSize: 52,
+        minimumFontSize: 40,
+      });
+      add(
+        "answer_card",
+        VERTICAL_CARD_INSET * 2 +
+          VERTICAL_SUPPORT_LABEL_HEIGHT +
+          VERTICAL_SUPPORT_GAP +
+          breakdown.height,
+        VERTICAL_SECTION_GAP,
+        breakdown,
+      );
+    } else {
+      const explanation = fitText(
+        plan.copy.explanation,
+        verticalTextLayouts.explanation,
+      );
+      const cta = fitText(plan.copy.cta, verticalTextLayouts.cta);
+      add("message", explanation.height, VERTICAL_SECTION_GAP, explanation);
+      add(
+        "cta",
+        VERTICAL_CARD_INSET * 2 +
+          cta.height +
+          VERTICAL_SUPPORT_GAP +
+          VERTICAL_URL_HEIGHT,
+        VERTICAL_SECTION_GAP,
+        cta,
+      );
+    }
+  } catch (cause) {
+    throw new Error(
+      `Vertical scene ${scene} text does not fit: ${cause instanceof Error ? cause.message : String(cause)}`,
+      { cause },
+    );
+  }
+  if (scene !== "hook") add("progress", VERTICAL_PROGRESS_HEIGHT);
+  return items;
+}
+
+function centeredVerticalLayout(
+  scene: VerticalScene,
+  items: readonly VerticalItem[],
+): VerticalStackLayout {
+  const last = items.at(-1)!;
+  const height = last.top + last.height;
+  const safeTop =
+    scene === "hook"
+      ? Math.max(VERTICAL_FRAME.y, THUMBNAIL_CROP_TOP)
+      : VERTICAL_FRAME.y;
+  const safeBottom =
+    scene === "hook"
+      ? Math.min(VERTICAL_FRAME.bottom, THUMBNAIL_CROP_BOTTOM)
+      : VERTICAL_FRAME.bottom;
+  if (height > safeBottom - safeTop) {
+    throw new Error(
+      `Vertical scene ${scene} stack (${height}px) does not fit its safe area (${safeBottom - safeTop}px)`,
+    );
+  }
+  const top = (safeTop + safeBottom - height) / 2;
+  return Object.freeze({
+    top,
+    bottom: top + height,
+    safeTop,
+    safeBottom,
+    height,
+  });
+}
+
+export function verticalStackLayout(
+  plan: CampaignPlan,
+  scene: VerticalScene,
+): VerticalStackLayout {
+  if (!verticalScenes.includes(scene))
+    throw new Error(`Invalid vertical scene: ${String(scene)}`);
+  return centeredVerticalLayout(scene, verticalItems(plan, scene));
+}
+
 export type ThumbnailStackLayout = Readonly<{
   top: number;
   headerBottom: number;
@@ -237,142 +416,146 @@ export function thumbnailStackLayout(
   const headline = fitText(createThumbnailCopy(plan), thumbnailHeadlineLayout);
   const messageHeight =
     THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET + headline.height;
-  const totalHeight =
+  const height =
     THUMBNAIL_HEADER_HEIGHT +
-    THUMBNAIL_SECTION_GAP +
+    THUMBNAIL_SECTION_GAP * 2 +
     messageHeight +
-    THUMBNAIL_SECTION_GAP +
     THUMBNAIL_CTA_HEIGHT;
-  const cropHeight = THUMBNAIL_CROP_BOTTOM - THUMBNAIL_CROP_TOP;
-  if (totalHeight > cropHeight) {
-    throw new Error("Thumbnail stack escapes its centered square crop");
-  }
-  const top = THUMBNAIL_CROP_TOP + Math.floor((cropHeight - totalHeight) / 2);
-  const headerBottom = top + THUMBNAIL_HEADER_HEIGHT;
+  const layout = centeredVerticalLayout("hook", [
+    { kind: "message", top: 0, height },
+  ]);
+  const headerBottom = layout.top + THUMBNAIL_HEADER_HEIGHT;
   const messageTop = headerBottom + THUMBNAIL_SECTION_GAP;
   const messageBottom = messageTop + messageHeight;
-  const ctaTop = messageBottom + THUMBNAIL_SECTION_GAP;
   return Object.freeze({
-    top,
+    top: layout.top,
     headerBottom,
     messageTop,
     messageBottom,
-    ctaTop,
-    bottom: ctaTop + THUMBNAIL_CTA_HEIGHT,
+    ctaTop: messageBottom + THUMBNAIL_SECTION_GAP,
+    bottom: layout.bottom,
     headline,
   });
+}
+
+function verticalBrand(
+  brand: BrandAssets,
+  treatment: VerticalTreatment,
+): Readonly<{ definitions: string; content: string }> {
+  const mark = Buffer.from(
+    treatment.inverse ? brand.inverseMarkSvg : brand.markSvg,
+  ).toString("base64");
+  const wordWidth =
+    measureText("Troco", VERTICAL_BRAND_FONT_SIZE) -
+    5 * 0.04 * VERTICAL_BRAND_FONT_SIZE;
+  const left = -(VERTICAL_MARK_SIZE + VERTICAL_BRAND_GAP + wordWidth) / 2;
+  const wordCenter =
+    left + VERTICAL_MARK_SIZE + VERTICAL_BRAND_GAP + wordWidth / 2;
+  return {
+    definitions: `<defs><clipPath id="vertical-brand-clip"><rect x="${left}" y="0" width="${VERTICAL_MARK_SIZE}" height="${VERTICAL_MARK_SIZE}" rx="${VERTICAL_MARK_SIZE * 0.22}"/></clipPath></defs>`,
+    content: `<image x="${left}" y="0" width="${VERTICAL_MARK_SIZE}" height="${VERTICAL_MARK_SIZE}" clip-path="url(#vertical-brand-clip)" href="data:image/svg+xml;base64,${mark}"/>
+    <text data-brand-word="true" x="${wordCenter}" y="${VERTICAL_MARK_SIZE / 2}" dominant-baseline="central" fill="${treatment.foreground}" font-family="Figtree" font-size="${VERTICAL_BRAND_FONT_SIZE}" font-weight="700" letter-spacing="-0.04em">Troco</text>`,
+  };
+}
+
+function verticalItemSvg(
+  plan: CampaignPlan,
+  scene: VerticalScene,
+  item: VerticalItem,
+  treatment: VerticalTreatment,
+): string {
+  const { top, height } = item;
+  const left = -VERTICAL_FRAME.width / 2;
+  const contentLeft = left + VERTICAL_CARD_INSET;
+  const contentRight = -contentLeft;
+  const label = (
+    value: string,
+    y: number,
+    size: number,
+    fill = treatment.foreground,
+    weight = 700,
+  ) =>
+    `<text x="0" y="${y}" fill="${fill}" font-family="Figtree" font-size="${size}" font-weight="${weight}">${escapeXml(value)}</text>`;
+  const card = (fill: string) =>
+    `<rect x="${left}" y="${top}" width="${VERTICAL_FRAME.width}" height="${height}" rx="40" fill="${fill}"/>`;
+  switch (item.kind) {
+    case "brand":
+      return "";
+    case "label":
+      return label(familyLabels[plan.family], top + height, 24);
+    case "kicker":
+      return label(
+        scene === "hook" ? "FAÇA A CONTA" : "O TROCO CERTO É",
+        top + height,
+        38,
+        treatment.foreground,
+        800,
+      );
+    case "message":
+      return textBlock(item.text!, 0, top, "Stolzl", 400, treatment.foreground);
+    case "progress":
+      return label(
+        `${String(verticalScenes.indexOf(scene) + 1).padStart(2, "0")}/04`,
+        top + height,
+        24,
+        treatment.foreground,
+        400,
+      );
+    case "scenario_card": {
+      const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
+      const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
+      return `${card(treatment.surface)}
+        <text x="${contentLeft}" y="${top + 150}" text-anchor="start" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="40">COMPRA</text>
+        <text x="${contentRight}" y="${top + 154}" text-anchor="end" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="72" font-weight="700">${escapeXml(purchase)}</text>
+        <line x1="${contentLeft}" x2="${contentRight}" y1="${top + 230}" y2="${top + 230}" stroke="${treatment.surfaceForeground}" stroke-width="2"/>
+        <text x="${contentLeft}" y="${top + 370}" text-anchor="start" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="40">RECEBIDO</text>
+        <text x="${contentRight}" y="${top + 374}" text-anchor="end" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="72" font-weight="700">${escapeXml(received)}</text>
+        <rect x="${left + 32}" y="${top + 458}" width="${VERTICAL_FRAME.width - 64}" height="126" rx="30" fill="${treatment.surfaceForeground}"/>
+        ${label("QUAL É O TROCO?", top + 538, 48, treatment.surface)}`;
+    }
+    case "answer_card":
+      return `${card(treatment.surface)}
+      ${label("UMA FORMA DE SEPARAR", top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT, 30, treatment.surfaceForeground)}
+      ${textBlock(item.text!, 0, top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT + VERTICAL_SUPPORT_GAP, "Figtree", 400, treatment.surfaceForeground)}`;
+    case "cta":
+      if (scene === "hook")
+        return `${card(treatment.surfaceForeground)}
+        ${label("DESCUBRA NO VÍDEO", top + 80, 46, treatment.surface)}
+        ${label("12s →", top + 140, 40, treatment.surface)}`;
+      return `${card(treatment.surfaceForeground)}
+        ${textBlock(item.text!, 0, top + VERTICAL_CARD_INSET, "Figtree", 700, treatment.surface)}
+        ${label("troco.net", top + VERTICAL_CARD_INSET + item.text!.height + VERTICAL_SUPPORT_GAP + VERTICAL_URL_HEIGHT, 36, treatment.surface)}`;
+  }
+}
+
+function verticalSvg(
+  plan: CampaignPlan,
+  brand: BrandAssets,
+  scene: VerticalScene,
+): string {
+  if (!verticalScenes.includes(scene))
+    throw new Error(`Invalid vertical scene: ${String(scene)}`);
+  const treatment = treatmentForCampaign(plan.id);
+  const items = verticalItems(plan, scene);
+  const layout = centeredVerticalLayout(scene, items);
+  // The clip definition lives outside the stack; only visible items contribute to its bounds.
+  const lockup = verticalBrand(brand, treatment);
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${VERTICAL_HEIGHT}" viewBox="0 0 ${WIDTH} ${VERTICAL_HEIGHT}">
+    ${embeddedFonts(brand)}
+    <rect width="${WIDTH}" height="${VERTICAL_HEIGHT}" fill="${treatment.background}"/>
+    ${lockup.definitions}
+    <g data-vertical-stack="true" transform="translate(540 ${layout.top})" text-anchor="middle">
+      ${lockup.content}
+      ${items.map((item) => verticalItemSvg(plan, scene, item, treatment)).join("")}
+    </g>
+  </svg>`;
 }
 
 export function createVerticalThumbnailSvg({
   plan,
   brand,
-}: Readonly<{
-  plan: CampaignPlan;
-  brand: BrandAssets;
-}>): string {
-  const background = backgroundByPalette[plan.palette];
-  const mark = Buffer.from(brand.markSvg).toString("base64");
-  const label = familyLabels[plan.family];
-  const layout = thumbnailStackLayout(plan);
-  const messageTop = layout.messageTop;
-  const questionTop =
-    messageTop + THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET;
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${VERTICAL_HEIGHT}" viewBox="0 0 ${WIDTH} ${VERTICAL_HEIGHT}">
-    ${embeddedFonts(brand)}
-    <rect width="${WIDTH}" height="${VERTICAL_HEIGHT}" fill="${background}"/>
-    <image x="${VERTICAL_FRAME.x}" y="${layout.top}" width="82" height="82" href="data:image/svg+xml;base64,${mark}"/>
-    <text x="${VERTICAL_FRAME.x + 106}" y="${layout.top + 65}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="32" font-weight="700">TROCO</text>
-    <rect x="706" y="${layout.top + 10}" width="344" height="62" rx="31" fill="${designTokens.colors.paper}" fill-opacity="0.78"/>
-    <text x="878" y="${layout.top + 50}" text-anchor="middle" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="22" font-weight="700">${escapeXml(label)}</text>
-    <text x="${VERTICAL_FRAME.x}" y="${messageTop + THUMBNAIL_KICKER_HEIGHT}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="800">FAÇA A CONTA</text>
-    ${textBlock(layout.headline, VERTICAL_FRAME.x, questionTop, "Stolzl")}
-    <rect x="${VERTICAL_FRAME.x}" y="${layout.ctaTop}" width="${VERTICAL_FRAME.width}" height="${THUMBNAIL_CTA_HEIGHT}" rx="40" fill="${designTokens.colors.ink}"/>
-    <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="${layout.ctaTop + 116}" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="46" font-weight="700">DESCUBRA NO VÍDEO</text>
-    <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="${layout.ctaTop + 116}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="40" font-weight="700">12s →</text>
-  </svg>`;
-}
-
-export const verticalScenes = [
-  "hook",
-  "scenario",
-  "answer",
-  "end_card",
-] as const;
-export type VerticalScene = (typeof verticalScenes)[number];
-
-function verticalHeader(
-  plan: CampaignPlan,
-  brand: BrandAssets,
-  sceneIndex: number,
-): string {
-  const mark = Buffer.from(brand.markSvg).toString("base64");
-  return `
-    <image x="${VERTICAL_FRAME.x}" y="${VERTICAL_FRAME.y}" width="82" height="82" href="data:image/svg+xml;base64,${mark}"/>
-    <text x="${VERTICAL_FRAME.x + 106}" y="${VERTICAL_FRAME.y + 65}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="32" font-weight="700">TROCO</text>
-    <rect x="706" y="${VERTICAL_FRAME.y + 19}" width="344" height="62" rx="31" fill="${designTokens.colors.paper}" fill-opacity="0.78"/>
-    <text x="878" y="${VERTICAL_FRAME.y + 59}" text-anchor="middle" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="22" font-weight="700">${escapeXml(familyLabels[plan.family])}</text>
-    <text x="${VERTICAL_FRAME.right}" y="1810" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="24">${String(sceneIndex + 1).padStart(2, "0")}/04</text>`;
-}
-
-function verticalSceneContent(
-  plan: CampaignPlan,
-  scene: VerticalScene,
-): string {
-  if (scene === "scenario") {
-    const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
-    const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
-    const title = fitText("Dois valores. Uma conta.", {
-      maxWidth: VERTICAL_FRAME.width,
-      maxHeight: 260,
-      maximumFontSize: 96,
-      minimumFontSize: 72,
-    });
-    return `${textBlock(title, VERTICAL_FRAME.x, 280, "Stolzl")}
-      <rect x="${VERTICAL_FRAME.x}" y="670" width="${VERTICAL_FRAME.width}" height="620" rx="44" fill="${designTokens.colors.paper}"/>
-      <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="820" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="40">COMPRA</text>
-      <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="824" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="72">${escapeXml(purchase)}</text>
-      <line x1="${VERTICAL_FRAME.x + CONTAINER_INSET}" x2="${VERTICAL_FRAME.right - CONTAINER_INSET}" y1="900" y2="900" stroke="${designTokens.colors.border}" stroke-width="3"/>
-      <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="1040" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="40">RECEBIDO</text>
-      <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="1044" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="72">${escapeXml(received)}</text>
-      <rect x="${VERTICAL_FRAME.x + 32}" y="1128" width="${VERTICAL_FRAME.width - 64}" height="126" rx="30" fill="${designTokens.colors.ink}"/>
-      <text x="540" y="1208" text-anchor="middle" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="48" font-weight="700">QUAL É O TROCO?</text>`;
-  }
-
-  if (scene === "answer") {
-    const answer = fitText(plan.copy.answer, {
-      maxWidth: VERTICAL_FRAME.width,
-      maxHeight: 390,
-      maximumFontSize: 180,
-      minimumFontSize: 80,
-    });
-    const detail = plan.scenario.breakdown
-      .map(
-        (item) =>
-          `${item.quantity}× ${formatMinor(item.denominationMinor, "BRL", "pt-BR")}`,
-      )
-      .join("  •  ");
-    const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
-      maxWidth: VERTICAL_FRAME.width - CONTAINER_INSET * 2,
-      maxHeight: 420,
-      maximumFontSize: 52,
-      minimumFontSize: 40,
-    });
-    return `<text x="${VERTICAL_FRAME.x}" y="410" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="700">O TROCO CERTO É</text>
-      ${textBlock(answer, VERTICAL_FRAME.x, 470, "Stolzl")}
-      <rect x="${VERTICAL_FRAME.x}" y="980" width="${VERTICAL_FRAME.width}" height="470" rx="40" fill="${designTokens.colors.paper}"/>
-      <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="1070" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="30" font-weight="700">UMA FORMA DE SEPARAR</text>
-      ${textBlock(breakdown, VERTICAL_FRAME.x + CONTAINER_INSET, 1120, "Figtree")}`;
-  }
-
-  const explanation = fitText(
-    plan.copy.explanation,
-    verticalTextLayouts.explanation,
-  );
-  const cta = fitText(plan.copy.cta, verticalTextLayouts.cta);
-  return `${textBlock(explanation, VERTICAL_FRAME.x, 300, "Figtree", 700)}
-    <rect x="${VERTICAL_FRAME.x}" y="1280" width="${VERTICAL_FRAME.width}" height="430" rx="44" fill="${designTokens.colors.ink}"/>
-    ${textBlock(cta, VERTICAL_FRAME.x + CONTAINER_INSET, 1360, "Figtree", 700, designTokens.colors.paper)}
-    <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="1640" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="36" font-weight="700">troco.net</text>`;
+}: Readonly<{ plan: CampaignPlan; brand: BrandAssets }>): string {
+  return verticalSvg(plan, brand, "hook");
 }
 
 export function createVerticalSceneSvg({
@@ -384,16 +567,6 @@ export function createVerticalSceneSvg({
   brand: BrandAssets;
   scene: VerticalScene;
 }>): string {
-  if (scene === "hook") {
-    return createVerticalThumbnailSvg({ plan, brand });
-  }
-  const sceneIndex = verticalScenes.indexOf(scene);
-  if (sceneIndex < 0)
-    throw new Error(`Invalid vertical scene: ${String(scene)}`);
-  return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${VERTICAL_HEIGHT}" viewBox="0 0 ${WIDTH} ${VERTICAL_HEIGHT}">
-    ${embeddedFonts(brand)}
-    <rect width="${WIDTH}" height="${VERTICAL_HEIGHT}" fill="${backgroundByPalette[plan.palette]}"/>
-    ${verticalHeader(plan, brand, sceneIndex)}
-    ${verticalSceneContent(plan, scene)}
-  </svg>`;
+  if (scene === "hook") return createVerticalThumbnailSvg({ plan, brand });
+  return verticalSvg(plan, brand, scene);
 }
