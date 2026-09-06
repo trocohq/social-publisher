@@ -85,8 +85,9 @@ unchanged.
 
 ### Video thumbnail
 
-- Confirm the brand header, `FAÇA A CONTA`, and CTA form one centered block.
-- Confirm both section gaps are 40-pixel gaps in the generated layout contract.
+- Confirm the brand header, kicker, and headline form one centered block.
+- Confirm at least 40 pixels of lateral padding in 1080-pixel artwork.
+- Confirm the closing CTA reads “→ Link na bio” as plain centered text, without a button.
 - Confirm all essential content remains inside the square crop-safe region.
 - Compare the dedicated JPEG with the video's two-second frame.
 - Reject a cover that reveals the answer, clips text, substitutes the mark, or

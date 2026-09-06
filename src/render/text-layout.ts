@@ -22,13 +22,13 @@ export type CopyTextLayouts = Readonly<{
 
 export const feedTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
-    maxWidth: 1020,
+    maxWidth: 1000,
     maxHeight: 420,
     maximumFontSize: 96,
     minimumFontSize: 72,
   }),
   explanation: Object.freeze({
-    maxWidth: 1020,
+    maxWidth: 1000,
     maxHeight: 150,
     maximumFontSize: 54,
     minimumFontSize: 48,
@@ -44,13 +44,13 @@ export const feedTextLayouts: CopyTextLayouts = Object.freeze({
 
 export const carouselTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
-    maxWidth: 1020,
+    maxWidth: 1000,
     maxHeight: 690,
     maximumFontSize: 92,
     minimumFontSize: 64,
   }),
   explanation: Object.freeze({
-    maxWidth: 1020,
+    maxWidth: 1000,
     maxHeight: 600,
     maximumFontSize: 60,
     minimumFontSize: 46,
@@ -66,13 +66,13 @@ export const carouselTextLayouts: CopyTextLayouts = Object.freeze({
 
 export const verticalTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
-    maxWidth: 1020,
+    maxWidth: 1000,
     maxHeight: 980,
     maximumFontSize: 124,
     minimumFontSize: 76,
   }),
   explanation: Object.freeze({
-    maxWidth: 1020,
+    maxWidth: 1000,
     maxHeight: 760,
     maximumFontSize: 72,
     minimumFontSize: 52,
@@ -87,7 +87,7 @@ export const verticalTextLayouts: CopyTextLayouts = Object.freeze({
 });
 
 export const thumbnailHeadlineLayout: FitTextOptions = Object.freeze({
-  maxWidth: 1020,
+  maxWidth: 1000,
   maxHeight: 600,
   maximumFontSize: 124,
   minimumFontSize: 80,

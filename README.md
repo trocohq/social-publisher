@@ -189,8 +189,10 @@ campaign ID. The same campaign always produces the same visual and audio choice.
 Every new video also receives a dedicated 1080×1920 video thumbnail. The same
 opening scene remains on screen through Buffer's two-second selection point, so
 the reviewed JPEG and social cover share one deterministic layout. Brand,
-question, and CTA form one centered crop-safe block; the answer remains inside
-the video.
+and question form one centered crop-safe block; the answer remains inside
+the video. All 1080-pixel artwork has at least 40 pixels of lateral padding.
+The closing CTA is plain centered text, “→ Link na bio”, without a button,
+background panel, or simulated click target.
 
 Published videos can receive the same reviewed cover through the controlled
 `backfill-thumbnails` maintenance command. Its default mode renders a local

@@ -98,9 +98,9 @@ test("canonical vertical glyph pixels stay inside the horizontal safe frame", as
   const brand = await loadBrand(frontendPublic);
   for (const scene of ["hook", "scenario", "answer", "end_card"] as const) {
     const svg = createVerticalSceneSvg({ plan, brand, scene });
-    for (const left of [0, 1050]) {
+    for (const left of [0, 1040]) {
       const { data, info } = await sharp(Buffer.from(svg))
-        .extract({ left, top: 0, width: 30, height: 1920 })
+        .extract({ left, top: 0, width: 40, height: 1920 })
         .removeAlpha()
         .raw()
         .toBuffer({ resolveWithObject: true });
@@ -265,7 +265,7 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
 
   assert.equal(hook, createVerticalThumbnailSvg({ plan, brand }));
   assert.match(hook, /aria-label="FAÇA A CONTA"/u);
-  assert.match(hook, /aria-label="DESCUBRA NO VÍDEO"/u);
+  assert.doesNotMatch(hook, /DESCUBRA NO VÍDEO/u);
   assert.doesNotMatch(hook, /01\/04/u);
   assert.match(
     scenario,
@@ -286,9 +286,10 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
   );
   assert.match(
     endCard,
-    /fill="#FEFDFB" font-family="Figtree" font-size="56" font-weight="700"/u,
+    /font-family="Figtree" font-size="56" font-weight="700"/u,
   );
-  assert.match(endCard, /data-x="0"[^>]*aria-label="troco\.net"/u);
+  assert.match(endCard, /data-x="0"[^>]*aria-label="→ Link na bio"/u);
+  assert.doesNotMatch(endCard, /rx="40"|troco\.net/u);
 });
 
 test("every vertical scene centers its complete stack inside safe bounds", async () => {
@@ -439,7 +440,7 @@ test("long fitting end cards remain inside platform overlay limits", () => {
   assert.equal((layout.top + layout.bottom) / 2, 960);
 });
 
-test("individually fitting copy cannot escape the complete platform-safe stack", () => {
+test("text-only CTA keeps long end cards inside the platform-safe stack", () => {
   const base = createCampaign({
     localDate: "2026-08-27",
     publishTime: "12:17",
@@ -453,10 +454,8 @@ test("individually fitting copy cannot escape the complete platform-safe stack",
       cta: "Treine seu troco agora. ".repeat(4),
     },
   };
-  assert.throws(
-    () => svgRenderer.verticalStackLayout(plan, "end_card"),
-    /Vertical scene end_card stack .* does not fit its safe area/u,
-  );
+  const layout = svgRenderer.verticalStackLayout(plan, "end_card");
+  assert.ok(layout.top >= layout.safeTop && layout.bottom <= layout.safeBottom);
 });
 
 test("oversized vertical copy reports the scene instead of clipping", () => {

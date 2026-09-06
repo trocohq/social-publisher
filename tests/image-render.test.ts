@@ -63,7 +63,7 @@ test("worst-case editorial text fits inside the proportional feed frame", () => 
   const body = fitText(fixture.explanation, feedTextLayouts.explanation);
   const cta = fitText(fixture.cta, feedTextLayouts.cta);
 
-  assert.equal(feedFrame.x, 30);
+  assert.equal(feedFrame.x, 40);
   assert.equal(feedFrame.y, 60);
   assert.ok(display.width <= feedFrame.width && display.height <= 420);
   assert.ok(body.width <= feedFrame.width && body.height <= 150);
@@ -83,26 +83,23 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   const svg = createFeedSlideSvg({ plan, brand, slide: 0 });
   const headlineSize = Number(
     svg.match(
-      /<text x="30" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
+      /<text x="40" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
     )?.[1],
   );
 
   assert.ok(headlineSize >= 88, `headline rendered at ${headlineSize}px`);
-  assert.match(svg, /<image x="30" y="60" width="72" height="72"/u);
+  assert.match(svg, /<image x="40" y="60" width="72" height="72"/u);
   assert.match(svg, /font-family="Stolzl" font-size="54">R\$/u);
   assert.match(svg, /font-family="Stolzl" font-size="68">R\$/u);
-  assert.match(svg, /<rect x="30" y="610" width="1020" height="390"/u);
+  assert.match(svg, /<rect x="40" y="610" width="1000" height="390"/u);
   assert.match(
     svg,
-    /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"><tspan x="30"/u,
+    /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"><tspan x="40"/u,
   );
+  assert.doesNotMatch(svg, /<rect[^>]*y="1160"/u);
   assert.match(
     svg,
-    /<rect x="30" y="1160" width="1020" height="130"[^>]*fill="#213130"/u,
-  );
-  assert.match(
-    svg,
-    /<text x="78" y="\d+" fill="#FEFDFB" font-family="Figtree" font-size="40" font-weight="700">/u,
+    /<text x="88" y="\d+" fill="#213130" font-family="Figtree" font-size="40" font-weight="700">/u,
   );
 
   const carousel = createCampaign({
@@ -115,9 +112,9 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
     brand,
     slide: carousel.slideCount - 1,
   });
-  assert.match(lastSlide, /<rect x="30" y="980" width="1020" height="200"/u);
+  assert.doesNotMatch(lastSlide, /<rect[^>]*y="980"/u);
   assert.match(
     lastSlide,
-    /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"><tspan x="30"/u,
+    /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"><tspan x="40"/u,
   );
 });

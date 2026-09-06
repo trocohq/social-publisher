@@ -4,6 +4,7 @@ import { designTokens } from "@trocohq/design-tokens";
 import type { BrandAssets } from "../brand/load-brand.js";
 import type { CampaignFamily } from "../config/schedule.js";
 import type { CampaignPlan, Palette } from "../editorial/schema.js";
+import { SOCIAL_CTA } from "../editorial/copy.js";
 import { createThumbnailCopy } from "./thumbnail-copy.js";
 import {
   carouselTextLayouts,
@@ -45,14 +46,12 @@ const VERTICAL_LABEL_HEIGHT = 28;
 const VERTICAL_LABEL_GAP = 16;
 const THUMBNAIL_KICKER_HEIGHT = 38;
 const THUMBNAIL_MESSAGE_INSET = 16;
-const THUMBNAIL_CTA_HEIGHT = 190;
 const VERTICAL_SECTION_GAP = 40;
 const VERTICAL_CARD_INSET = 48;
 const VERTICAL_SCENARIO_CARD_HEIGHT = 620;
 const VERTICAL_PROGRESS_HEIGHT = 28;
 const VERTICAL_SUPPORT_LABEL_HEIGHT = 36;
 const VERTICAL_SUPPORT_GAP = 24;
-const VERTICAL_URL_HEIGHT = 44;
 
 const familyLabels: Readonly<Record<CampaignFamily, string>> = {
   change_challenge: "DESAFIO DO TROCO",
@@ -145,19 +144,18 @@ function feedContent(plan: CampaignPlan): string {
     plan.copy.explanation,
     feedTextLayouts.explanation,
   );
-  const cta = fitText(plan.copy.cta, feedTextLayouts.cta);
+  const cta = fitText(SOCIAL_CTA, feedTextLayouts.cta);
   return [
     textBlock(headline, FEED_FRAME.x, 178, "Stolzl"),
     scenarioCard(plan, 610),
     textBlock(explanation, FEED_FRAME.x, 1005, "Figtree", 700),
-    `<rect x="${FEED_FRAME.x}" y="1160" width="${FEED_FRAME.width}" height="130" rx="28" fill="${designTokens.colors.ink}"/>`,
     textBlock(
       cta,
       FEED_FRAME.x + CONTAINER_INSET,
       1174,
       "Figtree",
       700,
-      designTokens.colors.paper,
+      designTokens.colors.ink,
     ),
   ].join("");
 }
@@ -206,10 +204,9 @@ function carouselContent(plan: CampaignPlan, slide: number): string {
     plan.copy.explanation,
     carouselTextLayouts.explanation,
   );
-  const cta = fitText(plan.copy.cta, carouselTextLayouts.cta);
+  const cta = fitText(SOCIAL_CTA, carouselTextLayouts.cta);
   return `${textBlock(explanation, FEED_FRAME.x, 250, "Figtree", 700)}
-    <rect x="${FEED_FRAME.x}" y="980" width="${FEED_FRAME.width}" height="200" rx="32" fill="${designTokens.colors.ink}"/>
-    ${textBlock(cta, FEED_FRAME.x + CONTAINER_INSET, 1015, "Figtree", 700, designTokens.colors.paper)}`;
+    ${textBlock(cta, FEED_FRAME.x + CONTAINER_INSET, 1015, "Figtree", 700, designTokens.colors.ink)}`;
 }
 
 export function createFeedSlideSvg({
@@ -294,7 +291,6 @@ function verticalItems(
         thumbnailHeadlineLayout,
       );
       add("message", headline.height, VERTICAL_SECTION_GAP, headline);
-      add("cta", THUMBNAIL_CTA_HEIGHT);
     } else if (
       plan.copy.lesson &&
       (scene === "scenario" || scene === "answer")
@@ -350,17 +346,9 @@ function verticalItems(
         plan.copy.explanation,
         verticalTextLayouts.explanation,
       );
-      const cta = fitText(plan.copy.cta, verticalTextLayouts.cta);
+      const cta = fitText(SOCIAL_CTA, verticalTextLayouts.cta);
       add("message", explanation.height, VERTICAL_SECTION_GAP, explanation);
-      add(
-        "cta",
-        VERTICAL_CARD_INSET * 2 +
-          cta.height +
-          VERTICAL_SUPPORT_GAP +
-          VERTICAL_URL_HEIGHT,
-        VERTICAL_SECTION_GAP,
-        cta,
-      );
+      add("cta", cta.height, VERTICAL_SECTION_GAP, cta);
     }
   } catch (cause) {
     throw new Error(
@@ -589,13 +577,14 @@ function verticalItemSvg(
       ${label("UMA FORMA DE SEPARAR", top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT, 30, treatment.surfaceForeground)}
       ${verticalTextBlock(brand, item.text!, top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT + VERTICAL_SUPPORT_GAP, "Figtree", 400, treatment.surfaceForeground, VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2)}`;
     case "cta":
-      if (scene === "hook")
-        return `${card(treatment.surfaceForeground)}
-        ${label("DESCUBRA NO VÍDEO", top + 80, 46, treatment.surface)}
-        ${label("12s →", top + 140, 40, treatment.surface)}`;
-      return `${card(treatment.surfaceForeground)}
-        ${verticalTextBlock(brand, item.text!, top + VERTICAL_CARD_INSET, "Figtree", 700, treatment.surface, VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2)}
-        ${label("troco.net", top + VERTICAL_CARD_INSET + item.text!.height + VERTICAL_SUPPORT_GAP + VERTICAL_URL_HEIGHT, 36, treatment.surface)}`;
+      return verticalTextBlock(
+        brand,
+        item.text!,
+        top,
+        "Figtree",
+        700,
+        treatment.foreground,
+      );
   }
 }
 

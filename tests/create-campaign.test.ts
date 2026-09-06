@@ -93,7 +93,7 @@ test("the save-and-share rotation ends with one concrete action", () => {
   });
 
   assert.equal(plan.ctaKind, "save_share");
-  assert.equal(plan.copy.cta, "Salve para consultar no próximo atendimento.");
+  assert.equal(plan.copy.cta, "→ Link na bio");
 });
 
 test("campaign generation advances past a conflicting history entry", () => {

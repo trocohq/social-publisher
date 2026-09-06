@@ -19,11 +19,7 @@ const channelLimits = {
   youtube: 5_000,
 } as const satisfies Readonly<Record<Channel, number>>;
 
-const ctaByKind: Readonly<Record<CtaKind, string>> = {
-  download: "Baixe o Troco grátis no Android.",
-  calculator: "Faça a próxima conta com o Troco.",
-  save_share: "Salve para consultar no próximo atendimento.",
-};
+export const SOCIAL_CTA = "→ Link na bio";
 
 function attributedUrl(
   baseUrl: string,
@@ -107,7 +103,6 @@ export function createCampaignCopy({
   scenario,
   fact,
   calendarMoment,
-  ctaKind,
   appDownloadUrl = DEFAULT_APP_DOWNLOAD_URL,
 }: CreateCampaignCopyInput): CampaignCopy {
   const purchase = formatMinor(scenario.purchaseMinor, "BRL", "pt-BR");
@@ -119,7 +114,7 @@ export function createCampaignCopy({
     "Headline",
   );
   const explanation = fact.statement;
-  const cta = ctaByKind[ctaKind];
+  const cta = SOCIAL_CTA;
   const breakdown = breakdownLine(scenario);
   const common = [
     headline,
