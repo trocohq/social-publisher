@@ -49,9 +49,9 @@ The soundtrack catalog contains exactly two entries:
 - `funked-up`: `Funked Up` by Joth
 - `funky-house`: `Funky House` by Of Far Different Nature
 
-Selection will be pseudo-random and deterministic. A stable hash of the campaign ID chooses one of the two tracks, so campaigns appear to vary randomly while rerendering the same campaign produces identical media. The selected track supplies a validated 12-second excerpt and is recorded in the existing render result and dry-run review.
+Selection will be pseudo-random and deterministic. A stable hash of the campaign ID chooses one of the two tracks, so campaigns appear to vary randomly while rerendering the same campaign produces identical media. Each approved source is a 9-second loop; FFmpeg repeats the selected source continuously, trims the result to the 12-second video duration, and applies the existing final fade. The selected track is recorded in the existing render result and dry-run review.
 
-Both sources must pass digest, duration, channel-count, and sample-rate validation before rendering. The existing volume normalization, fades, limiter, AAC output, and 48 kHz stereo output remain unchanged.
+Both sources must pass digest, exact 9-second duration, stereo channel-count, and 48 kHz sample-rate validation before rendering. The existing volume normalization, fades, limiter, AAC output, and 48 kHz stereo output remain unchanged.
 
 ## Components
 
@@ -73,9 +73,10 @@ Rendering stops before publishing when an audio source is missing, has a digest 
 3. The hook frame and generated thumbnail use the same centered geometry.
 4. Each campaign selects either `funked-up` or `funky-house` from its campaign ID, and rerenders select the same track.
 5. A representative set of campaign IDs reaches both tracks.
-6. Feed/carousel rendering and non-video publishing contracts do not change.
-7. Every vertical scene embeds a hash-verified canonical mark with a `22%` corner radius and renders `Troco` in Figtree 700 with `-0.04em` letter spacing.
-8. Every campaign selects one official background treatment from its campaign ID and uses it consistently across all scenes and its thumbnail.
-9. The Ink treatment uses the inverse mark and Paper foreground; all light treatments use the regular mark and Ink foreground.
-10. Display headlines use Stolzl Regular, while supporting and functional text uses Figtree Variable.
-11. `npm run check` and `npm run validate` pass.
+6. A selected 9-second source loops and trims to exactly 12 seconds without changing the video duration.
+7. Feed/carousel rendering and non-video publishing contracts do not change.
+8. Every vertical scene embeds a hash-verified canonical mark with a `22%` corner radius and renders `Troco` in Figtree 700 with `-0.04em` letter spacing.
+9. Every campaign selects one official background treatment from its campaign ID and uses it consistently across all scenes and its thumbnail.
+10. The Ink treatment uses the inverse mark and Paper foreground; all light treatments use the regular mark and Ink foreground.
+11. Display headlines use Stolzl Regular, while supporting and functional text uses Figtree Variable.
+12. `npm run check` and `npm run validate` pass.
