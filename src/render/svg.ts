@@ -9,7 +9,6 @@ import {
   carouselTextLayouts,
   feedTextLayouts,
   fitText,
-  measureText,
   thumbnailHeadlineLayout,
   verticalTextLayouts,
   type TextLayout,
@@ -40,6 +39,10 @@ export const THUMBNAIL_CROP_BOTTOM = 1500;
 const VERTICAL_MARK_SIZE = 82;
 const VERTICAL_BRAND_FONT_SIZE = VERTICAL_MARK_SIZE * (26 / 32);
 const VERTICAL_BRAND_GAP = VERTICAL_MARK_SIZE * (10 / 32);
+// Canonical Figtree 700 “Troco” at 66.625px with -0.04em tracking.
+export const VERTICAL_BRAND_WORD_WIDTH = 162.151;
+const VERTICAL_PLATFORM_SAFE_TOP = 250;
+const VERTICAL_PLATFORM_SAFE_BOTTOM = 1670;
 const VERTICAL_LABEL_HEIGHT = 28;
 const VERTICAL_LABEL_GAP = 16;
 const THUMBNAIL_HEADER_HEIGHT =
@@ -371,11 +374,11 @@ function centeredVerticalLayout(
   const safeTop =
     scene === "hook"
       ? Math.max(VERTICAL_FRAME.y, THUMBNAIL_CROP_TOP)
-      : VERTICAL_FRAME.y;
+      : Math.max(VERTICAL_FRAME.y, VERTICAL_PLATFORM_SAFE_TOP);
   const safeBottom =
     scene === "hook"
       ? Math.min(VERTICAL_FRAME.bottom, THUMBNAIL_CROP_BOTTOM)
-      : VERTICAL_FRAME.bottom;
+      : Math.min(VERTICAL_FRAME.bottom, VERTICAL_PLATFORM_SAFE_BOTTOM);
   if (height > safeBottom - safeTop) {
     throw new Error(
       `Vertical scene ${scene} stack (${height}px) does not fit its safe area (${safeBottom - safeTop}px)`,
@@ -445,16 +448,14 @@ function verticalBrand(
   const mark = Buffer.from(
     treatment.inverse ? brand.inverseMarkSvg : brand.markSvg,
   ).toString("base64");
-  const wordWidth =
-    measureText("Troco", VERTICAL_BRAND_FONT_SIZE) -
-    5 * 0.04 * VERTICAL_BRAND_FONT_SIZE;
+  const wordWidth = VERTICAL_BRAND_WORD_WIDTH;
   const left = -(VERTICAL_MARK_SIZE + VERTICAL_BRAND_GAP + wordWidth) / 2;
   const wordCenter =
     left + VERTICAL_MARK_SIZE + VERTICAL_BRAND_GAP + wordWidth / 2;
   return {
     definitions: `<defs><clipPath id="vertical-brand-clip"><rect x="${left}" y="0" width="${VERTICAL_MARK_SIZE}" height="${VERTICAL_MARK_SIZE}" rx="${VERTICAL_MARK_SIZE * 0.22}"/></clipPath></defs>`,
     content: `<image x="${left}" y="0" width="${VERTICAL_MARK_SIZE}" height="${VERTICAL_MARK_SIZE}" clip-path="url(#vertical-brand-clip)" href="data:image/svg+xml;base64,${mark}"/>
-    <text data-brand-word="true" x="${wordCenter}" y="${VERTICAL_MARK_SIZE / 2}" dominant-baseline="central" fill="${treatment.foreground}" font-family="Figtree" font-size="${VERTICAL_BRAND_FONT_SIZE}" font-weight="700" letter-spacing="-0.04em">Troco</text>`,
+    <text data-brand-word="true" x="${wordCenter}" y="${VERTICAL_MARK_SIZE / 2}" dominant-baseline="central" fill="${treatment.foreground}" font-family="Figtree" font-size="${VERTICAL_BRAND_FONT_SIZE}" font-weight="700" letter-spacing="-0.04em" textLength="${wordWidth}" lengthAdjust="spacingAndGlyphs">Troco</text>`,
   };
 }
 

@@ -255,9 +255,62 @@ test("vertical treatments share canonical rounded web lockups across all scenes"
       assert.equal(Number(clip.match(/rx="([\d.]+)"/u)?.[1]), size * 0.22);
       assert.equal(Number(clip.match(/width="([\d.]+)"/u)?.[1]), size);
       assert.equal(Number(clip.match(/height="([\d.]+)"/u)?.[1]), size);
+      const wordWidth = Number(word.match(/textLength="([\d.]+)"/u)?.[1]);
+      assert.ok(Number.isFinite(wordWidth), "word label needs exact SVG width");
+      assert.equal(wordWidth, svgRenderer.VERTICAL_BRAND_WORD_WIDTH);
+      assert.match(word, /lengthAdjust="spacingAndGlyphs"/u);
+      const markLeft = Number(image.match(/x="(-?[\d.]+)"/u)?.[1]);
+      const wordCenter = Number(word.match(/x="(-?[\d.]+)"/u)?.[1]);
+      assert.equal((markLeft + wordCenter + wordWidth / 2) / 2, 0);
+      assert.equal(
+        wordCenter - wordWidth / 2 - (markLeft + size),
+        size * (10 / 32),
+      );
       assert.doesNotMatch(svg, /fill-opacity/u);
     }
   }
+});
+
+test("long fitting end cards remain inside platform overlay limits", () => {
+  const base = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+  const plan = {
+    ...base,
+    copy: {
+      ...base.copy,
+      explanation: "Confira o troco. ".repeat(16),
+      cta: "Treine seu troco agora. ".repeat(4),
+    },
+  };
+  const layout = svgRenderer.verticalStackLayout(plan, "end_card");
+  assert.equal(layout.safeTop, 250);
+  assert.equal(layout.safeBottom, 1670);
+  assert.ok(layout.top >= 250);
+  assert.ok(layout.bottom <= 1670);
+  assert.equal((layout.top + layout.bottom) / 2, 960);
+});
+
+test("individually fitting copy cannot escape the complete platform-safe stack", () => {
+  const base = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+  const plan = {
+    ...base,
+    copy: {
+      ...base.copy,
+      explanation: "Confira o troco. ".repeat(21),
+      cta: "Treine seu troco agora. ".repeat(4),
+    },
+  };
+  assert.throws(
+    () => svgRenderer.verticalStackLayout(plan, "end_card"),
+    /Vertical scene end_card stack .* does not fit its safe area/u,
+  );
 });
 
 test("oversized vertical copy reports the scene instead of clipping", () => {
