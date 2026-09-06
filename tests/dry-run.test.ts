@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { mkdtemp, readFile, stat } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { dirname, join } from "node:path";
 import test from "node:test";
 
 import { parseArguments } from "../src/cli/arguments.js";
@@ -59,11 +59,14 @@ test("dry run writes a complete review bundle and no durable state", async () =>
   assert.match(reviewHtml, new RegExp(expectedSoundtrack.artist));
   assert.match(reviewHtml, new RegExp(expectedSoundtrack.license));
   assert.match(reviewHtml, new RegExp(expectedSoundtrack.source));
-  assert.doesNotMatch(reviewHtml, new RegExp(expectedSoundtrack.filePath));
-  assert.doesNotMatch(
-    JSON.stringify(manifest),
-    new RegExp(expectedSoundtrack.filePath),
-  );
+  const manifestJson = JSON.stringify(manifest);
+  for (const localPath of [
+    expectedSoundtrack.filePath,
+    dirname(expectedSoundtrack.filePath),
+  ]) {
+    assert.equal(reviewHtml.includes(localPath), false);
+    assert.equal(manifestJson.includes(localPath), false);
+  }
   await assert.rejects(stat(join(output, "state")), /ENOENT/);
   assert.ok(review.media.video.hash.length === 64);
 });
