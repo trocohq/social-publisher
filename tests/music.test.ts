@@ -10,8 +10,11 @@ import {
   enterpriseMusicExcerpts,
   enterpriseMusicPath,
   musicExcerptForDate,
+  soundtrackForCampaign,
+  verticalSoundtracks,
   verifyEnterpriseMusicSource,
   verifyMusicSource,
+  verifyVerticalSoundtrack,
 } from "../src/render/music.js";
 import { sha256 } from "../src/shared/determinism.js";
 
@@ -40,6 +43,70 @@ test("campaign dates rotate Enterprise excerpts deterministically", () => {
   assert.equal(musicExcerptForDate("1970-01-10").id, "enterprise-01");
   assert.throws(() => musicExcerptForDate("2026-02-30"), /Invalid local date/);
   assert.throws(() => musicExcerptForDate("not-a-date"), /Invalid local date/);
+});
+
+test("campaign IDs choose stable soundtracks across the approved catalog", () => {
+  const alpha = soundtrackForCampaign("campaign-alpha");
+
+  assert.deepEqual(soundtrackForCampaign("campaign-alpha"), alpha);
+  assert.deepEqual(
+    new Set(
+      ["campaign-alpha", "campaign-beta"].map(
+        (campaignId) => soundtrackForCampaign(campaignId).id,
+      ),
+    ),
+    new Set(["funked-up", "funky-house"]),
+  );
+});
+
+test("campaign soundtrack selection rejects blank campaign IDs", () => {
+  assert.throws(() => soundtrackForCampaign(""), /campaign id.*empty/i);
+  assert.throws(() => soundtrackForCampaign("   \t\n"), /campaign id.*empty/i);
+});
+
+test("the vertical soundtrack catalog has the two approved OpenGameArt sources", () => {
+  assert.deepEqual(verticalSoundtracks, [
+    {
+      id: "funked-up",
+      title: "Funked Up",
+      artist: "Joth",
+      license: "CC0-1.0",
+      source: "https://opengameart.org/content/funked-up",
+      filePath: new URL("../assets/music/funked-up.mp3", import.meta.url)
+        .pathname,
+      sha256:
+        "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828",
+      durationSeconds: 9,
+    },
+    {
+      id: "funky-house",
+      title: "Funky House",
+      artist: "Of Far Different Nature",
+      license: "CC0-1.0",
+      source: "https://opengameart.org/content/funky-house",
+      filePath: new URL("../assets/music/funky-house.mp3", import.meta.url)
+        .pathname,
+      sha256:
+        "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435",
+      durationSeconds: 9,
+    },
+  ]);
+});
+
+test("vertical soundtracks satisfy their exact media contract", async () => {
+  const binaries = await resolveMediaBinaries();
+
+  for (const soundtrack of verticalSoundtracks) {
+    const probe = await verifyVerticalSoundtrack(
+      soundtrack,
+      binaries.ffprobePath,
+    );
+    assert.ok(
+      Math.abs(probe.durationSeconds - soundtrack.durationSeconds) <= 0.05,
+    );
+    assert.equal(probe.channels, 2);
+    assert.equal(probe.sampleRate, 48_000);
+  }
 });
 
 test("the approved Enterprise source matches its committed contract", async () => {
@@ -108,5 +175,27 @@ test("music source verification fails closed", async () => {
       ffprobePath: binaries.ffprobePath,
     }),
     /duration/i,
+  );
+  await assert.rejects(
+    verifyMusicSource({
+      filePath: enterpriseMusicPath,
+      expectedSha256: ENTERPRISE_MUSIC_SHA256,
+      minimumDurationSeconds: 128,
+      expectedChannels: 1,
+      expectedSampleRate: 44_100,
+      ffprobePath: binaries.ffprobePath,
+    }),
+    /channel count/i,
+  );
+  await assert.rejects(
+    verifyMusicSource({
+      filePath: enterpriseMusicPath,
+      expectedSha256: ENTERPRISE_MUSIC_SHA256,
+      minimumDurationSeconds: 128,
+      expectedChannels: 2,
+      expectedSampleRate: 48_000,
+      ffprobePath: binaries.ffprobePath,
+    }),
+    /sample rate/i,
   );
 });
