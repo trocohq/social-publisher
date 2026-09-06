@@ -183,8 +183,8 @@ own attributed `troco.net` download URL with `utm_source`, `utm_medium`,
 
 The renderer selects one of the seven official background treatments and one of
 the two approved soundtracks from the campaign ID. The review manifest records
-the stable treatment and soundtrack metadata. The same campaign always produces
-the same visual and audio choice.
+the approved soundtrack metadata; the treatment is reproducible from the
+campaign ID. The same campaign always produces the same visual and audio choice.
 
 Every new video also receives a dedicated 1080×1920 video thumbnail. The same
 opening scene remains on screen through Buffer's two-second selection point, so

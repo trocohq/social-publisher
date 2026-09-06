@@ -109,6 +109,29 @@ test("vertical soundtrack verification resolves ffprobe when no path is supplied
   assert.equal(probe.sampleRate, 48_000);
 });
 
+test("vertical soundtrack verification identifies invalid tracks without exposing paths", async () => {
+  const trackPath = "/private/user-library/approved-track.mp3";
+  const invalidTrack = {
+    ...verticalSoundtracks[0]!,
+    filePath: trackPath,
+  };
+
+  await assert.rejects(
+    verifyVerticalSoundtrack(invalidTrack),
+    (error: unknown) => {
+      assert.match(
+        error instanceof Error ? error.message : String(error),
+        /approved soundtrack funked-up failed validation/i,
+      );
+      assert.doesNotMatch(
+        error instanceof Error ? error.message : String(error),
+        /approved-track\.mp3|private\/user-library/i,
+      );
+      return true;
+    },
+  );
+});
+
 test("music source verification fails closed", async () => {
   const root = await mkdtemp(join(tmpdir(), "troco-music-contract-"));
   const binaries = await resolveMediaBinaries();

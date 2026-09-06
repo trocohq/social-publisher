@@ -163,12 +163,21 @@ export async function verifyVerticalSoundtrack(
 ): Promise<MusicSourceProbe> {
   const resolvedFfprobePath =
     ffprobePath ?? (await resolveMediaBinaries()).ffprobePath;
-  return verifyMusicSource({
-    filePath: soundtrack.filePath,
-    expectedSha256: soundtrack.sha256,
-    exactDurationSeconds: soundtrack.durationSeconds,
-    expectedChannels: 2,
-    expectedSampleRate: 48_000,
-    ffprobePath: resolvedFfprobePath,
-  });
+  try {
+    return await verifyMusicSource({
+      filePath: soundtrack.filePath,
+      expectedSha256: soundtrack.sha256,
+      exactDurationSeconds: soundtrack.durationSeconds,
+      expectedChannels: 2,
+      expectedSampleRate: 48_000,
+      ffprobePath: resolvedFfprobePath,
+    });
+  } catch (error: unknown) {
+    const reason =
+      error instanceof Error ? error.message : "Unknown validation error";
+    throw new Error(
+      `Approved soundtrack ${soundtrack.id} failed validation: ${reason}`,
+      { cause: error },
+    );
+  }
 }
