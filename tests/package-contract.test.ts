@@ -24,15 +24,24 @@ test("the publisher is a public ESM package with deterministic validation script
 
 test("the approved Openings music sources are available to packaged renders", async () => {
   const approvedSources = [
-    ["funked-up.mp3", "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828"],
-    ["funky-house.mp3", "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435"],
+    [
+      "funked-up.mp3",
+      "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828",
+    ],
+    [
+      "funky-house.mp3",
+      "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435",
+    ],
   ];
 
   for (const [filename, expectedHash] of approvedSources) {
     const bytes = await readFile(
       new URL(`../assets/music/${filename}`, import.meta.url),
     );
-    assert.equal(createHash("sha256").update(bytes).digest("hex"), expectedHash);
+    assert.equal(
+      createHash("sha256").update(bytes).digest("hex"),
+      expectedHash,
+    );
   }
 });
 
