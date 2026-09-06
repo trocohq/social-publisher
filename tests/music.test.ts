@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { mkdtemp, readFile, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import test from "node:test";
 
 import { resolveMediaBinaries, runProcess } from "../src/render/binaries.js";
@@ -72,8 +73,9 @@ test("the vertical soundtrack catalog has the two approved OpenGameArt sources",
       artist: "Joth",
       license: "CC0-1.0",
       source: "https://opengameart.org/content/funked-up",
-      filePath: new URL("../assets/music/funked-up.mp3", import.meta.url)
-        .pathname,
+      filePath: fileURLToPath(
+        new URL("../assets/music/funked-up.mp3", import.meta.url),
+      ),
       sha256:
         "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828",
       durationSeconds: 9,
@@ -84,8 +86,9 @@ test("the vertical soundtrack catalog has the two approved OpenGameArt sources",
       artist: "Of Far Different Nature",
       license: "CC0-1.0",
       source: "https://opengameart.org/content/funky-house",
-      filePath: new URL("../assets/music/funky-house.mp3", import.meta.url)
-        .pathname,
+      filePath: fileURLToPath(
+        new URL("../assets/music/funky-house.mp3", import.meta.url),
+      ),
       sha256:
         "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435",
       durationSeconds: 9,
@@ -208,5 +211,33 @@ test("music source verification fails closed", async () => {
       ffprobePath: binaries.ffprobePath,
     }),
     /sample rate/i,
+  );
+});
+
+test("music source verification rejects maximum and exact duration mismatches", async () => {
+  const binaries = await resolveMediaBinaries();
+  const soundtrack = verticalSoundtracks[0]!;
+
+  await assert.rejects(
+    verifyMusicSource({
+      filePath: soundtrack.filePath,
+      expectedSha256: soundtrack.sha256,
+      maximumDurationSeconds: 8,
+      expectedChannels: 2,
+      expectedSampleRate: 48_000,
+      ffprobePath: binaries.ffprobePath,
+    }),
+    /duration exceeds the approved limit/i,
+  );
+  await assert.rejects(
+    verifyMusicSource({
+      filePath: soundtrack.filePath,
+      expectedSha256: soundtrack.sha256,
+      exactDurationSeconds: 8,
+      expectedChannels: 2,
+      expectedSampleRate: 48_000,
+      ffprobePath: binaries.ffprobePath,
+    }),
+    /duration does not match the approved length/i,
   );
 });
