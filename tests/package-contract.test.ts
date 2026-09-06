@@ -113,13 +113,31 @@ test("the README explains production schedule, volume, status, and remaining wor
   }
 });
 
-test("the README documents the approved Enterprise excerpt rotation", async () => {
-  const readme = await readFile(
-    new URL("../README.md", import.meta.url),
-    "utf8",
-  );
-  assert.match(readme, /nine deterministic 12-second excerpts/u);
-  assert.doesNotMatch(readme, /100\s+BPM\s+arrangements/u);
+test("the campaign documentation describes the centered vertical catalog contract", async () => {
+  const [rawReadme, rawOperations] = await Promise.all([
+    readFile(new URL("../README.md", import.meta.url), "utf8"),
+    readFile(new URL("../docs/operations.md", import.meta.url), "utf8"),
+  ]);
+  const readme = rawReadme.replace(/\s+/gu, " ");
+  const operations = rawOperations.replace(/\s+/gu, " ");
+
+  for (const phrase of [
+    "Funked Up",
+    "Funky House",
+    "campaign ID",
+    "seven official background treatments",
+    "centered within the vertical safe area",
+    "22% corner radius",
+    "deterministic two-track choice",
+    "9-second source loops and trims to 12 seconds",
+    "canonical normal/inverse marks",
+    "Figtree 700 with -0.04em tracking",
+    "Stolzl titles",
+    "feed and carousel remain unchanged",
+  ]) {
+    assert.ok(readme.includes(phrase), `README is missing ${phrase}`);
+    assert.ok(operations.includes(phrase), `operations is missing ${phrase}`);
+  }
 });
 
 test("operations document the deterministic crop-safe video cover", async () => {

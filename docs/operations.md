@@ -58,10 +58,27 @@ Complete these steps in order.
    exactly `1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d`. Brand hashes and the packaged
    token source must match those reviewed commits.
 
-The approved music source is `assets/music/enterprise.mp3`. Changing this file
-is a reviewed source change: update its approved SHA-256 contract, run the full
-media validation, and apply the new audio only to future campaigns. Never
-rewrite immutable scheduled or published campaign hashes.
+Each campaign ID makes a deterministic two-track choice between **Funked Up** by
+Joth and **Funky House** by Of Far Different Nature. Both CC0-1.0 OpenGameArt
+sources are listed with their attribution, license, and source links in
+`assets/music/README.md`. Each 9-second source loops and trims to 12 seconds.
+Changing either source is a reviewed source change: update its approved SHA-256
+contract, run the full media validation, and apply the new audio only to future
+campaigns. Never rewrite immutable scheduled or published campaign hashes.
+
+## Centered vertical campaign review
+
+The campaign ID also selects one of seven official background treatments—Paper,
+Ink, Primary, Purple, Yellow, Blue, or Coral—once for the campaign and reuses it
+for all four scenes and the thumbnail. Ink uses the canonical inverse mark;
+Paper uses the canonical normal mark. The color treatments use the canonical
+normal/inverse marks according to their contrast contract. The canonical web
+lockup has a 22% corner radius, with Figtree 700 with -0.04em tracking for the
+wordmark and Stolzl titles.
+
+Review the hook, scenario, answer, end card, and thumbnail as a single system:
+each uses a centered horizontal stack, centered within the vertical safe area.
+The thumbnail is the hook scene. The feed and carousel remain unchanged.
 
 ## Controlled activation
 
@@ -81,9 +98,12 @@ rewrite immutable scheduled or published campaign hashes.
 2. Download and inspect the review artifact. Check the canonical logo, all
    image slides, the complete 12-second video, amounts, answer, calls to action,
    and the four final captions. Open every attributed `troco.net` download link.
-   Confirm that the manifest's Enterprise excerpt ID matches the video, the
-   music starts and ends with clean fades, the level is comfortable, and no
-   clipping or silence is audible before the final frame.
+   Confirm that the manifest's deterministic soundtrack metadata matches the
+   video, the music starts and ends with clean fades, the level is comfortable,
+   and no clipping or silence is audible before the final frame. Confirm all
+   seven background treatments over the campaign rotation, the expected
+   normal/inverse mark contrast, the 22% rounded lockup, Figtree/Stolzl
+   typography, and the centered safe-area stack before accepting a variant.
 3. Choose one campaign dated in the future. Dispatch the production workflow
    in `controlled` mode with its exact campaign ID and confirmation
    `PUBLISH_ONE_CAMPAIGN`.

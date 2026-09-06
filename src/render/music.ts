@@ -4,15 +4,8 @@ import { fileURLToPath } from "node:url";
 import { chooseSeeded, sha256 } from "../shared/determinism.js";
 import { resolveMediaBinaries, runProcess } from "./binaries.js";
 
-const MILLISECONDS_PER_DAY = 86_400_000;
 const FFPROBE_DURATION_TOLERANCE_SECONDS = 0.05;
 const VERTICAL_SOUNDTRACK_SEED_OFFSET = 41;
-
-export const ENTERPRISE_MUSIC_SHA256 =
-  "d3884500099f06adc74583242056be7249f7758c4d1919efc6de3ccdf468029e";
-export const enterpriseMusicPath = fileURLToPath(
-  new URL("../../assets/music/enterprise.mp3", import.meta.url),
-);
 
 export type VerticalSoundtrack = Readonly<{
   id: "funked-up" | "funky-house";
@@ -66,45 +59,6 @@ export function soundtrackForCampaign(campaignId: string): VerticalSoundtrack {
     campaignId,
     VERTICAL_SOUNDTRACK_SEED_OFFSET,
   );
-}
-
-export type MusicExcerpt = Readonly<{
-  id: string;
-  startSeconds: number;
-  durationSeconds: 12;
-}>;
-
-export const enterpriseMusicExcerpts: readonly MusicExcerpt[] = Object.freeze(
-  [2, 16, 30, 44, 58, 72, 86, 100, 116].map((startSeconds, index) =>
-    Object.freeze({
-      id: `enterprise-${String(index + 1).padStart(2, "0")}`,
-      startSeconds,
-      durationSeconds: 12 as const,
-    }),
-  ),
-);
-
-function localDateOrdinal(localDate: string): number {
-  if (!/^\d{4}-\d{2}-\d{2}$/u.test(localDate)) {
-    throw new Error("Invalid local date");
-  }
-  const parsed = new Date(`${localDate}T00:00:00Z`);
-  if (
-    Number.isNaN(parsed.valueOf()) ||
-    parsed.toISOString().slice(0, 10) !== localDate
-  ) {
-    throw new Error("Invalid local date");
-  }
-  return Math.floor(parsed.valueOf() / MILLISECONDS_PER_DAY);
-}
-
-export function musicExcerptForDate(localDate: string): MusicExcerpt {
-  const ordinal = localDateOrdinal(localDate);
-  const index =
-    ((ordinal % enterpriseMusicExcerpts.length) +
-      enterpriseMusicExcerpts.length) %
-    enterpriseMusicExcerpts.length;
-  return enterpriseMusicExcerpts[index]!;
 }
 
 export type MusicSourceProbe = Readonly<{
@@ -216,18 +170,5 @@ export async function verifyVerticalSoundtrack(
     expectedChannels: 2,
     expectedSampleRate: 48_000,
     ffprobePath: resolvedFfprobePath,
-  });
-}
-
-export function verifyEnterpriseMusicSource(
-  ffprobePath: string,
-): Promise<MusicSourceProbe> {
-  return verifyMusicSource({
-    filePath: enterpriseMusicPath,
-    expectedSha256: ENTERPRISE_MUSIC_SHA256,
-    minimumDurationSeconds: 128,
-    expectedChannels: 2,
-    expectedSampleRate: 44_100,
-    ffprobePath,
   });
 }

@@ -1,8 +1,9 @@
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, readFile, readdir, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
+import { loadBrand } from "../brand/load-brand.js";
 import { createReview } from "../dry-run/create-review.js";
 import { verifyPublicAsset } from "../media/verify-public.js";
 import { runBufferPreflight } from "../networks/buffer/preflight.js";
@@ -11,6 +12,24 @@ import {
   createBufferPostInput,
 } from "../networks/buffer/posts.js";
 import { reconcileBufferPost } from "../networks/buffer/reconcile.js";
+import { createCampaign } from "../planning/create-campaign.js";
+import { resolveMediaBinaries } from "../render/binaries.js";
+import {
+  soundtrackForCampaign,
+  verifyVerticalSoundtrack,
+  verticalSoundtracks,
+} from "../render/music.js";
+import { safeAreaFor } from "../render/safe-area.js";
+import {
+  createVerticalSceneSvg,
+  createVerticalThumbnailSvg,
+  verticalScenes,
+  verticalStackLayout,
+} from "../render/svg.js";
+import {
+  treatmentForCampaign,
+  verticalTreatments,
+} from "../render/vertical-treatment.js";
 import { sha256 } from "../shared/determinism.js";
 import { listCampaignStates } from "../state/storage.js";
 
@@ -350,6 +369,137 @@ async function validateProductionProviderContracts(): Promise<void> {
   });
 }
 
+function assertValidation(value: unknown, message: string): asserts value {
+  if (!value) throw new Error(message);
+}
+
+function campaignIdFor<T extends Readonly<{ id: string }>>(
+  expected: T,
+  select: (campaignId: string) => T,
+): string {
+  const campaignId = Array.from(
+    { length: 500 },
+    (_, index) => `validation-${index}`,
+  ).find((candidate) => select(candidate).id === expected.id);
+  assertValidation(
+    campaignId,
+    `No deterministic campaign fixture reaches ${expected.id}`,
+  );
+  assertValidation(
+    select(campaignId).id === expected.id,
+    `Campaign fixture for ${expected.id} is not stable`,
+  );
+  return campaignId;
+}
+
+async function validateCenteredVerticalCampaigns(
+  brandRoot: URL,
+): Promise<void> {
+  assertValidation(
+    verticalSoundtracks.length === 2,
+    "The vertical catalog must contain exactly two soundtracks",
+  );
+  const sourceFiles = (
+    await readdir(dirname(verticalSoundtracks[0]!.filePath), {
+      withFileTypes: true,
+    })
+  )
+    .filter((entry) => entry.isFile() && entry.name.endsWith(".mp3"))
+    .map((entry) => entry.name)
+    .sort();
+  const catalogFiles = verticalSoundtracks
+    .map((soundtrack) => soundtrack.filePath.split("/").at(-1)!)
+    .sort();
+  assertValidation(
+    JSON.stringify(sourceFiles) === JSON.stringify(catalogFiles),
+    "The vertical catalog must contain exactly the approved soundtrack sources",
+  );
+  const binaries = await resolveMediaBinaries({
+    ...(process.env.FFMPEG_PATH ? { ffmpegPath: process.env.FFMPEG_PATH } : {}),
+    ...(process.env.FFPROBE_PATH
+      ? { ffprobePath: process.env.FFPROBE_PATH }
+      : {}),
+  });
+  for (const soundtrack of verticalSoundtracks) {
+    const probe = await verifyVerticalSoundtrack(
+      soundtrack,
+      binaries.ffprobePath,
+    );
+    assertValidation(
+      Math.abs(probe.durationSeconds - 9) <= 0.05 &&
+        probe.channels === 2 &&
+        probe.sampleRate === 48_000,
+      `Soundtrack ${soundtrack.id} does not satisfy the 9-second stereo 48 kHz contract`,
+    );
+  }
+
+  const fixtureIds = new Set<string>();
+  for (const soundtrack of verticalSoundtracks) {
+    fixtureIds.add(campaignIdFor(soundtrack, soundtrackForCampaign));
+  }
+  assertValidation(
+    fixtureIds.size === verticalSoundtracks.length,
+    "Both soundtrack IDs must be reachable from stable campaign fixtures",
+  );
+  assertValidation(
+    verticalTreatments.length === 7,
+    "The vertical catalog must contain exactly seven color treatments",
+  );
+  for (const treatment of verticalTreatments) {
+    fixtureIds.add(campaignIdFor(treatment, treatmentForCampaign));
+  }
+  assertValidation(
+    new Set([...fixtureIds].map((id) => treatmentForCampaign(id).id)).size ===
+      verticalTreatments.length,
+    "All color treatments must be reachable from stable campaign fixtures",
+  );
+
+  const basePlan = createCampaign({
+    localDate: "2026-08-26",
+    publishTime: "12:17",
+    history: [],
+  });
+  const frame = safeAreaFor(1080, 1920);
+  const brand = await loadBrand(brandRoot);
+  for (const campaignId of fixtureIds) {
+    const plan = Object.freeze({ ...basePlan, id: campaignId });
+    for (const scene of verticalScenes) {
+      const layout = verticalStackLayout(plan, scene);
+      assertValidation(
+        layout.safeTop >= frame.y &&
+          layout.safeBottom <= frame.bottom &&
+          layout.top >= layout.safeTop &&
+          layout.bottom <= layout.safeBottom &&
+          (layout.top + layout.bottom) / 2 ===
+            (layout.safeTop + layout.safeBottom) / 2,
+        `Vertical ${scene} stack is not centered inside its safe bounds`,
+      );
+    }
+    const thumbnail = createVerticalThumbnailSvg({ plan, brand });
+    assertValidation(
+      createVerticalSceneSvg({ plan, brand, scene: "hook" }) === thumbnail,
+      "The hook and thumbnail must use the same vertical stack",
+    );
+    const treatment = treatmentForCampaign(campaignId);
+    const expectedMark = Buffer.from(
+      treatment.inverse ? brand.inverseMarkSvg : brand.markSvg,
+    ).toString("base64");
+    assertValidation(
+      thumbnail.includes(expectedMark),
+      `Vertical ${treatment.id} treatment selects the wrong canonical mark`,
+    );
+    const lockup = thumbnail.match(
+      /<clipPath id="vertical-brand-clip"><rect [^>]*width="([\d.]+)" height="([\d.]+)" rx="([\d.]+)"\/>/u,
+    );
+    assertValidation(
+      lockup &&
+        Number(lockup[1]) === Number(lockup[2]) &&
+        Number(lockup[3]) === Number(lockup[1]) * 0.22,
+      "The canonical vertical lockup must keep its 22% corner radius",
+    );
+  }
+}
+
 async function validate(): Promise<void> {
   const output = await mkdtemp(join(tmpdir(), "troco-social-validation-"));
   const brandPath = resolve(process.env.BRAND_ROOT ?? "../frontend/public");
@@ -358,6 +508,7 @@ async function validate(): Promise<void> {
     for (const state of states) assertSanitizedState(state);
     await validateWorkflowGates();
     await validateProductionProviderContracts();
+    await validateCenteredVerticalCampaigns(pathToFileURL(`${brandPath}/`));
     const review = await createReview({
       localDate: "2026-08-26",
       output,
