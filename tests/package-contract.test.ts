@@ -22,14 +22,18 @@ test("the publisher is a public ESM package with deterministic validation script
   assert.equal(packageJson.devDependencies.typescript, "6.0.3");
 });
 
-test("the approved Enterprise music source is available to packaged renders", async () => {
-  const bytes = await readFile(
-    new URL("../assets/music/enterprise.mp3", import.meta.url),
-  );
-  assert.equal(
-    createHash("sha256").update(bytes).digest("hex"),
-    "d3884500099f06adc74583242056be7249f7758c4d1919efc6de3ccdf468029e",
-  );
+test("the approved Openings music sources are available to packaged renders", async () => {
+  const approvedSources = [
+    ["funked-up.mp3", "e2fa908a762add9ae8784832c14707525d7c7375cdd8c28217d0857967a79828"],
+    ["funky-house.mp3", "1422a4630babedd49544dfa7d56399918841c86154d6f19ee61bbbc9f6693435"],
+  ];
+
+  for (const [filename, expectedHash] of approvedSources) {
+    const bytes = await readFile(
+      new URL(`../assets/music/${filename}`, import.meta.url),
+    );
+    assert.equal(createHash("sha256").update(bytes).digest("hex"), expectedHash);
+  }
 });
 
 test("the npm registry configuration uses current supported keys", async () => {
