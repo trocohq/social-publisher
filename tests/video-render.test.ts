@@ -28,6 +28,100 @@ import { renderFixtureCampaign } from "./support/render-fixture.js";
 
 const frontendPublic = canonicalBrandRoot();
 
+for (const family of ["stolzl", "figtree"] as const)
+  test(`vertical raster pixels use the canonical ${family} buffer`, async () => {
+    const plan = createCampaign({
+      localDate: "2026-08-27",
+      publishTime: "12:17",
+      history: [],
+    });
+    const brand = await loadBrand(frontendPublic);
+    const pixels = async (fonts: typeof brand) =>
+      sharp(
+        Buffer.from(
+          createVerticalSceneSvg({ plan, brand: fonts, scene: "hook" }),
+        ),
+      )
+        .raw()
+        .toBuffer();
+    const canonical = await pixels(brand);
+    const substitute = family === "stolzl" ? brand.figtree : brand.stolzl;
+    assert.ok(
+      !(await pixels({ ...brand, [family]: substitute })).equals(canonical),
+      `${family} pixels must come from its canonical buffer`,
+    );
+  });
+
+test("visible canonical lockup pixels are centered within one pixel", async () => {
+  const plan = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+  const brand = await loadBrand(frontendPublic);
+  const layout = svgRenderer.verticalStackLayout(plan, "hook");
+  const { data, info } = await sharp(
+    Buffer.from(createVerticalSceneSvg({ plan, brand, scene: "hook" })),
+  )
+    .extract({ left: 0, top: Math.floor(layout.top), width: 1080, height: 83 })
+    .removeAlpha()
+    .raw()
+    .toBuffer({ resolveWithObject: true });
+  let minX = info.width;
+  let maxX = -1;
+  for (let y = 0; y < info.height; y += 1) {
+    for (let x = 0; x < info.width; x += 1) {
+      const offset = (y * info.width + x) * info.channels;
+      if (
+        [0, 1, 2].some(
+          (channel) => Math.abs(data[offset + channel]! - data[channel]!) > 8,
+        )
+      ) {
+        minX = Math.min(minX, x);
+        maxX = Math.max(maxX, x);
+      }
+    }
+  }
+  assert.ok(maxX > minX);
+  assert.ok(
+    Math.abs((minX + maxX) / 2 - 539.5) <= 1,
+    `visible lockup midpoint ${(minX + maxX) / 2}`,
+  );
+});
+
+test("canonical vertical glyph pixels stay inside the horizontal safe frame", async () => {
+  const plan = createCampaign({
+    localDate: "2026-08-27",
+    publishTime: "12:17",
+    history: [],
+  });
+  const brand = await loadBrand(frontendPublic);
+  for (const scene of ["hook", "scenario", "answer", "end_card"] as const) {
+    const svg = createVerticalSceneSvg({ plan, brand, scene });
+    for (const left of [0, 1050]) {
+      const { data, info } = await sharp(Buffer.from(svg))
+        .extract({ left, top: 0, width: 30, height: 1920 })
+        .removeAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      let different = 0;
+      for (let offset = 0; offset < data.length; offset += info.channels) {
+        if (
+          [0, 1, 2].some(
+            (channel) => Math.abs(data[offset + channel]! - data[channel]!) > 8,
+          )
+        )
+          different += 1;
+      }
+      assert.equal(
+        different,
+        0,
+        `${scene} clips canonical glyphs into the ${left === 0 ? "left" : "right"} margin`,
+      );
+    }
+  }
+});
+
 test("short output uses its deterministic Enterprise excerpt", async () => {
   const output = await mkdtemp(join(tmpdir(), "troco-short-"));
   const { plan, video } = await renderFixtureCampaign(output);
@@ -134,23 +228,31 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
   const endCard = createVerticalSceneSvg({ plan, brand, scene: "end_card" });
 
   assert.equal(hook, createVerticalThumbnailSvg({ plan, brand }));
-  assert.match(hook, />FAÇA A CONTA<\/text>/u);
-  assert.match(hook, />DESCUBRA NO VÍDEO<\/text>/u);
+  assert.match(hook, /aria-label="FAÇA A CONTA"/u);
+  assert.match(hook, /aria-label="DESCUBRA NO VÍDEO"/u);
   assert.doesNotMatch(hook, /01\/04/u);
-  assert.match(scenario, /font-family="Figtree" font-size="72"[^>]*>R\$/u);
+  assert.match(
+    scenario,
+    /font-family="Figtree" font-size="72"[^>]*aria-label="R\$/u,
+  );
   assert.match(
     answer,
-    /font-family="Stolzl" font-size="180"[^>]*><tspan[^>]*>R\$/u,
+    /font-family="Stolzl" font-size="180"[^>]*aria-label="R\$/u,
+  );
+  const displaySize = Number(
+    endCard.match(
+      /data-x="0"[^>]*font-family="Stolzl" font-size="([\d.]+)" font-weight="400"/u,
+    )?.[1],
+  );
+  assert.ok(
+    displaySize >= 52 && displaySize <= 72,
+    `end card display size ${displaySize}`,
   );
   assert.match(
     endCard,
-    /font-family="Stolzl" font-size="(?:[5-7][0-9])" font-weight="400"><tspan x="0"/u,
+    /fill="#FEFDFB" font-family="Figtree" font-size="56" font-weight="700"/u,
   );
-  assert.match(
-    endCard,
-    /fill="#FEFDFB" font-family="Figtree" font-size="56" font-weight="700">/u,
-  );
-  assert.match(endCard, /<text x="0" y="[\d.]+"[^>]*>troco\.net<\/text>/u);
+  assert.match(endCard, /data-x="0"[^>]*aria-label="troco\.net"/u);
 });
 
 test("every vertical scene centers its complete stack inside safe bounds", async () => {
@@ -186,16 +288,20 @@ test("every vertical scene centers its complete stack inside safe bounds", async
         new RegExp(`transform="translate\\(540 ${layout.top}\\)"`),
       );
       const stack = svg.slice(svg.indexOf('<g data-vertical-stack="true"'));
-      assert.match(stack, />Troco<\/text>/u);
-      if (scene !== "hook") assert.match(stack, />0[2-4]\/04<\/text>/u);
-      for (const text of stack.matchAll(/<text\b[^>]*>/gu)) {
-        if (text[0].includes('data-brand-word="true"')) continue;
+      assert.match(stack, /aria-label="Troco"/u);
+      assert.doesNotMatch(svg, /<text\b|@font-face/u);
+      assert.match(stack, /<path\b/u);
+      if (scene !== "hook") assert.match(stack, /aria-label="0[2-4]\/04"/u);
+      for (const text of stack.matchAll(
+        /<g data-vertical-text="true"[^>]*>/gu,
+      )) {
+        if (text[0].includes('aria-label="Troco"')) continue;
         if (
           scene === "scenario" &&
           /text-anchor="(?:start|end)"/u.test(text[0])
         )
           continue;
-        assert.match(text[0], /x="0"/u);
+        assert.match(text[0], /data-x="0"/u);
         assert.doesNotMatch(text[0], /text-anchor="(?:start|end)"/u);
       }
       for (const rect of stack.matchAll(
@@ -229,7 +335,9 @@ test("vertical treatments share canonical rounded web lockups across all scenes"
           `<rect width="1080" height="1920" fill="${expected.background}"/>`,
         ),
       );
-      const word = svg.match(/<text\b[^>]*>Troco<\/text>/u)?.[0];
+      const word = svg.match(
+        /<g data-vertical-text="true"[^>]*aria-label="Troco"[^>]*>/u,
+      )?.[0];
       assert.ok(word);
       assert.match(
         word,
@@ -255,16 +363,18 @@ test("vertical treatments share canonical rounded web lockups across all scenes"
       assert.equal(Number(clip.match(/rx="([\d.]+)"/u)?.[1]), size * 0.22);
       assert.equal(Number(clip.match(/width="([\d.]+)"/u)?.[1]), size);
       assert.equal(Number(clip.match(/height="([\d.]+)"/u)?.[1]), size);
-      const wordWidth = Number(word.match(/textLength="([\d.]+)"/u)?.[1]);
-      assert.ok(Number.isFinite(wordWidth), "word label needs exact SVG width");
-      assert.equal(wordWidth, svgRenderer.VERTICAL_BRAND_WORD_WIDTH);
-      assert.match(word, /lengthAdjust="spacingAndGlyphs"/u);
+      const wordWidth = Number(word.match(/data-ink-width="([\d.]+)"/u)?.[1]);
+      assert.ok(
+        wordWidth > 150 && wordWidth < 175,
+        "word label uses canonical glyph bounds",
+      );
       const markLeft = Number(image.match(/x="(-?[\d.]+)"/u)?.[1]);
       const wordCenter = Number(word.match(/x="(-?[\d.]+)"/u)?.[1]);
-      assert.equal((markLeft + wordCenter + wordWidth / 2) / 2, 0);
-      assert.equal(
-        wordCenter - wordWidth / 2 - (markLeft + size),
-        size * (10 / 32),
+      assert.ok(Math.abs((markLeft + wordCenter + wordWidth / 2) / 2) < 1e-10);
+      assert.ok(
+        Math.abs(
+          wordCenter - wordWidth / 2 - (markLeft + size) - size * (10 / 32),
+        ) < 1e-10,
       );
       assert.doesNotMatch(svg, /fill-opacity/u);
     }

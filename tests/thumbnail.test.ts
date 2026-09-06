@@ -70,9 +70,9 @@ test("thumbnail shares the hook's centered and square-crop-safe stack", async ()
   assert.equal(layout.top + layout.height, layout.bottom);
   assert.equal(layout.top + layout.bottom, layout.safeTop + layout.safeBottom);
   assert.equal(hook, thumbnail);
-  assert.match(thumbnail, />FAÇA A CONTA<\/text>/u);
-  assert.match(thumbnail, />DESCUBRA NO VÍDEO<\/text>/u);
-  assert.match(thumbnail, />12s →<\/text>/u);
+  assert.match(thumbnail, /aria-label="FAÇA A CONTA"/u);
+  assert.match(thumbnail, /aria-label="DESCUBRA NO VÍDEO"/u);
+  assert.match(thumbnail, /aria-label="12s →"/u);
   assert.match(
     thumbnail,
     /<g data-vertical-stack="true" transform="translate\(540 [\d.]+\)" text-anchor="middle">/u,

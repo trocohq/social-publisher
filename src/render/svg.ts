@@ -14,6 +14,7 @@ import {
   type TextLayout,
 } from "./text-layout.js";
 import { safeAreaFor } from "./safe-area.js";
+import { outlineText } from "./font-paths.js";
 import {
   treatmentForCampaign,
   type VerticalTreatment,
@@ -33,20 +34,15 @@ const FEED_FRAME = safeAreaFor(WIDTH, HEIGHT);
 const VERTICAL_FRAME = safeAreaFor(WIDTH, VERTICAL_HEIGHT);
 const CONTAINER_INSET = 48;
 
-export const THUMBNAIL_SECTION_GAP = 40;
 export const THUMBNAIL_CROP_TOP = 420;
 export const THUMBNAIL_CROP_BOTTOM = 1500;
 const VERTICAL_MARK_SIZE = 82;
 const VERTICAL_BRAND_FONT_SIZE = VERTICAL_MARK_SIZE * (26 / 32);
 const VERTICAL_BRAND_GAP = VERTICAL_MARK_SIZE * (10 / 32);
-// Canonical Figtree 700 “Troco” at 66.625px with -0.04em tracking.
-export const VERTICAL_BRAND_WORD_WIDTH = 162.151;
 const VERTICAL_PLATFORM_SAFE_TOP = 250;
 const VERTICAL_PLATFORM_SAFE_BOTTOM = 1670;
 const VERTICAL_LABEL_HEIGHT = 28;
 const VERTICAL_LABEL_GAP = 16;
-const THUMBNAIL_HEADER_HEIGHT =
-  VERTICAL_MARK_SIZE + VERTICAL_LABEL_GAP + VERTICAL_LABEL_HEIGHT;
 const THUMBNAIL_KICKER_HEIGHT = 38;
 const THUMBNAIL_MESSAGE_INSET = 16;
 const THUMBNAIL_CTA_HEIGHT = 190;
@@ -403,42 +399,87 @@ export function verticalStackLayout(
   return centeredVerticalLayout(scene, verticalItems(plan, scene));
 }
 
-export type ThumbnailStackLayout = Readonly<{
-  top: number;
-  headerBottom: number;
-  messageTop: number;
-  messageBottom: number;
-  ctaTop: number;
-  bottom: number;
-  headline: TextLayout;
-}>;
-
-export function thumbnailStackLayout(
-  plan: Pick<CampaignPlan, "scenario">,
-): ThumbnailStackLayout {
-  const headline = fitText(createThumbnailCopy(plan), thumbnailHeadlineLayout);
-  const messageHeight =
-    THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET + headline.height;
-  const height =
-    THUMBNAIL_HEADER_HEIGHT +
-    THUMBNAIL_SECTION_GAP * 2 +
-    messageHeight +
-    THUMBNAIL_CTA_HEIGHT;
-  const layout = centeredVerticalLayout("hook", [
-    { kind: "message", top: 0, height },
-  ]);
-  const headerBottom = layout.top + THUMBNAIL_HEADER_HEIGHT;
-  const messageTop = headerBottom + THUMBNAIL_SECTION_GAP;
-  const messageBottom = messageTop + messageHeight;
-  return Object.freeze({
-    top: layout.top,
-    headerBottom,
-    messageTop,
-    messageBottom,
-    ctaTop: messageBottom + THUMBNAIL_SECTION_GAP,
-    bottom: layout.bottom,
-    headline,
+function verticalText(
+  brand: BrandAssets,
+  text: string,
+  x: number,
+  baseline: number,
+  family: "Stolzl" | "Figtree",
+  size: number,
+  weight: number,
+  fill: string,
+  anchor: "start" | "middle" | "end" = "middle",
+  tracking = 0,
+): string {
+  const outline = outlineText({
+    bytes: family === "Stolzl" ? brand.stolzl : brand.figtree,
+    text,
+    size,
+    weight,
+    tracking,
   });
+  const offset =
+    anchor === "middle"
+      ? (outline.left + outline.right) / 2
+      : anchor === "start"
+        ? outline.left
+        : outline.right;
+  return `<g data-vertical-text="true" data-x="${x}" data-y="${baseline}" text-anchor="${anchor}" fill="${fill}" font-family="${family}" font-size="${size}" font-weight="${weight}" letter-spacing="${tracking}em" aria-label="${escapeXml(text)}" data-ink-width="${outline.right - outline.left}"><g transform="translate(${x - offset} ${baseline})">${outline.paths}</g></g>`;
+}
+
+function verticalTextBlock(
+  brand: BrandAssets,
+  layout: TextLayout,
+  top: number,
+  family: "Stolzl" | "Figtree",
+  weight: number,
+  fill: string,
+  maxWidth = VERTICAL_FRAME.width,
+): string {
+  const outlines = layout.lines.map((text) =>
+    outlineText({
+      bytes: family === "Stolzl" ? brand.stolzl : brand.figtree,
+      text,
+      size: layout.fontSize,
+      weight,
+    }),
+  );
+  const inkTop = Math.min(
+    ...outlines.map(
+      (outline, index) => index * layout.lineHeight + outline.top,
+    ),
+  );
+  const inkBottom = Math.max(
+    ...outlines.map(
+      (outline, index) => index * layout.lineHeight + outline.bottom,
+    ),
+  );
+  const inkWidth = Math.max(
+    ...outlines.map((outline) => outline.right - outline.left),
+  );
+  // Preserve the shared fitted box while accounting for the actual canonical
+  // glyph extents. Uniform scaling keeps letterforms undistorted.
+  const scale = Math.min(
+    1,
+    maxWidth / inkWidth,
+    layout.height / (inkBottom - inkTop),
+  );
+  const baseline =
+    top + (layout.height - (inkBottom - inkTop) * scale) / 2 - inkTop * scale;
+  return layout.lines
+    .map((line, index) =>
+      verticalText(
+        brand,
+        line,
+        0,
+        baseline + index * layout.lineHeight * scale,
+        family,
+        layout.fontSize * scale,
+        weight,
+        fill,
+      ),
+    )
+    .join("");
 }
 
 function verticalBrand(
@@ -448,18 +489,26 @@ function verticalBrand(
   const mark = Buffer.from(
     treatment.inverse ? brand.inverseMarkSvg : brand.markSvg,
   ).toString("base64");
-  const wordWidth = VERTICAL_BRAND_WORD_WIDTH;
+  const word = outlineText({
+    bytes: brand.figtree,
+    text: "Troco",
+    size: VERTICAL_BRAND_FONT_SIZE,
+    weight: 700,
+    tracking: -0.04,
+  });
+  const wordWidth = word.right - word.left;
   const left = -(VERTICAL_MARK_SIZE + VERTICAL_BRAND_GAP + wordWidth) / 2;
   const wordCenter =
     left + VERTICAL_MARK_SIZE + VERTICAL_BRAND_GAP + wordWidth / 2;
   return {
     definitions: `<defs><clipPath id="vertical-brand-clip"><rect x="${left}" y="0" width="${VERTICAL_MARK_SIZE}" height="${VERTICAL_MARK_SIZE}" rx="${VERTICAL_MARK_SIZE * 0.22}"/></clipPath></defs>`,
     content: `<image x="${left}" y="0" width="${VERTICAL_MARK_SIZE}" height="${VERTICAL_MARK_SIZE}" clip-path="url(#vertical-brand-clip)" href="data:image/svg+xml;base64,${mark}"/>
-    <text data-brand-word="true" x="${wordCenter}" y="${VERTICAL_MARK_SIZE / 2}" dominant-baseline="central" fill="${treatment.foreground}" font-family="Figtree" font-size="${VERTICAL_BRAND_FONT_SIZE}" font-weight="700" letter-spacing="-0.04em" textLength="${wordWidth}" lengthAdjust="spacingAndGlyphs">Troco</text>`,
+    ${verticalText(brand, "Troco", wordCenter, VERTICAL_MARK_SIZE / 2 - (word.top + word.bottom) / 2, "Figtree", VERTICAL_BRAND_FONT_SIZE, 700, treatment.foreground, "middle", -0.04)}`,
   };
 }
 
 function verticalItemSvg(
+  brand: BrandAssets,
   plan: CampaignPlan,
   scene: VerticalScene,
   item: VerticalItem,
@@ -475,8 +524,7 @@ function verticalItemSvg(
     size: number,
     fill = treatment.foreground,
     weight = 700,
-  ) =>
-    `<text x="0" y="${y}" fill="${fill}" font-family="Figtree" font-size="${size}" font-weight="${weight}">${escapeXml(value)}</text>`;
+  ) => verticalText(brand, value, 0, y, "Figtree", size, weight, fill);
   const card = (fill: string) =>
     `<rect x="${left}" y="${top}" width="${VERTICAL_FRAME.width}" height="${height}" rx="40" fill="${fill}"/>`;
   switch (item.kind) {
@@ -493,7 +541,14 @@ function verticalItemSvg(
         800,
       );
     case "message":
-      return textBlock(item.text!, 0, top, "Stolzl", 400, treatment.foreground);
+      return verticalTextBlock(
+        brand,
+        item.text!,
+        top,
+        "Stolzl",
+        400,
+        treatment.foreground,
+      );
     case "progress":
       return label(
         `${String(verticalScenes.indexOf(scene) + 1).padStart(2, "0")}/04`,
@@ -506,25 +561,25 @@ function verticalItemSvg(
       const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
       const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
       return `${card(treatment.surface)}
-        <text x="${contentLeft}" y="${top + 150}" text-anchor="start" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="40">COMPRA</text>
-        <text x="${contentRight}" y="${top + 154}" text-anchor="end" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="72" font-weight="700">${escapeXml(purchase)}</text>
+        ${verticalText(brand, "COMPRA", contentLeft, top + 150, "Figtree", 40, 400, treatment.surfaceForeground, "start")}
+        ${verticalText(brand, purchase, contentRight, top + 154, "Figtree", 72, 700, treatment.surfaceForeground, "end")}
         <line x1="${contentLeft}" x2="${contentRight}" y1="${top + 230}" y2="${top + 230}" stroke="${treatment.surfaceForeground}" stroke-width="2"/>
-        <text x="${contentLeft}" y="${top + 370}" text-anchor="start" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="40">RECEBIDO</text>
-        <text x="${contentRight}" y="${top + 374}" text-anchor="end" fill="${treatment.surfaceForeground}" font-family="Figtree" font-size="72" font-weight="700">${escapeXml(received)}</text>
+        ${verticalText(brand, "RECEBIDO", contentLeft, top + 370, "Figtree", 40, 400, treatment.surfaceForeground, "start")}
+        ${verticalText(brand, received, contentRight, top + 374, "Figtree", 72, 700, treatment.surfaceForeground, "end")}
         <rect x="${left + 32}" y="${top + 458}" width="${VERTICAL_FRAME.width - 64}" height="126" rx="30" fill="${treatment.surfaceForeground}"/>
         ${label("QUAL É O TROCO?", top + 538, 48, treatment.surface)}`;
     }
     case "answer_card":
       return `${card(treatment.surface)}
       ${label("UMA FORMA DE SEPARAR", top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT, 30, treatment.surfaceForeground)}
-      ${textBlock(item.text!, 0, top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT + VERTICAL_SUPPORT_GAP, "Figtree", 400, treatment.surfaceForeground)}`;
+      ${verticalTextBlock(brand, item.text!, top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT + VERTICAL_SUPPORT_GAP, "Figtree", 400, treatment.surfaceForeground, VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2)}`;
     case "cta":
       if (scene === "hook")
         return `${card(treatment.surfaceForeground)}
         ${label("DESCUBRA NO VÍDEO", top + 80, 46, treatment.surface)}
         ${label("12s →", top + 140, 40, treatment.surface)}`;
       return `${card(treatment.surfaceForeground)}
-        ${textBlock(item.text!, 0, top + VERTICAL_CARD_INSET, "Figtree", 700, treatment.surface)}
+        ${verticalTextBlock(brand, item.text!, top + VERTICAL_CARD_INSET, "Figtree", 700, treatment.surface, VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2)}
         ${label("troco.net", top + VERTICAL_CARD_INSET + item.text!.height + VERTICAL_SUPPORT_GAP + VERTICAL_URL_HEIGHT, 36, treatment.surface)}`;
   }
 }
@@ -542,12 +597,11 @@ function verticalSvg(
   // The clip definition lives outside the stack; only visible items contribute to its bounds.
   const lockup = verticalBrand(brand, treatment);
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${VERTICAL_HEIGHT}" viewBox="0 0 ${WIDTH} ${VERTICAL_HEIGHT}">
-    ${embeddedFonts(brand)}
     <rect width="${WIDTH}" height="${VERTICAL_HEIGHT}" fill="${treatment.background}"/>
     ${lockup.definitions}
     <g data-vertical-stack="true" transform="translate(540 ${layout.top})" text-anchor="middle">
       ${lockup.content}
-      ${items.map((item) => verticalItemSvg(plan, scene, item, treatment)).join("")}
+      ${items.map((item) => verticalItemSvg(brand, plan, scene, item, treatment)).join("")}
     </g>
   </svg>`;
 }
