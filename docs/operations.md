@@ -87,6 +87,9 @@ unchanged.
 
 - Confirm the brand header, kicker, and headline form one centered block.
 - Confirm at least 40 pixels of lateral padding in 1080-pixel artwork.
+- Confirm 72-pixel gaps between major sections and larger readable body text.
+- Practical lessons use a small contextual illustration, an official accent
+  color, and no decorative clutter or simulated CTA button.
 - Confirm the closing CTA reads “→ Link na bio” as plain centered text, without a button.
 - Confirm all essential content remains inside the square crop-safe region.
 - Compare the dedicated JPEG with the video's two-second frame.

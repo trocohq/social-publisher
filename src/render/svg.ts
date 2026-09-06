@@ -17,6 +17,11 @@ import {
 import { safeAreaFor } from "./safe-area.js";
 import { outlineText } from "./font-paths.js";
 import {
+  lessonAccent,
+  lessonIllustrationFor,
+  lessonIllustrationSvg,
+} from "./lesson-illustration.js";
+import {
   treatmentForCampaign,
   type VerticalTreatment,
 } from "./vertical-treatment.js";
@@ -37,21 +42,21 @@ const CONTAINER_INSET = 48;
 
 export const THUMBNAIL_CROP_TOP = 420;
 export const THUMBNAIL_CROP_BOTTOM = 1500;
-const VERTICAL_MARK_SIZE = 82;
+const VERTICAL_MARK_SIZE = 96;
 const VERTICAL_BRAND_FONT_SIZE = VERTICAL_MARK_SIZE * (26 / 32);
 const VERTICAL_BRAND_GAP = VERTICAL_MARK_SIZE * (10 / 32);
 const VERTICAL_PLATFORM_SAFE_TOP = 250;
 const VERTICAL_PLATFORM_SAFE_BOTTOM = 1670;
-const VERTICAL_LABEL_HEIGHT = 28;
-const VERTICAL_LABEL_GAP = 16;
-const THUMBNAIL_KICKER_HEIGHT = 38;
-const THUMBNAIL_MESSAGE_INSET = 16;
-const VERTICAL_SECTION_GAP = 40;
+const VERTICAL_LABEL_HEIGHT = 38;
+const VERTICAL_LABEL_GAP = 32;
+const THUMBNAIL_KICKER_HEIGHT = 48;
+const THUMBNAIL_MESSAGE_INSET = 40;
+const VERTICAL_SECTION_GAP = 72;
 const VERTICAL_CARD_INSET = 48;
 const VERTICAL_SCENARIO_CARD_HEIGHT = 620;
-const VERTICAL_PROGRESS_HEIGHT = 28;
-const VERTICAL_SUPPORT_LABEL_HEIGHT = 36;
-const VERTICAL_SUPPORT_GAP = 24;
+const VERTICAL_PROGRESS_HEIGHT = 38;
+const VERTICAL_SUPPORT_LABEL_HEIGHT = 44;
+const VERTICAL_SUPPORT_GAP = 36;
 
 const familyLabels: Readonly<Record<CampaignFamily, string>> = {
   change_challenge: "DESAFIO DO TROCO",
@@ -260,7 +265,8 @@ type VerticalItem = Readonly<{
     | "scenario_card"
     | "answer_card"
     | "cta"
-    | "progress";
+    | "progress"
+    | "lesson_visual";
   top: number;
   height: number;
   text?: TextLayout;
@@ -295,6 +301,7 @@ function verticalItems(
       plan.copy.lesson &&
       (scene === "scenario" || scene === "answer")
     ) {
+      if (scene === "scenario") add("lesson_visual", 160, 56);
       const text = fitText(
         scene === "scenario"
           ? plan.copy.lesson.setup
@@ -306,8 +313,8 @@ function verticalItems(
       const title = fitText("Dois valores. Uma conta.", {
         maxWidth: VERTICAL_FRAME.width,
         maxHeight: 260,
-        maximumFontSize: 96,
-        minimumFontSize: 72,
+        maximumFontSize: 108,
+        minimumFontSize: 80,
       });
       add("message", title.height, VERTICAL_SECTION_GAP, title);
       add("scenario_card", VERTICAL_SCENARIO_CARD_HEIGHT);
@@ -316,8 +323,8 @@ function verticalItems(
       const answer = fitText(plan.copy.answer, {
         maxWidth: VERTICAL_FRAME.width,
         maxHeight: 390,
-        maximumFontSize: 180,
-        minimumFontSize: 80,
+        maximumFontSize: 192,
+        minimumFontSize: 88,
       });
       add("message", answer.height, VERTICAL_SECTION_GAP, answer);
       const detail = plan.scenario.breakdown
@@ -329,8 +336,8 @@ function verticalItems(
       const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
         maxWidth: VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2,
         maxHeight: 420,
-        maximumFontSize: 52,
-        minimumFontSize: 40,
+        maximumFontSize: 60,
+        minimumFontSize: 46,
       });
       add(
         "answer_card",
@@ -530,7 +537,18 @@ function verticalItemSvg(
     case "brand":
       return "";
     case "label":
-      return label(familyLabels[plan.family], top + height, 24);
+      return (
+        label(familyLabels[plan.family], top + height, 32) +
+        (plan.copy.lesson
+          ? `<path d="M-48 ${top + height + 28}H48" stroke="${lessonAccent(treatment)}" stroke-width="8" stroke-linecap="round"/>`
+          : "")
+      );
+    case "lesson_visual":
+      return lessonIllustrationSvg(
+        lessonIllustrationFor(plan.copy.lesson!.headline),
+        top,
+        treatment,
+      );
     case "kicker":
       return label(
         plan.copy.lesson
@@ -539,7 +557,7 @@ function verticalItemSvg(
             ? "FAÇA A CONTA"
             : "O TROCO CERTO É",
         top + height,
-        38,
+        48,
         treatment.foreground,
         800,
       );
@@ -556,7 +574,7 @@ function verticalItemSvg(
       return label(
         `${String(verticalScenes.indexOf(scene) + 1).padStart(2, "0")}/04`,
         top + height,
-        24,
+        32,
         treatment.foreground,
         400,
       );
@@ -564,17 +582,17 @@ function verticalItemSvg(
       const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
       const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
       return `${card(treatment.surface)}
-        ${verticalText(brand, "COMPRA", contentLeft, top + 150, "Figtree", 40, 400, treatment.surfaceForeground, "start")}
-        ${verticalText(brand, purchase, contentRight, top + 154, "Figtree", 72, 700, treatment.surfaceForeground, "end")}
+        ${verticalText(brand, "COMPRA", contentLeft, top + 150, "Figtree", 46, 400, treatment.surfaceForeground, "start")}
+        ${verticalText(brand, purchase, contentRight, top + 154, "Figtree", 84, 700, treatment.surfaceForeground, "end")}
         <line x1="${contentLeft}" x2="${contentRight}" y1="${top + 230}" y2="${top + 230}" stroke="${treatment.surfaceForeground}" stroke-width="2"/>
-        ${verticalText(brand, "RECEBIDO", contentLeft, top + 370, "Figtree", 40, 400, treatment.surfaceForeground, "start")}
-        ${verticalText(brand, received, contentRight, top + 374, "Figtree", 72, 700, treatment.surfaceForeground, "end")}
+        ${verticalText(brand, "RECEBIDO", contentLeft, top + 370, "Figtree", 46, 400, treatment.surfaceForeground, "start")}
+        ${verticalText(brand, received, contentRight, top + 374, "Figtree", 84, 700, treatment.surfaceForeground, "end")}
         <rect x="${left + 32}" y="${top + 458}" width="${VERTICAL_FRAME.width - 64}" height="126" rx="30" fill="${treatment.surfaceForeground}"/>
-        ${label("QUAL É O TROCO?", top + 538, 48, treatment.surface)}`;
+        ${label("QUAL É O TROCO?", top + 538, 56, treatment.surface)}`;
     }
     case "answer_card":
       return `${card(treatment.surface)}
-      ${label("UMA FORMA DE SEPARAR", top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT, 30, treatment.surfaceForeground)}
+      ${label("UMA FORMA DE SEPARAR", top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT, 36, treatment.surfaceForeground)}
       ${verticalTextBlock(brand, item.text!, top + VERTICAL_CARD_INSET + VERTICAL_SUPPORT_LABEL_HEIGHT + VERTICAL_SUPPORT_GAP, "Figtree", 400, treatment.surfaceForeground, VERTICAL_FRAME.width - VERTICAL_CARD_INSET * 2)}`;
     case "cta":
       return verticalTextBlock(

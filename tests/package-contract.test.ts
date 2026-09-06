@@ -151,7 +151,7 @@ test("operations document the deterministic crop-safe video cover", async () => 
   );
   assert.match(readme, /dedicated 1080×1920 video thumbnail/u);
   assert.match(readme, /same\s+opening scene/iu);
-  assert.match(operations, /40-pixel gaps/u);
+  assert.match(operations, /72-pixel gaps/u);
   assert.match(operations, /two-second frame/u);
   assert.match(operations, /square crop-safe region/u);
 });

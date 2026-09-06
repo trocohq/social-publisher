@@ -269,11 +269,11 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
   assert.doesNotMatch(hook, /01\/04/u);
   assert.match(
     scenario,
-    /font-family="Figtree" font-size="72"[^>]*aria-label="R\$/u,
+    /font-family="Figtree" font-size="84"[^>]*aria-label="R\$/u,
   );
   assert.match(
     answer,
-    /font-family="Stolzl" font-size="180"[^>]*aria-label="R\$/u,
+    /font-family="Stolzl" font-size="192"[^>]*aria-label="R\$/u,
   );
   const displaySize = Number(
     endCard.match(
@@ -281,12 +281,12 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
     )?.[1],
   );
   assert.ok(
-    displaySize >= 52 && displaySize <= 72,
+    displaySize >= 64 && displaySize <= 92,
     `end card display size ${displaySize}`,
   );
   assert.match(
     endCard,
-    /font-family="Figtree" font-size="56" font-weight="700"/u,
+    /font-family="Figtree" font-size="68" font-weight="700"/u,
   );
   assert.match(endCard, /data-x="0"[^>]*aria-label="→ Link na bio"/u);
   assert.doesNotMatch(endCard, /rx="40"|troco\.net/u);
@@ -402,7 +402,7 @@ test("vertical treatments share canonical rounded web lockups across all scenes"
       assert.equal(Number(clip.match(/height="([\d.]+)"/u)?.[1]), size);
       const wordWidth = Number(word.match(/data-ink-width="([\d.]+)"/u)?.[1]);
       assert.ok(
-        wordWidth > 150 && wordWidth < 175,
+        wordWidth / size > 150 / 82 && wordWidth / size < 175 / 82,
         "word label uses canonical glyph bounds",
       );
       const markLeft = Number(image.match(/x="(-?[\d.]+)"/u)?.[1]);
@@ -440,7 +440,7 @@ test("long fitting end cards remain inside platform overlay limits", () => {
   assert.equal((layout.top + layout.bottom) / 2, 960);
 });
 
-test("text-only CTA keeps long end cards inside the platform-safe stack", () => {
+test("larger body text rejects an overlong end card instead of squeezing it", () => {
   const base = createCampaign({
     localDate: "2026-08-27",
     publishTime: "12:17",
@@ -454,8 +454,10 @@ test("text-only CTA keeps long end cards inside the platform-safe stack", () => 
       cta: "Treine seu troco agora. ".repeat(4),
     },
   };
-  const layout = svgRenderer.verticalStackLayout(plan, "end_card");
-  assert.ok(layout.top >= layout.safeTop && layout.bottom <= layout.safeBottom);
+  assert.throws(
+    () => svgRenderer.verticalStackLayout(plan, "end_card"),
+    /Vertical scene end_card.*(?:fit|safe area)/u,
+  );
 });
 
 test("oversized vertical copy reports the scene instead of clipping", () => {

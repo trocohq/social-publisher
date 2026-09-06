@@ -68,30 +68,30 @@ export const verticalTextLayouts: CopyTextLayouts = Object.freeze({
   headline: Object.freeze({
     maxWidth: 1000,
     maxHeight: 980,
-    maximumFontSize: 124,
-    minimumFontSize: 76,
+    maximumFontSize: 136,
+    minimumFontSize: 84,
   }),
   explanation: Object.freeze({
     maxWidth: 1000,
     maxHeight: 760,
-    maximumFontSize: 72,
-    minimumFontSize: 52,
-    lineHeightRatio: 1.1,
+    maximumFontSize: 92,
+    minimumFontSize: 64,
+    lineHeightRatio: 1.18,
   }),
   cta: Object.freeze({
     maxWidth: 924,
     maxHeight: 260,
-    maximumFontSize: 56,
-    minimumFontSize: 46,
+    maximumFontSize: 68,
+    minimumFontSize: 56,
   }),
 });
 
 export const thumbnailHeadlineLayout: FitTextOptions = Object.freeze({
   maxWidth: 1000,
   maxHeight: 600,
-  maximumFontSize: 124,
-  minimumFontSize: 80,
-  lineHeightRatio: 1.02,
+  maximumFontSize: 136,
+  minimumFontSize: 88,
+  lineHeightRatio: 1.1,
 });
 
 export function measureText(value: string, fontSize: number): number {
