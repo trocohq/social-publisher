@@ -9,12 +9,13 @@ Update Troco's shared 1080×1920 short-form video so Instagram Reels and TikTok 
 - Change the vertical `short.mp4` used for Instagram Reels and TikTok.
 - Keep feed and carousel images unchanged.
 - Keep Facebook and YouTube publishing behavior unchanged.
-- Preserve the existing 12-second video, four 3-second scenes, encoding contract, brand assets, palettes, and copy.
+- Preserve the existing 12-second video, four 3-second scenes, encoding contract, palettes, and copy.
+- Use the canonical Troco mark from `frontend/public/brand/troco-mark.svg`; no placeholder, redrawn, or substitute logo is allowed.
 - Store the two approved audio files under `assets/music/` with their source attribution and integrity hashes.
 
 ## Visual Layout
 
-Each vertical scene will expose one content stack containing all visible elements for that scene: brand identification, editorial label when present, primary message, supporting card or CTA, and progress indicator when present.
+Each vertical scene will expose one content stack containing all visible elements for that scene: the canonical mark loaded from `frontend/public/brand/troco-mark.svg`, the `TROCO` word label, editorial label when present, primary message, supporting card or CTA, and progress indicator when present.
 
 The renderer will calculate the stack's total height and place it at the vertical midpoint of the platform-safe area. Every stack item will use the canvas midpoint (`x = 540`) as its horizontal alignment axis. Text will be centered, cards and CTA surfaces will have equal left and right bounds, and internal value rows will remain readable while their containing card stays centered.
 
@@ -38,6 +39,7 @@ Both sources must pass digest, duration, channel-count, and sample-rate validati
 - `src/render/music.ts`: define the two-track catalog, source metadata, validation, and campaign-ID-based selection.
 - `src/render/video.ts`: request the selected soundtrack using `plan.id` and pass its file to FFmpeg.
 - `src/render/svg.ts`: calculate and render centered vertical stacks without changing feed SVGs.
+- `src/brand/load-brand.ts`: continue loading and integrity-checking the canonical frontend mark; the vertical renderer receives it through `BrandAssets`.
 - `assets/music/`: contain the approved source audio and attribution documentation.
 - Tests: cover deterministic music selection, both-track reachability, source integrity, centered stack bounds, thumbnail consistency, and unchanged output contracts.
 
@@ -53,4 +55,5 @@ Rendering stops before publishing when an audio source is missing, has a digest 
 4. Each campaign selects either `funked-up` or `funky-house` from its campaign ID, and rerenders select the same track.
 5. A representative set of campaign IDs reaches both tracks.
 6. Feed/carousel rendering and non-video publishing contracts do not change.
-7. `npm run check` and `npm run validate` pass.
+7. Every vertical scene embeds the hash-verified `frontend/public/brand/troco-mark.svg`, with no substitute mark.
+8. `npm run check` and `npm run validate` pass.
