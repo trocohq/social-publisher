@@ -2,6 +2,37 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import test from "node:test";
 
+test("shadow credentials are opt-in and scoped only to the publishing step", async () => {
+  const workflow = await readFile(
+    new URL("../.github/workflows/publish.yml", import.meta.url),
+    "utf8",
+  );
+  const publish =
+    workflow
+      .split("- name: Publish one isolated action at a time")[1]
+      ?.split("- name:")[0] ?? "";
+  assert.ok(
+    publish.includes(
+      "PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}",
+    ),
+  );
+  for (const name of [
+    "PUBLISHING_ENDPOINT",
+    "PUBLISHING_CLIENT_ID",
+    "PUBLISHING_CLIENT_SECRET",
+  ]) {
+    assert.ok(
+      publish.includes(
+        name +
+          ": ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets." +
+          name +
+          " || '' }}",
+      ),
+    );
+    assert.equal(workflow.split("secrets." + name).length, 2);
+  }
+});
+
 test("validation is manual during the platform migration", async () => {
   const workflow = await readFile(
     new URL("../.github/workflows/validate.yml", import.meta.url),

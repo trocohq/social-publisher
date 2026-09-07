@@ -215,6 +215,10 @@ jobs:
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         env:
+          PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISHING_ENDPOINT: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_ENDPOINT || '' }}
+          PUBLISHING_CLIENT_ID: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_ID || '' }}
+          PUBLISHING_CLIENT_SECRET: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_SECRET || '' }}
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
         run: |
           set -euo pipefail
