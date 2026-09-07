@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: write
+  actions: read
   pages: write
   id-token: write
   issues: write
@@ -137,10 +138,35 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
+      - name: Restore verified media archive
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        working-directory: publisher
+        run: |
+          set -euo pipefail
+          archives="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '.artifacts[] | select((.name == "campaign-media-archive" or .name == "verified-recovery-media") and .expired == false and .workflow_run.head_branch == "main") | .id')"
+          archive_id="${archives%%$'\n'*}"
+          if [[ -n "$archive_id" ]]; then
+            [[ "$archive_id" =~ ^[0-9]+$ ]]
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$archive_id/zip" > "$RUNNER_TEMP/troco-media.zip"
+            mkdir -p .tmp/render
+            unzip -q "$RUNNER_TEMP/troco-media.zip" -d .tmp/render
+          fi
+
       - name: Plan rolling campaigns
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: npm run plan
+
+      - name: Preserve verified media archive
+        if: success() && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
+        with:
+          name: campaign-media-archive
+          path: publisher/.tmp/pages/media
+          retention-days: 30
+          if-no-files-found: error
 
       - name: Commit campaign plans
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'

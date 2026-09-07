@@ -6,7 +6,7 @@ import { publicationChannels } from "../config/channels.js";
 import { parseEnvironment } from "../config/environment.js";
 import { mediaRecordFromState } from "../media/manifest.js";
 import { createPagesPayload, datesInPagesPayload } from "../media/pages.js";
-import { restorePublicMedia } from "../media/restore-public.js";
+import { ensureImmutableMedia } from "../media/immutable.js";
 import {
   createCampaign,
   historyEntryFromCampaign,
@@ -137,31 +137,19 @@ export async function runPlanning(
       left.plan.localDate.localeCompare(right.plan.localDate),
     );
   for (const state of included) {
-    const rendered = await renderCampaign(
+    await ensureImmutableMedia({
       state,
-      brand,
       renderRoot,
-      environment.ffmpegPath,
-      environment.ffprobePath,
-    );
-    const renderChanged =
-      JSON.stringify(rendered.feed.hashes) !==
-        JSON.stringify(state.renderHashes.feed) ||
-      rendered.video.hash !== state.renderHashes.video;
-    if (renderChanged) {
-      try {
-        await restorePublicMedia({
+      pagesOrigin: environment.pagesOrigin,
+      render: (scratchRoot) =>
+        renderCampaign(
           state,
-          pagesOrigin: environment.pagesOrigin,
-          renderRoot,
-        });
-      } catch (error) {
-        throw new Error(
-          `Render hash changed for immutable campaign ${state.plan.id} and its published media could not be restored`,
-          { cause: error },
-        );
-      }
-    }
+          brand,
+          scratchRoot,
+          environment.ffmpegPath,
+          environment.ffprobePath,
+        ),
+    });
   }
   await createPagesPayload({
     today: localDateAt(now),
