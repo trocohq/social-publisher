@@ -22,7 +22,10 @@ import {
 } from "../publishing/execute.js";
 import { persistPublicationIntent } from "../publishing/intent.js";
 import type { PublicationAction } from "../publishing/next-action.js";
-import { submitPlatformShadow } from "../publishing/platform-bridge.js";
+import {
+  capturePlatformMedia,
+  submitPlatformShadow,
+} from "../publishing/platform-bridge.js";
 import { localDateAt } from "../shared/time.js";
 import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import { readCampaignState, writeCampaignState } from "../state/storage.js";
@@ -287,9 +290,13 @@ export async function runPublish(
         : "publishing",
   };
 
+  const renderRoot = resolve(flags.get("--render-root") ?? ".tmp/render");
   if (phase === "intent") {
     const intended = await persistPublicationIntent({
-      state,
+      state:
+        source.PUBLISHING_SHADOW_ENABLED === "true"
+          ? await capturePlatformMedia({ state, renderRoot })
+          : state,
       action,
       now,
       stateRoot,
@@ -305,7 +312,11 @@ export async function runPublish(
   if (activeStage !== "scheduling" && activeStage !== "publishing") {
     throw new Error("Publication execution requires a persisted active intent");
   }
-  const renderRoot = resolve(flags.get("--render-root") ?? ".tmp/render");
+  if (source.PUBLISHING_SHADOW_ENABLED === "true" && !state.platformMedia) {
+    throw new Error(
+      "Publication execution requires a persisted platform media checkpoint",
+    );
+  }
   const shadow = await submitPlatformShadow({
     state,
     renderRoot,

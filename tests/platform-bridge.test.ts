@@ -24,6 +24,203 @@ const environment = {
   PUBLISHING_CLIENT_SECRET: "test-secret",
 };
 
+test("verified checkpoint survives lost response and a fresh runner without media", async () => {
+  const input = await fixture();
+  const recoveryRoot = await mkdtemp(join(tmpdir(), "troco-recovery-"));
+  try {
+    assert.equal(typeof bridge.capturePlatformMedia, "function");
+    const state = await bridge.capturePlatformMedia(input);
+    assert.deepEqual(state.platformMedia?.assets, [
+      { sha256: state.renderHashes.feed[0], byteSize: 13 },
+      { sha256: state.renderHashes.video, byteSize: 14 },
+    ]);
+    assert.equal(input.state.platformMedia, undefined);
+    assert.doesNotMatch(
+      JSON.stringify(state.platformMedia),
+      /filePath|locator|secret|envelope/,
+    );
+    let originalBody = "";
+    await assert.rejects(
+      bridge.submitPlatformShadow({
+        ...input,
+        state,
+        fetchImplementation: async (_url, init) => {
+          originalBody = String(init?.body);
+          throw new Error("response lost after server accepted");
+        },
+      }),
+      /PUBLISHING_SHADOW_SUBMISSION_FAILED/,
+    );
+    await writeCampaignState(recoveryRoot, state);
+    await rm(input.renderRoot, { recursive: true, force: true });
+    const restored = await readCampaignState(
+      recoveryRoot,
+      state.plan.localDate,
+    );
+    assert.deepEqual(restored.platformMedia, state.platformMedia);
+    const requests: string[] = [];
+    assert.deepEqual(
+      await bridge.submitPlatformShadow({
+        ...input,
+        state: restored,
+        outboxDirectory: join(recoveryRoot, "fresh-outbox"),
+        fetchImplementation: async (_url, init) => {
+          requests.push(init!.method!);
+          assert.equal(String(init?.body), originalBody);
+          return Response.json(
+            { publicationId: "remote-accepted" },
+            { status: 202 },
+          );
+        },
+      }),
+      { outcome: "accepted", publicationId: "remote-accepted" },
+    );
+    assert.deepEqual(requests, ["POST"]);
+  } finally {
+    await rm(input.renderRoot, { recursive: true, force: true });
+    await rm(recoveryRoot, { recursive: true, force: true });
+  }
+});
+
+test("checkpoint recovery defers without files and validates all bytes before any upload", async () => {
+  for (const scenario of [
+    "capacity",
+    "missing",
+    "changed-size",
+    "changed-last-file",
+    "upload",
+  ] as const) {
+    const input = await fixture();
+    try {
+      const state = await bridge.capturePlatformMedia(input);
+      const checkpoint = structuredClone(state.platformMedia);
+      if (scenario === "missing" || scenario === "capacity")
+        await rm(input.directory, { recursive: true });
+      if (scenario === "changed-size")
+        state.platformMedia!.assets[1]!.byteSize++;
+      if (scenario === "changed-last-file")
+        await writeFile(join(input.directory, "video/short.mp4"), "changed");
+      const requests: string[] = [];
+      const submission = bridge.submitPlatformShadow({
+        ...input,
+        state,
+        fetchImplementation: async (_url, init) => {
+          requests.push(init!.method!);
+          if (scenario === "capacity")
+            return Response.json(
+              { code: "DAILY_CAPACITY_REJECTED" },
+              { status: 429 },
+            );
+          if (requests.length === 1)
+            return Response.json(
+              { code: "ARTIFACT_NOT_READY" },
+              { status: 409 },
+            );
+          return Response.json(
+            init?.method === "PUT"
+              ? { status: "stored" }
+              : { publicationId: "uploaded" },
+          );
+        },
+      });
+      if (scenario === "capacity") {
+        assert.equal((await submission).outcome, "retry-later");
+      } else if (scenario === "upload") {
+        assert.deepEqual(await submission, {
+          outcome: "accepted",
+          publicationId: "uploaded",
+        });
+      } else {
+        await assert.rejects(submission, /PUBLISHING_SHADOW_MEDIA_INVALID/);
+      }
+      assert.deepEqual(
+        requests,
+        scenario === "upload" ? ["POST", "PUT", "PUT", "POST"] : ["POST"],
+      );
+      if (scenario !== "changed-size")
+        assert.deepEqual(state.platformMedia, checkpoint);
+    } finally {
+      await rm(input.renderRoot, { recursive: true, force: true });
+    }
+  }
+});
+
+test("checkpoint rejects changed approval and malformed evidence before transport", async () => {
+  const input = await fixture();
+  try {
+    const original = await bridge.capturePlatformMedia(input);
+    for (const change of [
+      "copy",
+      "source",
+      "hash",
+      "count",
+      "zero-size",
+      "extra-field",
+    ] as const) {
+      const state = structuredClone(original);
+      if (change === "copy") state.plan.copy.headline += " changed";
+      if (change === "source") state.sourceCommits.brand = "c".repeat(40);
+      if (change === "hash") state.renderHashes.video = "c".repeat(64);
+      if (change === "count") state.platformMedia!.assets.pop();
+      if (change === "zero-size") state.platformMedia!.assets[0]!.byteSize = 0;
+      if (change === "extra-field")
+        Object.assign(state.platformMedia!, { filePath: "/private" });
+      await assert.rejects(
+        bridge.submitPlatformShadow({
+          ...input,
+          state,
+          fetchImplementation: async () => {
+            assert.fail("must reject before network");
+          },
+        }),
+        /PUBLISHING_SHADOW_MEDIA_INVALID/,
+      );
+      await assert.rejects(
+        bridge.capturePlatformMedia({ ...input, state }),
+        /PUBLISHING_SHADOW_MEDIA_INVALID/,
+      );
+    }
+    const state = structuredClone(original);
+    state.channels.instagram.stage = "published";
+    await rm(input.directory, { recursive: true });
+    assert.deepEqual(
+      (await bridge.capturePlatformMedia({ ...input, state })).platformMedia,
+      original.platformMedia,
+    );
+    await assert.rejects(readdir(input.outboxDirectory), { code: "ENOENT" });
+  } finally {
+    await rm(input.renderRoot, { recursive: true, force: true });
+  }
+});
+
+test("checkpoint capture rejects symlinked render roots and internal kind directories", async () => {
+  const input = await fixture();
+  const aliasRoot = await mkdtemp(join(tmpdir(), "troco-alias-"));
+  try {
+    const alias = join(aliasRoot, "render");
+    await symlink(input.renderRoot, alias);
+    await assert.rejects(
+      bridge.capturePlatformMedia({ ...input, renderRoot: alias }),
+      /PUBLISHING_SHADOW_MEDIA_INVALID/,
+    );
+    await rename(
+      join(input.directory, "video"),
+      join(input.directory, "original-video"),
+    );
+    await symlink(
+      join(input.directory, "original-video"),
+      join(input.directory, "video"),
+    );
+    await assert.rejects(
+      bridge.capturePlatformMedia(input),
+      /PUBLISHING_SHADOW_MEDIA_INVALID/,
+    );
+  } finally {
+    await rm(input.renderRoot, { recursive: true, force: true });
+    await rm(aliasRoot, { recursive: true, force: true });
+  }
+});
+
 async function fixture() {
   const root = await mkdtemp(join(tmpdir(), "troco-shadow-"));
   const state = campaignStateFixture({ instagram: "publishing" });
@@ -266,20 +463,36 @@ test("real publish execute entrypoint blocks provider calls on shadow capacity a
     await writeCampaignState(stateRoot, input.state);
     await assert.rejects(
       publish.runPublish(args, { environment: source, fetchImplementation }),
+      /persisted platform media checkpoint/,
+    );
+    assert.equal(requests.length, 0);
+    const intentArgs = args.map((value) =>
+      value === "execute" ? "intent" : value,
+    );
+    await writeCampaignState(stateRoot, inactive);
+    await publish.runPublish(intentArgs, {
+      environment: source,
+      fetchImplementation,
+    });
+    const intended = await readCampaignState(
+      stateRoot,
+      input.state.plan.localDate,
+    );
+    assert.ok(intended.platformMedia);
+    assert.equal(requests.length, 0);
+    await assert.rejects(
+      publish.runPublish(args, { environment: source, fetchImplementation }),
       /Platform shadow deferred/,
     );
     assert.equal(requests.length, 1);
     assert.equal(new URL(requests[0]!).origin, "https://publishing.example");
     assert.deepEqual(
       await readCampaignState(stateRoot, input.state.plan.localDate),
-      input.state,
+      intended,
     );
     assert.equal((await readdir(input.outboxDirectory)).length, 1);
     requests.length = 0;
     await writeCampaignState(stateRoot, inactive);
-    const intentArgs = args.map((value) =>
-      value === "execute" ? "intent" : value,
-    );
     await publish.runPublish(intentArgs, {
       environment: source,
       fetchImplementation,

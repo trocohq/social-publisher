@@ -1,14 +1,16 @@
-import { lstat, realpath } from "node:fs/promises";
-import { isAbsolute, join, relative } from "node:path";
 import {
   createPlatformPublisher,
-  prepareArtifactReference,
   type PlatformSubmissionOutcome,
 } from "@trebla/publishing";
 import { z } from "zod";
-import { mediaRecordFromState } from "../media/manifest.js";
 import { campaignStateSchema, type CampaignState } from "../state/schema.js";
 import { toPlatformShadowEnvelope } from "./platform-envelope.js";
+import {
+  checkpointMedia,
+  platformFilePaths,
+  verifyPlatformMedia,
+} from "./platform-media.js";
+export { capturePlatformMedia } from "./platform-media.js";
 
 const configurationSchema = z.object({
   endpoint: z.string().refine((value) => {
@@ -57,47 +59,15 @@ export async function submitPlatformShadow(
       throw new Error("Invalid publishing shadow configuration");
     failureCode = "PUBLISHING_SHADOW_MEDIA_INVALID";
     const state = campaignStateSchema.parse(input.state);
-    const media = mediaRecordFromState(state);
-    const renderRoot = await realpath(input.renderRoot);
-    // Producer output has kind subdirectories; the legacy flat handoff helper
-    // is intentionally not used here. Validate every file before transport.
-    const uploads = [];
-    for (const asset of media.assets) {
-      const candidate = join(
-        renderRoot,
-        media.localDate,
-        media.campaignId,
-        asset.kind,
-        asset.filename,
-      );
-      const filePath = await realpath(candidate);
-      const fromRoot = relative(renderRoot, filePath);
-      if (
-        fromRoot === ".." ||
-        fromRoot.startsWith("../") ||
-        isAbsolute(fromRoot) ||
-        !(await lstat(candidate)).isFile()
-      ) {
-        throw new Error(
-          "Platform artifact must be a regular file inside render root",
-        );
-      }
-      const extension = asset.kind === "feed" ? "jpg" : "mp4";
-      const reference = await prepareArtifactReference({
-        id: `media-${asset.hash}`,
-        filePath,
-        storage: "r2-temporary",
-        locator: `temporary/troco/${media.campaignId}/${asset.kind}/${asset.hash}.${extension}`,
-        mediaType: asset.contentType,
-        allowedMediaTypes: ["image/jpeg", "video/mp4"],
-        maxByteSize: 50_000_000,
-      });
-      if (reference.sha256 !== asset.hash)
-        throw new Error("Platform artifact does not match approved hash");
-      asset.bytes = reference.byteSize;
-      uploads.push({ reference, filePath });
-    }
+    const media = state.platformMedia
+      ? checkpointMedia(state)
+      : await verifyPlatformMedia(state, input.renderRoot);
     const envelope = toPlatformShadowEnvelope({ state, media });
+    const paths = platformFilePaths(state, input.renderRoot);
+    const uploads = envelope.artifacts.map((reference, index) => ({
+      reference,
+      filePath: paths[index]!,
+    }));
     failureCode = "PUBLISHING_SHADOW_SUBMISSION_FAILED";
     const publisher = createPlatformPublisher({
       outboxDirectory: input.outboxDirectory,
@@ -105,9 +75,28 @@ export async function submitPlatformShadow(
         baseUrl: parsed.data.endpoint,
         clientId: parsed.data.clientId,
         secret: parsed.data.secret,
-        ...(input.fetchImplementation
-          ? { fetch: input.fetchImplementation }
-          : {}),
+        fetch: async (url, init) => {
+          const response = await (input.fetchImplementation ?? fetch)(
+            url,
+            init,
+          );
+          if (
+            state.platformMedia &&
+            init?.method === "POST" &&
+            response.status === 409
+          ) {
+            const body = (await response
+              .clone()
+              .json()
+              .catch(() => null)) as { code?: string } | null;
+            if (body?.code === "ARTIFACT_NOT_READY") {
+              failureCode = "PUBLISHING_SHADOW_MEDIA_INVALID";
+              await verifyPlatformMedia(state, input.renderRoot);
+              failureCode = "PUBLISHING_SHADOW_SUBMISSION_FAILED";
+            }
+          }
+          return response;
+        },
       },
     });
     return await publisher.submit({ envelope, uploads });
