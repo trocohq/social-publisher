@@ -1,0 +1,158 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-13-save-this-rule-v1-7",
+    "localDate": "2026-09-13",
+    "targetAt": "2026-09-13T12:17:00-03:00",
+    "family": "save_this_rule",
+    "recipeId": "save-this-rule-v1",
+    "recipeVersion": 1,
+    "candidate": 7,
+    "seed": "2026-09-13:save_this_rule:v1",
+    "palette": "yellow",
+    "ctaKind": "calculator",
+    "mediaKind": "feed",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 1625,
+      "receivedMinor": 2000,
+      "resultMinor": 375,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 100,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Guarde esta regra. R$ 16,25 na compra. Recebeu R$ 20,00.",
+      "answer": "R$ 3,75",
+      "explanation": "Recebimento legítimo? Devolva pela própria transação. Nunca envie para outra chave recebida por mensagem.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "Guarde esta regra. R$ 16,25 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nRecebimento legítimo? Devolva pela própria transação. Nunca envie para outra chave recebida por mensagem.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-13-save-this-rule-v1-7&utm_content=save_this_rule\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Guarde esta regra. R$ 16,25 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nRecebimento legítimo? Devolva pela própria transação. Nunca envie para outra chave recebida por mensagem.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-13-save-this-rule-v1-7&utm_content=save_this_rule\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Guarde esta regra. R$ 16,25 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nRecebimento legítimo? Devolva pela própria transação. Nunca envie para outra chave recebida por mensagem.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-13-save-this-rule-v1-7&utm_content=save_this_rule\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Guarde esta regra"
+        },
+        "youtube": {
+          "title": "Guarde esta regra. R$ 16,25 na compra. Recebeu R$ 20,00.",
+          "description": "Guarde esta regra. R$ 16,25 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 3,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 1,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nRecebimento legítimo? Devolva pela própria transação. Nunca envie para outra chave recebida por mensagem.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-13-save-this-rule-v1-7&utm_content=save_this_rule\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "safety.refund-original-transaction"
+    ],
+    "fingerprints": {
+      "headline": "ff00af024b64829bf917f3aad9d18df8a967d0ebfaec80b8457b7610e2adc3ea",
+      "caption": "72d154bf60a445cd85bb630ea3433d927058fc47d4c4a514693ef2e94558e6b2"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "cb68a669d0c5891c0839443785a720e344ae7473d940c644a6aedc6f2d0f867f"
+    ],
+    "video": "a770581f3de8ca975c7111ab7296dc79f81c6a02b2a5ef6c84dcf569ea65c69e"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-07T04:41:22.948Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-07T04:41:22.948Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T04:41:22.948Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T04:41:22.948Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T04:41:22.948Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T04:41:22.948Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-07T04:41:22.948Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T04:41:22.948Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T04:41:22.948Z"
+        }
+      ]
+    }
+  }
+}
