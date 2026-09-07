@@ -138,6 +138,30 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
+      - name: Recover interrupted platform submissions
+        if: vars.PUBLISHING_SHADOW_ENABLED == 'true' && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
+        working-directory: publisher
+        env:
+          PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISHING_ENDPOINT: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_ENDPOINT || '' }}
+          PUBLISHING_CLIENT_ID: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_ID || '' }}
+          PUBLISHING_CLIENT_SECRET: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_SECRET || '' }}
+          RECOVERY_MODE: ${{ steps.mode.outputs.value }}
+          RECOVERY_CAMPAIGN: ${{ inputs.campaign_id }}
+          RECOVERY_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [[ "$RECOVERY_MODE" == "controlled" ]]; then
+            extra=(--campaign "$RECOVERY_CAMPAIGN" --confirm "$RECOVERY_CONFIRMATION")
+          fi
+          set +e
+          node --import tsx src/cli/recover-platform.ts --mode "$RECOVERY_MODE" "${extra[@]}"
+          recovery_status=$?
+          set -e
+          scripts/commit-state.sh "chore(state): recover platform acknowledgements [skip ci]"
+          exit "$recovery_status"
+
       - name: Restore verified media archive
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         env:
@@ -158,6 +182,30 @@ jobs:
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         run: npm run plan
+
+      - name: Resume platform submissions with restored media
+        if: vars.PUBLISHING_SHADOW_ENABLED == 'true' && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
+        working-directory: publisher
+        env:
+          PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISHING_ENDPOINT: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_ENDPOINT || '' }}
+          PUBLISHING_CLIENT_ID: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_ID || '' }}
+          PUBLISHING_CLIENT_SECRET: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_SECRET || '' }}
+          RECOVERY_MODE: ${{ steps.mode.outputs.value }}
+          RECOVERY_CAMPAIGN: ${{ inputs.campaign_id }}
+          RECOVERY_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [[ "$RECOVERY_MODE" == "controlled" ]]; then
+            extra=(--campaign "$RECOVERY_CAMPAIGN" --confirm "$RECOVERY_CONFIRMATION")
+          fi
+          set +e
+          node --import tsx src/cli/recover-platform.ts --mode "$RECOVERY_MODE" "${extra[@]}"
+          recovery_status=$?
+          set -e
+          scripts/commit-state.sh "chore(state): resume restored platform submissions [skip ci]"
+          exit "$recovery_status"
 
       - name: Preserve verified media archive
         if: success() && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')

@@ -491,6 +491,35 @@ test("real publish execute entrypoint blocks provider calls on shadow capacity a
       intended,
     );
     assert.equal((await readdir(input.outboxDirectory)).length, 1);
+    let nativeCalls = 0;
+    await assert.rejects(
+      publish.runPublish(args, {
+        environment: source,
+        fetchImplementation: async (url) => {
+          if (new URL(String(url)).origin === "https://publishing.example") {
+            return Response.json(
+              { publicationId: "shadow-confirmed" },
+              { status: 202 },
+            );
+          }
+          const beforeNative = await readCampaignState(
+            stateRoot,
+            input.state.plan.localDate,
+          );
+          assert.match(
+            beforeNative.platformShadow?.acknowledgedEnvelopeSha256 ?? "",
+            /^[a-f0-9]{64}$/,
+          );
+          nativeCalls++;
+          throw new Error("native transport deliberately unavailable");
+        },
+      }),
+      /Provider execution ended in/,
+    );
+    assert.ok(
+      nativeCalls > 0,
+      "acknowledgement must be durable before native transport",
+    );
     requests.length = 0;
     await writeCampaignState(stateRoot, inactive);
     await publish.runPublish(intentArgs, {

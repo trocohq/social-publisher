@@ -78,3 +78,7 @@ export async function listCampaignStates(
     index.campaigns.map((date) => readCampaignState(root, date)),
   );
 }
+
+export async function listCampaignStateDates(root: string): Promise<string[]> {
+  return (await loadIndex(root)).campaigns;
+}

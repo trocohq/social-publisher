@@ -27,6 +27,7 @@ import {
   submitPlatformShadow,
 } from "../publishing/platform-bridge.js";
 import { localDateAt } from "../shared/time.js";
+import { acknowledgePlatformShadow } from "../publishing/platform-recovery.js";
 import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import { readCampaignState, writeCampaignState } from "../state/storage.js";
 
@@ -279,7 +280,7 @@ export async function runPublish(
     publicationTimeZone: planningEnvironment.publicationTimeZone,
   });
   const stateRoot = resolve(flags.get("--state-root") ?? "state");
-  const state = await readCampaignState(stateRoot, parsedAction.localDate);
+  let state = await readCampaignState(stateRoot, parsedAction.localDate);
   if (state.plan.id !== parsedAction.campaignId)
     throw new Error("Action campaign does not match state");
   const action: PublicationAction = {
@@ -330,6 +331,10 @@ export async function runPublish(
   });
   if (shadow.outcome === "retry-later") {
     throw new Error("Platform shadow deferred; retry this invocation later");
+  }
+  if (shadow.outcome === "accepted" || shadow.outcome === "already-accepted") {
+    state = acknowledgePlatformShadow(state);
+    await writeCampaignState(stateRoot, state);
   }
   const adapters = providerAdaptersForAction({
     state,

@@ -75,6 +75,10 @@ export const campaignStateSchema = z.object({
     video: hashSchema,
   }),
   platformMedia: platformMediaSchema.optional(),
+  platformShadow: z.object({
+    acknowledgedEnvelopeSha256: hashSchema.optional(),
+    lastAttemptAt: z.iso.datetime({ offset: true }).optional(),
+  }).strict().optional(),
   media: stageRecordSchema,
   channels: z.object({
     instagram: stageRecordSchema,
