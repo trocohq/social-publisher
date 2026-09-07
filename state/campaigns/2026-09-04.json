@@ -112,7 +112,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "scheduled",
+      "stage": "failed",
       "attempts": 1,
       "transitions": [
         {
@@ -139,10 +139,19 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-29T03:12:54.176Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "failed",
+          "at": "2026-09-07T00:23:10.580Z"
         }
       ],
       "providerId": "6a924e37aa187a14a5e8a616",
-      "scheduledAt": "2026-09-04T15:17:00.000Z"
+      "scheduledAt": "2026-09-04T15:17:00.000Z",
+      "lastError": {
+        "category": "buffer_async_failure",
+        "message": "Buffer reported an asynchronous delivery failure"
+      }
     },
     "facebook": {
       "stage": "scheduled",
