@@ -1,0 +1,157 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-11-safe-checkout-v1-1",
+    "localDate": "2026-09-11",
+    "targetAt": "2026-09-11T12:17:00-03:00",
+    "family": "safe_checkout",
+    "recipeId": "safe-checkout-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-11:safe_checkout:v1",
+    "palette": "green",
+    "ctaKind": "calculator",
+    "mediaKind": "carousel",
+    "slideCount": 4,
+    "scenario": {
+      "purchaseMinor": 4725,
+      "receivedMinor": 5000,
+      "resultMinor": 275,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 200,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Pare e confira. R$ 47,25 na compra. Recebeu R$ 50,00.",
+      "answer": "R$ 2,75",
+      "explanation": "Print não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.",
+      "cta": "Faça a próxima conta com o Troco.",
+      "channels": {
+        "instagram": {
+          "caption": "Pare e confira. R$ 47,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-11-safe-checkout-v1-1&utm_content=safe_checkout\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Pare e confira. R$ 47,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-11-safe-checkout-v1-1&utm_content=safe_checkout\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Pare e confira. R$ 47,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-11-safe-checkout-v1-1&utm_content=safe_checkout\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Pare e confira"
+        },
+        "youtube": {
+          "title": "Pare e confira. R$ 47,25 na compra. Recebeu R$ 50,00.",
+          "description": "Pare e confira. R$ 47,25 na compra. Recebeu R$ 50,00.\n\nA resposta é R$ 2,75.\nUma forma: 1 nota de R$ 2,00 + 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nPrint não confirma Pix. Libere a venda ou a devolução só depois de ver o crédito na conta.\n\nFaça a próxima conta com o Troco.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-11-safe-checkout-v1-1&utm_content=safe_checkout\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "safety.confirm-pix-credit"
+    ],
+    "fingerprints": {
+      "headline": "e358fbb6bf85d0701876b1f2f561f93edaf638ae4fee3452331d8728a146d191",
+      "caption": "d0ec61904fe36c8640aac07e517e7569f1cf92dc689c606b16a4a2ead7a86a55"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "ff75d2fd33a8bd7d97559d1ed660563f72a052a24aae8db4aefd1e698143461c",
+      "fe419a3554cbc462dffe1b33cb001e1e31db63d60123eb4aa854461b543004be",
+      "812691c850857485b57e7a69f82d74bfa7c6e01a0cbd348bdc1f9fecd655b02b",
+      "902572b56986d5b6689b5667f6cc9e6152aa30d947267eed9eee0a82e55cab2e"
+    ],
+    "video": "3c81ce38e9a6e71f6a6e6bcc0a492cf9fce5f8d7e8328fcb2d82187e919b7e12"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-07T00:22:15.138Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-07T00:22:15.138Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T00:22:15.138Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T00:22:15.138Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T00:22:15.138Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    }
+  }
+}

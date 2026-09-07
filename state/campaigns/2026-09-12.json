@@ -1,0 +1,146 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-12-checkout-situation-v1-1",
+    "localDate": "2026-09-12",
+    "targetAt": "2026-09-12T12:17:00-03:00",
+    "family": "checkout_situation",
+    "recipeId": "checkout-situation-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-12:checkout_situation:v1",
+    "palette": "blue",
+    "ctaKind": "save_share",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 19975,
+      "receivedMinor": 20000,
+      "resultMinor": 25,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "No ritmo do caixa. R$ 199,75 na compra. Pagou com R$ 200,00. Quanto volta?",
+      "answer": "R$ 0,25",
+      "explanation": "Digite a compra e quanto recebeu. O Troco calcula a diferença.",
+      "cta": "Salve para consultar no próximo atendimento.",
+      "channels": {
+        "instagram": {
+          "caption": "No ritmo do caixa. R$ 199,75 na compra. Pagou com R$ 200,00. Quanto volta?\n\nA resposta é R$ 0,25.\nUma forma: 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-12-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "No ritmo do caixa. R$ 199,75 na compra. Pagou com R$ 200,00. Quanto volta?\n\nA resposta é R$ 0,25.\nUma forma: 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-12-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "No ritmo do caixa. R$ 199,75 na compra. Pagou com R$ 200,00. Quanto volta?\n\nA resposta é R$ 0,25.\nUma forma: 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-12-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #TrocoCerto #Caixa",
+          "title": "No ritmo do caixa"
+        },
+        "youtube": {
+          "title": "No ritmo do caixa. R$ 199,75 na compra. Pagou com R$ 200,00. Quanto volta?",
+          "description": "No ritmo do caixa. R$ 199,75 na compra. Pagou com R$ 200,00. Quanto volta?\n\nA resposta é R$ 0,25.\nUma forma: 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-12-checkout-situation-v1-1&utm_content=checkout_situation\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.change-calculation"
+    ],
+    "fingerprints": {
+      "headline": "c14710ac97933544547c0dd70964427e3e0f896065de0fce28525237a743ca8e",
+      "caption": "97386a687a07b2a044563ed4ad3c49aebc51fe137a27f41a746cee6fd2f56ba0"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "26e0620d65eaa24aff2fbfaeba0c856a5c5a025bafb50b07a585acea26ef8f89"
+    ],
+    "video": "36337ce6a1d902158fbf8c0430aa317f83eca41fd4611f9fe1aa242d0d275383"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-07T00:22:15.138Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-07T00:22:15.138Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T00:22:15.138Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T00:22:15.138Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-07T00:22:15.138Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-07T00:22:15.138Z"
+        }
+      ]
+    }
+  }
+}
