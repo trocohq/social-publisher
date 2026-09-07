@@ -12,6 +12,7 @@ import {
 import { basename, dirname, join, relative, resolve, sep } from "node:path";
 
 import { sha256 } from "../shared/determinism.js";
+import type { CampaignState } from "../state/schema.js";
 import { addCalendarDays } from "../shared/time.js";
 import {
   campaignMediaRecordSchema,
@@ -28,6 +29,27 @@ function assertLocalDate(value: string): void {
   ) {
     throw new Error("Invalid Pages local date");
   }
+}
+
+export function retainedCampaignIds(
+  states: readonly CampaignState[],
+  now: Date,
+): string[] {
+  if (Number.isNaN(now.valueOf())) throw new Error("Invalid retention time");
+  const cutoff = now.valueOf() - 2 * 86_400_000;
+  return states
+    .filter((state) =>
+      Object.values(state.channels).some((record) => {
+        const scheduled = new Date(
+          record.scheduledAt ?? state.plan.targetAt,
+        ).valueOf();
+        return (
+          scheduled > new Date(state.plan.targetAt).valueOf() &&
+          scheduled >= cutoff
+        );
+      }),
+    )
+    .map((state) => state.plan.id);
 }
 
 export function datesInPagesPayload(today: string): string[] {
@@ -143,11 +165,13 @@ export async function createPagesPayload({
   campaigns,
   renderRoot,
   pagesRoot,
+  retainedIds = [],
 }: Readonly<{
   today: string;
   campaigns: readonly CampaignMediaRecord[];
   renderRoot: string;
   pagesRoot: string;
+  retainedIds?: readonly string[];
 }>): Promise<readonly CampaignMediaRecord[]> {
   const sourceRoot = resolve(renderRoot);
   const outputRoot = resolve(pagesRoot);
@@ -159,7 +183,11 @@ export async function createPagesPayload({
   const allowedDates = new Set(datesInPagesPayload(today));
   const selected = campaigns
     .map((campaign) => campaignMediaRecordSchema.parse(campaign))
-    .filter((campaign) => allowedDates.has(campaign.localDate))
+    .filter(
+      (campaign) =>
+        allowedDates.has(campaign.localDate) ||
+        retainedIds.includes(campaign.campaignId),
+    )
     .sort((left, right) => left.localDate.localeCompare(right.localDate));
   const completed: CampaignMediaRecord[] = [];
 

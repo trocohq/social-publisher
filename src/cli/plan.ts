@@ -5,7 +5,11 @@ import { loadBrand } from "../brand/load-brand.js";
 import { publicationChannels } from "../config/channels.js";
 import { parseEnvironment } from "../config/environment.js";
 import { mediaRecordFromState } from "../media/manifest.js";
-import { createPagesPayload, datesInPagesPayload } from "../media/pages.js";
+import {
+  createPagesPayload,
+  datesInPagesPayload,
+  retainedCampaignIds,
+} from "../media/pages.js";
 import { ensureImmutableMedia } from "../media/immutable.js";
 import {
   createCampaign,
@@ -131,8 +135,13 @@ export async function runPlanning(
   }
 
   const payloadDates = new Set(datesInPagesPayload(localDateAt(now)));
+  const retainedIds = retainedCampaignIds(existing, now);
   const included = existing
-    .filter((state) => payloadDates.has(state.plan.localDate))
+    .filter(
+      (state) =>
+        payloadDates.has(state.plan.localDate) ||
+        retainedIds.includes(state.plan.id),
+    )
     .sort((left, right) =>
       left.plan.localDate.localeCompare(right.plan.localDate),
     );
@@ -152,6 +161,7 @@ export async function runPlanning(
     });
   }
   await createPagesPayload({
+    retainedIds,
     today: localDateAt(now),
     campaigns: included.map(mediaRecordFromState),
     renderRoot,

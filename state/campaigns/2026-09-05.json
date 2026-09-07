@@ -120,10 +120,15 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-30T05:25:59.256Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "scheduled",
+          "at": "2026-09-07T00:53:23.000Z"
         }
       ],
       "providerId": "6a93bee719e5b3c30eb3a205",
-      "scheduledAt": "2026-09-05T15:17:00.000Z"
+      "scheduledAt": "2026-09-08T21:30:00.000Z"
     },
     "facebook": {
       "stage": "scheduled",
