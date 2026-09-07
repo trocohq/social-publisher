@@ -1,6 +1,14 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { mkdtemp, mkdir, writeFile, rm, readdir } from "node:fs/promises";
+import {
+  mkdtemp,
+  mkdir,
+  writeFile,
+  rm,
+  readdir,
+  symlink,
+  rename,
+} from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -152,7 +160,7 @@ test("rejects mutation in the last artifact before any request or outbox write",
           throw new Error("network accessed");
         },
       }),
-      /approved hash/,
+      /PUBLISHING_SHADOW_MEDIA_INVALID/,
     );
     await assert.rejects(readdir(input.outboxDirectory), { code: "ENOENT" });
   } finally {
@@ -295,7 +303,95 @@ test("rejects non-origin endpoints and empty credentials before files", async ()
         outboxDirectory: "/missing",
         environment: { ...environment, ...override },
       }),
-      /Invalid publishing shadow configuration/,
+      /PUBLISHING_SHADOW_CONFIGURATION_INVALID/,
     );
+  }
+});
+
+test("rejects symlinked files and kind directories escaping render root before requests", async () => {
+  for (const kind of ["file", "directory"]) {
+    const input = await fixture();
+    const outside = await mkdtemp(join(tmpdir(), "troco-shadow-outside-"));
+    let requests = 0;
+    try {
+      const target =
+        kind === "file"
+          ? join(input.directory, "video/short.mp4")
+          : join(input.directory, "video");
+      const destination = join(outside, kind);
+      await rename(target, destination);
+      await symlink(destination, target);
+      await assert.rejects(
+        bridge.submitPlatformShadow({
+          ...input,
+          fetchImplementation: async (_url, init) => {
+            requests++;
+            await new Response(init?.body).arrayBuffer();
+            return Response.json(
+              init?.method === "PUT"
+                ? { status: "stored" }
+                : { publicationId: "must-not-submit" },
+            );
+          },
+        }),
+        /PUBLISHING_SHADOW_MEDIA_INVALID/,
+      );
+      assert.equal(requests, 0);
+      await assert.rejects(readdir(input.outboxDirectory), { code: "ENOENT" });
+    } finally {
+      await rm(input.renderRoot, { recursive: true, force: true });
+      await rm(outside, { recursive: true, force: true });
+    }
+  }
+});
+
+test("filesystem and transport failures expose fixed codes without paths, credentials, or causes", async () => {
+  const input = await fixture();
+  const assertSafe = (expectedCode: string) => (error: unknown) => {
+    assert.ok(error instanceof Error);
+    assert.equal(error.message, `Platform shadow failed (${expectedCode})`);
+    assert.equal(error.cause, undefined);
+    assert.doesNotMatch(
+      error.message,
+      /test-secret|troco-shadow-.*\/|sensitive-detail/,
+    );
+    return true;
+  };
+  try {
+    await assert.rejects(
+      bridge.submitPlatformShadow({
+        ...input,
+        renderRoot: join(input.renderRoot, "test-secret-missing"),
+      }),
+      assertSafe("PUBLISHING_SHADOW_MEDIA_INVALID"),
+    );
+    await assert.rejects(
+      bridge.submitPlatformShadow({
+        ...input,
+        fetchImplementation: async (_url, init) => {
+          await new Response(init?.body).arrayBuffer();
+          throw new Error(
+            `sensitive-detail ${environment.PUBLISHING_CLIENT_SECRET} ${input.directory}`,
+          );
+        },
+      }),
+      assertSafe("PUBLISHING_SHADOW_SUBMISSION_FAILED"),
+    );
+    await writeFile(
+      join(input.renderRoot, "test-secret-not-directory"),
+      "blocked",
+    );
+    await assert.rejects(
+      bridge.submitPlatformShadow({
+        ...input,
+        outboxDirectory: join(
+          input.renderRoot,
+          "test-secret-not-directory/outbox",
+        ),
+      }),
+      assertSafe("PUBLISHING_SHADOW_SUBMISSION_FAILED"),
+    );
+  } finally {
+    await rm(input.renderRoot, { recursive: true, force: true });
   }
 });

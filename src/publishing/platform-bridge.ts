@@ -1,4 +1,5 @@
-import { join } from "node:path";
+import { lstat, realpath } from "node:fs/promises";
+import { isAbsolute, join, relative } from "node:path";
 import {
   createPlatformPublisher,
   prepareArtifactReference,
@@ -45,52 +46,74 @@ export async function submitPlatformShadow(
   if (input.dryRun || input.environment.PUBLISHING_SHADOW_ENABLED !== "true") {
     return { outcome: "disabled" };
   }
-  const parsed = configurationSchema.safeParse({
-    endpoint: input.environment.PUBLISHING_ENDPOINT,
-    clientId: input.environment.PUBLISHING_CLIENT_ID,
-    secret: input.environment.PUBLISHING_CLIENT_SECRET,
-  });
-  if (!parsed.success)
-    throw new Error("Invalid publishing shadow configuration");
-  const state = campaignStateSchema.parse(input.state);
-  const media = mediaRecordFromState(state);
-  // Producer output has kind subdirectories; the legacy flat handoff helper
-  // is intentionally not used here. Validate every file before transport.
-  const uploads = [];
-  for (const asset of media.assets) {
-    const filePath = join(
-      input.renderRoot,
-      media.localDate,
-      media.campaignId,
-      asset.kind,
-      asset.filename,
-    );
-    const extension = asset.kind === "feed" ? "jpg" : "mp4";
-    const reference = await prepareArtifactReference({
-      id: `media-${asset.hash}`,
-      filePath,
-      storage: "r2-temporary",
-      locator: `temporary/troco/${media.campaignId}/${asset.kind}/${asset.hash}.${extension}`,
-      mediaType: asset.contentType,
-      allowedMediaTypes: ["image/jpeg", "video/mp4"],
-      maxByteSize: 50_000_000,
+  let failureCode = "PUBLISHING_SHADOW_CONFIGURATION_INVALID";
+  try {
+    const parsed = configurationSchema.safeParse({
+      endpoint: input.environment.PUBLISHING_ENDPOINT,
+      clientId: input.environment.PUBLISHING_CLIENT_ID,
+      secret: input.environment.PUBLISHING_CLIENT_SECRET,
     });
-    if (reference.sha256 !== asset.hash)
-      throw new Error("Platform artifact does not match approved hash");
-    asset.bytes = reference.byteSize;
-    uploads.push({ reference, filePath });
+    if (!parsed.success)
+      throw new Error("Invalid publishing shadow configuration");
+    failureCode = "PUBLISHING_SHADOW_MEDIA_INVALID";
+    const state = campaignStateSchema.parse(input.state);
+    const media = mediaRecordFromState(state);
+    const renderRoot = await realpath(input.renderRoot);
+    // Producer output has kind subdirectories; the legacy flat handoff helper
+    // is intentionally not used here. Validate every file before transport.
+    const uploads = [];
+    for (const asset of media.assets) {
+      const candidate = join(
+        renderRoot,
+        media.localDate,
+        media.campaignId,
+        asset.kind,
+        asset.filename,
+      );
+      const filePath = await realpath(candidate);
+      const fromRoot = relative(renderRoot, filePath);
+      if (
+        fromRoot === ".." ||
+        fromRoot.startsWith("../") ||
+        isAbsolute(fromRoot) ||
+        !(await lstat(candidate)).isFile()
+      ) {
+        throw new Error(
+          "Platform artifact must be a regular file inside render root",
+        );
+      }
+      const extension = asset.kind === "feed" ? "jpg" : "mp4";
+      const reference = await prepareArtifactReference({
+        id: `media-${asset.hash}`,
+        filePath,
+        storage: "r2-temporary",
+        locator: `temporary/troco/${media.campaignId}/${asset.kind}/${asset.hash}.${extension}`,
+        mediaType: asset.contentType,
+        allowedMediaTypes: ["image/jpeg", "video/mp4"],
+        maxByteSize: 50_000_000,
+      });
+      if (reference.sha256 !== asset.hash)
+        throw new Error("Platform artifact does not match approved hash");
+      asset.bytes = reference.byteSize;
+      uploads.push({ reference, filePath });
+    }
+    const envelope = toPlatformShadowEnvelope({ state, media });
+    failureCode = "PUBLISHING_SHADOW_SUBMISSION_FAILED";
+    const publisher = createPlatformPublisher({
+      outboxDirectory: input.outboxDirectory,
+      transport: {
+        baseUrl: parsed.data.endpoint,
+        clientId: parsed.data.clientId,
+        secret: parsed.data.secret,
+        ...(input.fetchImplementation
+          ? { fetch: input.fetchImplementation }
+          : {}),
+      },
+    });
+    return await publisher.submit({ envelope, uploads });
+  } catch {
+    // Filesystem and transport errors can include local paths or credentials.
+    // Only fixed, locally selected codes may reach the CLI's error output.
+    throw new Error(`Platform shadow failed (${failureCode})`);
   }
-  const envelope = toPlatformShadowEnvelope({ state, media });
-  const publisher = createPlatformPublisher({
-    outboxDirectory: input.outboxDirectory,
-    transport: {
-      baseUrl: parsed.data.endpoint,
-      clientId: parsed.data.clientId,
-      secret: parsed.data.secret,
-      ...(input.fetchImplementation
-        ? { fetch: input.fetchImplementation }
-        : {}),
-    },
-  });
-  return publisher.submit({ envelope, uploads });
 }
