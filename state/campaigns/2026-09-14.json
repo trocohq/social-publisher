@@ -84,6 +84,9 @@
       }
     ]
   },
+  "platformShadow": {
+    "acknowledgedEnvelopeSha256": "61919bfaf7a6eb65a8f803bad76a7951bdf539d7fa58da88421fd67a49757df1"
+  },
   "media": {
     "stage": "media_verified",
     "attempts": 0,
@@ -107,7 +110,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "scheduling",
+      "stage": "scheduled",
       "attempts": 1,
       "transitions": [
         {
@@ -129,8 +132,15 @@
           "from": "media_verified",
           "to": "scheduling",
           "at": "2026-09-08T04:36:32.177Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-09-08T04:36:33.849Z"
         }
-      ]
+      ],
+      "providerId": "6a9f90d5054b6beb81ad9e9f",
+      "scheduledAt": "2026-09-14T15:17:00.000Z"
     },
     "facebook": {
       "stage": "media_verified",
