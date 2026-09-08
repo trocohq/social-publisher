@@ -135,7 +135,7 @@
       "scheduledAt": "2026-09-09T21:30:00.000Z"
     },
     "facebook": {
-      "stage": "scheduled",
+      "stage": "failed",
       "attempts": 1,
       "transitions": [
         {
@@ -162,10 +162,19 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-31T05:36:32.467Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "failed",
+          "at": "2026-09-08T04:36:48.966Z"
         }
       ],
       "providerId": "6a9512e1f1bd800ccf2ec4ac",
-      "scheduledAt": "2026-09-06T15:17:00.000Z"
+      "scheduledAt": "2026-09-06T15:17:00.000Z",
+      "lastError": {
+        "category": "buffer_async_failure",
+        "message": "Buffer reported an asynchronous delivery failure"
+      }
     },
     "tiktok": {
       "stage": "skipped_disabled",
