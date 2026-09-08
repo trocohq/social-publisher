@@ -1,6 +1,5 @@
 import { randomUUID } from "node:crypto";
 import {
-  copyFile,
   lstat,
   mkdir,
   readFile,
@@ -40,6 +39,9 @@ export function retainedCampaignIds(
   return states
     .filter((state) =>
       Object.values(state.channels).some((record) => {
+        if (["scheduling", "scheduled", "publishing"].includes(record.stage)) {
+          return true;
+        }
         const scheduled = new Date(
           record.scheduledAt ?? state.plan.targetAt,
         ).valueOf();
@@ -110,8 +112,53 @@ export function publicMediaUrls(
 
 async function atomicJson(path: string, value: unknown): Promise<void> {
   const temporary = `${path}.${randomUUID()}.tmp`;
-  await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, "utf8");
+  await writeFile(temporary, serializedJson(value), "utf8");
   await rename(temporary, path);
+}
+
+function serializedJson(value: unknown): string {
+  return `${JSON.stringify(value, null, 2)}\n`;
+}
+
+// Conservative project cap below the hosting service's published site limit.
+const pagesByteBudget = 500_000_000;
+
+function addPayloadBytes(total: number, bytes: number): number {
+  const next = total + bytes;
+  if (!Number.isSafeInteger(next) || next > pagesByteBudget) {
+    throw new Error("Pages payload exceeds 500000000-byte budget");
+  }
+  return next;
+}
+
+async function sourceSize(root: string, path: string): Promise<number> {
+  await requireSafeSource(root, path);
+  const metadata = await lstat(path);
+  if (
+    !metadata.isFile() ||
+    !Number.isSafeInteger(metadata.size) ||
+    metadata.size <= 0
+  ) {
+    throw new Error("Source media must be a regular file with positive size");
+  }
+  if (metadata.size > 50_000_000) {
+    throw new Error(`Source media exceeds 50 MB: ${basename(path)}`);
+  }
+  return metadata.size;
+}
+
+function mediaSourcePath(
+  root: string,
+  campaign: CampaignMediaRecord,
+  asset: MediaAsset,
+): string {
+  return join(
+    root,
+    campaign.localDate,
+    campaign.campaignId,
+    asset.kind,
+    asset.filename,
+  );
 }
 
 function assertSafePagesRoot(path: string, renderRoot: string): void {
@@ -177,8 +224,6 @@ export async function createPagesPayload({
   const outputRoot = resolve(pagesRoot);
   assertSafePagesRoot(outputRoot, sourceRoot);
   await rejectExistingSymlink(outputRoot);
-  await rm(outputRoot, { recursive: true, force: true });
-  await mkdir(outputRoot, { recursive: true });
 
   const allowedDates = new Set(datesInPagesPayload(today));
   const selected = campaigns
@@ -190,45 +235,20 @@ export async function createPagesPayload({
     )
     .sort((left, right) => left.localDate.localeCompare(right.localDate));
   const completed: CampaignMediaRecord[] = [];
-
+  let assetBytes = 0;
   for (const campaign of selected) {
-    const destinationRoot = join(
-      outputRoot,
-      "media",
-      campaign.localDate,
-      campaign.campaignId,
-    );
-    const copiedAssets: MediaAsset[] = [];
+    const assets: MediaAsset[] = [];
     for (const asset of campaign.assets) {
-      const sourcePath = join(
+      const bytes = await sourceSize(
         sourceRoot,
-        campaign.localDate,
-        campaign.campaignId,
-        asset.kind,
-        asset.filename,
+        mediaSourcePath(sourceRoot, campaign, asset),
       );
-      await requireSafeSource(sourceRoot, sourcePath);
-      const bytes = await readFile(sourcePath);
-      if (sha256(bytes) !== asset.hash) {
-        throw new Error(`Source media hash mismatch: ${asset.filename}`);
-      }
-      if (bytes.length > 50_000_000) {
-        throw new Error(`Source media exceeds 50 MB: ${asset.filename}`);
-      }
-      const destinationDirectory = join(destinationRoot, asset.kind);
-      await mkdir(destinationDirectory, { recursive: true });
-      await copyFile(sourcePath, join(destinationDirectory, asset.filename));
-      copiedAssets.push({ ...asset, bytes: bytes.length });
+      assetBytes = addPayloadBytes(assetBytes, bytes);
+      assets.push({ ...asset, bytes });
     }
-    const completedRecord = campaignMediaRecordSchema.parse({
-      ...campaign,
-      assets: copiedAssets,
-    });
-    await atomicJson(join(destinationRoot, "manifest.json"), completedRecord);
-    completed.push(completedRecord);
+    completed.push(campaignMediaRecordSchema.parse({ ...campaign, assets }));
   }
-
-  await atomicJson(join(outputRoot, "index.json"), {
+  const index = {
     schemaVersion: 1,
     today,
     campaigns: completed.map((campaign) => ({
@@ -236,6 +256,49 @@ export async function createPagesPayload({
       campaignId: campaign.campaignId,
       manifest: `media/${campaign.localDate}/${campaign.campaignId}/manifest.json`,
     })),
-  });
+  };
+  let metadataBytes = Buffer.byteLength(serializedJson(index));
+  for (const campaign of completed) {
+    metadataBytes = addPayloadBytes(
+      metadataBytes,
+      Buffer.byteLength(serializedJson(campaign)),
+    );
+  }
+  addPayloadBytes(assetBytes, metadataBytes);
+
+  await rm(outputRoot, { recursive: true, force: true });
+  await mkdir(outputRoot, { recursive: true });
+  let copiedBytes = metadataBytes;
+  for (const campaign of completed) {
+    const destinationRoot = join(
+      outputRoot,
+      "media",
+      campaign.localDate,
+      campaign.campaignId,
+    );
+    for (const asset of campaign.assets) {
+      const sourcePath = mediaSourcePath(sourceRoot, campaign, asset);
+      const size = await sourceSize(sourceRoot, sourcePath);
+      if (size !== asset.bytes)
+        throw new Error(`Source media size changed: ${asset.filename}`);
+      const bytes = await readFile(sourcePath);
+      if (bytes.length > 50_000_000) {
+        throw new Error(`Source media exceeds 50 MB: ${asset.filename}`);
+      }
+      copiedBytes = addPayloadBytes(copiedBytes, bytes.length);
+      if (bytes.length !== asset.bytes)
+        throw new Error(`Source media size changed: ${asset.filename}`);
+      if (sha256(bytes) !== asset.hash) {
+        throw new Error(`Source media hash mismatch: ${asset.filename}`);
+      }
+      const destinationDirectory = join(destinationRoot, asset.kind);
+      await mkdir(destinationDirectory, { recursive: true });
+      // Persist exactly the bytes checked above, even if the source changes now.
+      await writeFile(join(destinationDirectory, asset.filename), bytes);
+    }
+    await atomicJson(join(destinationRoot, "manifest.json"), campaign);
+  }
+
+  await atomicJson(join(outputRoot, "index.json"), index);
   return Object.freeze(completed);
 }
