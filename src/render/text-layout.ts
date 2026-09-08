@@ -12,6 +12,7 @@ export type FitTextOptions = Readonly<{
   maximumFontSize: number;
   minimumFontSize: number;
   lineHeightRatio?: number;
+  measure?: (value: string, fontSize: number) => number;
 }>;
 
 export type CopyTextLayouts = Readonly<{
@@ -106,19 +107,24 @@ export function measureText(value: string, fontSize: number): number {
   return Math.ceil(units * fontSize);
 }
 
-function wrapText(value: string, fontSize: number, maxWidth: number): string[] {
-  const words = value.trim().split(/\s+/).filter(Boolean);
+function wrapText(
+  value: string,
+  fontSize: number,
+  maxWidth: number,
+  measure: typeof measureText,
+): string[] {
+  const words = value.trim().match(/R\$\s+\S+|\S+/g) ?? [];
   const lines: string[] = [];
   let current = "";
 
   for (const originalWord of words) {
     const pieces: string[] = [];
     let word = originalWord;
-    while (measureText(word, fontSize) > maxWidth) {
+    while (measure(word, fontSize) > maxWidth) {
       let end = 1;
       while (
         end < word.length &&
-        measureText(`${word.slice(0, end + 1)}-`, fontSize) <= maxWidth
+        measure(`${word.slice(0, end + 1)}-`, fontSize) <= maxWidth
       ) {
         end += 1;
       }
@@ -129,7 +135,7 @@ function wrapText(value: string, fontSize: number, maxWidth: number): string[] {
 
     for (const piece of pieces) {
       const proposed = current ? `${current} ${piece}` : piece;
-      if (current && measureText(proposed, fontSize) > maxWidth) {
+      if (current && measure(proposed, fontSize) > maxWidth) {
         lines.push(current);
         current = piece;
       } else {
@@ -143,6 +149,7 @@ function wrapText(value: string, fontSize: number, maxWidth: number): string[] {
 
 export function fitText(value: string, options: FitTextOptions): TextLayout {
   const lineHeightRatio = options.lineHeightRatio ?? 1.16;
+  const measure = options.measure ?? measureText;
   if (!value.trim()) throw new Error("Cannot fit empty editorial text");
   if (options.minimumFontSize > options.maximumFontSize) {
     throw new Error("Minimum font size cannot exceed maximum font size");
@@ -153,9 +160,14 @@ export function fitText(value: string, options: FitTextOptions): TextLayout {
     fontSize >= options.minimumFontSize;
     fontSize -= 1
   ) {
-    const lines = wrapText(value, fontSize, options.maxWidth);
+    const lines = value
+      .trim()
+      .split(/\r?\n/)
+      .flatMap((paragraph) =>
+        wrapText(paragraph, fontSize, options.maxWidth, measure),
+      );
     const lineHeight = Math.ceil(fontSize * lineHeightRatio);
-    const width = Math.max(...lines.map((line) => measureText(line, fontSize)));
+    const width = Math.max(...lines.map((line) => measure(line, fontSize)));
     const height = lines.length * lineHeight;
     if (width <= options.maxWidth && height <= options.maxHeight) {
       return { lines, fontSize, lineHeight, width, height };

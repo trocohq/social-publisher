@@ -14,6 +14,7 @@ import {
   type TextLayout,
 } from "./text-layout.js";
 import { safeAreaFor } from "./safe-area.js";
+import { outlineText, canonicalTextMeasure } from "./font-paths.js";
 
 export {
   fitText,
@@ -68,6 +69,7 @@ export function escapeXml(value: string): string {
 }
 
 function textBlock(
+  brand: BrandAssets,
   layout: TextLayout,
   x: number,
   top: number,
@@ -75,13 +77,20 @@ function textBlock(
   weight = 400,
   fill: string = designTokens.colors.ink,
 ): string {
-  const spans = layout.lines
-    .map(
-      (line, index) =>
-        `<tspan x="${x}" dy="${index === 0 ? 0 : layout.lineHeight}">${escapeXml(line)}</tspan>`,
-    )
+  return layout.lines
+    .map((line, index) => {
+      const outline = outlineText({
+        bytes: fontFamily === "Stolzl" ? brand.stolzl : brand.figtree,
+        text: line,
+        size: layout.fontSize,
+        weight,
+      });
+      const baseline = top + layout.fontSize + index * layout.lineHeight;
+      // Render exactly the glyphs used to measure the line, including on hosts
+      // where the SVG rasterizer does not load embedded @font-face rules.
+      return `<g data-feed-text="true" data-x="${x}" data-y="${baseline}" data-ink-width="${outline.right - outline.left}" fill="${fill}" font-family="${fontFamily}" font-size="${layout.fontSize}" font-weight="${weight}" aria-label="${escapeXml(line)}"><g transform="translate(${x - Math.min(0, outline.left)} ${baseline})">${outline.paths}</g></g>`;
+    })
     .join("");
-  return `<text x="${x}" y="${top + layout.fontSize}" fill="${fill}" font-family="${fontFamily}" font-size="${layout.fontSize}" font-weight="${weight}">${spans}</text>`;
 }
 
 function embeddedFonts(brand: BrandAssets): string {
@@ -122,19 +131,26 @@ function scenarioCard(plan: CampaignPlan, top: number): string {
     <text x="${answerBandRight - CONTAINER_INSET}" y="${top + 326}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Stolzl" font-size="68">${escapeXml(answer)}</text>`;
 }
 
-function feedContent(plan: CampaignPlan): string {
-  const headline = fitText(plan.copy.headline, feedTextLayouts.headline);
-  const explanation = fitText(
-    plan.copy.explanation,
-    feedTextLayouts.explanation,
-  );
-  const cta = fitText(plan.copy.cta, feedTextLayouts.cta);
+function feedContent(plan: CampaignPlan, brand: BrandAssets): string {
+  const headline = fitText(plan.copy.headline, {
+    ...feedTextLayouts.headline,
+    measure: canonicalTextMeasure(brand.stolzl),
+  });
+  const explanation = fitText(plan.copy.explanation, {
+    ...feedTextLayouts.explanation,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  const cta = fitText(plan.copy.cta, {
+    ...feedTextLayouts.cta,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
   return [
-    textBlock(headline, FEED_FRAME.x, 178, "Stolzl"),
+    textBlock(brand, headline, FEED_FRAME.x, 178, "Stolzl"),
     scenarioCard(plan, 610),
-    textBlock(explanation, FEED_FRAME.x, 1005, "Figtree", 700),
+    textBlock(brand, explanation, FEED_FRAME.x, 1005, "Figtree", 700),
     `<rect x="${FEED_FRAME.x}" y="1160" width="${FEED_FRAME.width}" height="130" rx="28" fill="${designTokens.colors.ink}"/>`,
     textBlock(
+      brand,
       cta,
       FEED_FRAME.x + CONTAINER_INSET,
       1174,
@@ -145,23 +161,32 @@ function feedContent(plan: CampaignPlan): string {
   ].join("");
 }
 
-function carouselContent(plan: CampaignPlan, slide: number): string {
+function carouselContent(
+  plan: CampaignPlan,
+  slide: number,
+  brand: BrandAssets,
+): string {
   if (slide === 0) {
-    const headline = fitText(plan.copy.headline, carouselTextLayouts.headline);
-    return `${textBlock(headline, FEED_FRAME.x, 260, "Stolzl")}
+    const headline = fitText(plan.copy.headline, {
+      ...carouselTextLayouts.headline,
+      measure: canonicalTextMeasure(brand.stolzl),
+    });
+    return `${textBlock(brand, headline, FEED_FRAME.x, 260, "Stolzl")}
       <text x="${FEED_FRAME.x}" y="1170" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="34" font-weight="700">DESLIZE PARA CONFERIR →</text>`;
   }
   if (slide === 1) {
     const title = fitText("Qual é o troco?", {
+      measure: canonicalTextMeasure(brand.stolzl),
       maxWidth: FEED_FRAME.width,
       maxHeight: 160,
       maximumFontSize: 80,
       minimumFontSize: 64,
     });
-    return `${textBlock(title, FEED_FRAME.x, 250, "Stolzl")}${scenarioCard(plan, 530)}`;
+    return `${textBlock(brand, title, FEED_FRAME.x, 250, "Stolzl")}${scenarioCard(plan, 530)}`;
   }
   if (slide === 2) {
     const answer = fitText(plan.copy.answer, {
+      measure: canonicalTextMeasure(brand.stolzl),
       maxWidth: FEED_FRAME.width,
       maxHeight: 260,
       maximumFontSize: 150,
@@ -174,25 +199,29 @@ function carouselContent(plan: CampaignPlan, slide: number): string {
       )
       .join("  •  ");
     const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
+      measure: canonicalTextMeasure(brand.figtree),
       maxWidth: FEED_FRAME.width - CONTAINER_INSET * 2,
       maxHeight: 250,
       maximumFontSize: 42,
       minimumFontSize: 34,
     });
     return `<text x="${FEED_FRAME.x}" y="310" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="32" font-weight="700">A RESPOSTA É</text>
-      ${textBlock(answer, FEED_FRAME.x, 350, "Stolzl")}
+      ${textBlock(brand, answer, FEED_FRAME.x, 350, "Stolzl")}
       <rect x="${FEED_FRAME.x}" y="710" width="${FEED_FRAME.width}" height="360" rx="32" fill="${designTokens.colors.paper}"/>
-      ${textBlock(breakdown, FEED_FRAME.x + CONTAINER_INSET, 770, "Figtree")}`;
+      ${textBlock(brand, breakdown, FEED_FRAME.x + CONTAINER_INSET, 770, "Figtree")}`;
   }
 
-  const explanation = fitText(
-    plan.copy.explanation,
-    carouselTextLayouts.explanation,
-  );
-  const cta = fitText(plan.copy.cta, carouselTextLayouts.cta);
-  return `${textBlock(explanation, FEED_FRAME.x, 250, "Figtree", 700)}
+  const explanation = fitText(plan.copy.explanation, {
+    ...carouselTextLayouts.explanation,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  const cta = fitText(plan.copy.cta, {
+    ...carouselTextLayouts.cta,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  return `${textBlock(brand, explanation, FEED_FRAME.x, 250, "Figtree", 700)}
     <rect x="${FEED_FRAME.x}" y="980" width="${FEED_FRAME.width}" height="200" rx="32" fill="${designTokens.colors.ink}"/>
-    ${textBlock(cta, FEED_FRAME.x + CONTAINER_INSET, 1015, "Figtree", 700, designTokens.colors.paper)}`;
+    ${textBlock(brand, cta, FEED_FRAME.x + CONTAINER_INSET, 1015, "Figtree", 700, designTokens.colors.paper)}`;
 }
 
 export function createFeedSlideSvg({
@@ -210,8 +239,8 @@ export function createFeedSlideSvg({
   const background = backgroundByPalette[plan.palette];
   const content =
     plan.mediaKind === "carousel"
-      ? carouselContent(plan, slide)
-      : feedContent(plan);
+      ? carouselContent(plan, slide, brand)
+      : feedContent(plan, brand);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
     ${embeddedFonts(brand)}
@@ -233,8 +262,12 @@ export type ThumbnailStackLayout = Readonly<{
 
 export function thumbnailStackLayout(
   plan: Pick<CampaignPlan, "scenario">,
+  brand?: BrandAssets,
 ): ThumbnailStackLayout {
-  const headline = fitText(createThumbnailCopy(plan), thumbnailHeadlineLayout);
+  const headline = fitText(createThumbnailCopy(plan), {
+    ...thumbnailHeadlineLayout,
+    ...(brand ? { measure: canonicalTextMeasure(brand.stolzl) } : {}),
+  });
   const messageHeight =
     THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET + headline.height;
   const totalHeight =
@@ -273,7 +306,7 @@ export function createVerticalThumbnailSvg({
   const background = backgroundByPalette[plan.palette];
   const mark = Buffer.from(brand.markSvg).toString("base64");
   const label = familyLabels[plan.family];
-  const layout = thumbnailStackLayout(plan);
+  const layout = thumbnailStackLayout(plan, brand);
   const messageTop = layout.messageTop;
   const questionTop =
     messageTop + THUMBNAIL_KICKER_HEIGHT + THUMBNAIL_MESSAGE_INSET;
@@ -285,7 +318,7 @@ export function createVerticalThumbnailSvg({
     <rect x="706" y="${layout.top + 10}" width="344" height="62" rx="31" fill="${designTokens.colors.paper}" fill-opacity="0.78"/>
     <text x="878" y="${layout.top + 50}" text-anchor="middle" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="22" font-weight="700">${escapeXml(label)}</text>
     <text x="${VERTICAL_FRAME.x}" y="${messageTop + THUMBNAIL_KICKER_HEIGHT}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="800">FAÇA A CONTA</text>
-    ${textBlock(layout.headline, VERTICAL_FRAME.x, questionTop, "Stolzl")}
+    ${textBlock(brand, layout.headline, VERTICAL_FRAME.x, questionTop, "Stolzl")}
     <rect x="${VERTICAL_FRAME.x}" y="${layout.ctaTop}" width="${VERTICAL_FRAME.width}" height="${THUMBNAIL_CTA_HEIGHT}" rx="40" fill="${designTokens.colors.ink}"/>
     <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="${layout.ctaTop + 116}" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="46" font-weight="700">DESCUBRA NO VÍDEO</text>
     <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="${layout.ctaTop + 116}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="40" font-weight="700">12s →</text>
@@ -317,17 +350,19 @@ function verticalHeader(
 function verticalSceneContent(
   plan: CampaignPlan,
   scene: VerticalScene,
+  brand: BrandAssets,
 ): string {
   if (scene === "scenario") {
     const purchase = formatMinor(plan.scenario.purchaseMinor, "BRL", "pt-BR");
     const received = formatMinor(plan.scenario.receivedMinor, "BRL", "pt-BR");
     const title = fitText("Dois valores. Uma conta.", {
+      measure: canonicalTextMeasure(brand.stolzl),
       maxWidth: VERTICAL_FRAME.width,
       maxHeight: 260,
       maximumFontSize: 96,
       minimumFontSize: 72,
     });
-    return `${textBlock(title, VERTICAL_FRAME.x, 280, "Stolzl")}
+    return `${textBlock(brand, title, VERTICAL_FRAME.x, 280, "Stolzl")}
       <rect x="${VERTICAL_FRAME.x}" y="670" width="${VERTICAL_FRAME.width}" height="620" rx="44" fill="${designTokens.colors.paper}"/>
       <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="820" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="40">COMPRA</text>
       <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="824" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="72">${escapeXml(purchase)}</text>
@@ -340,6 +375,7 @@ function verticalSceneContent(
 
   if (scene === "answer") {
     const answer = fitText(plan.copy.answer, {
+      measure: canonicalTextMeasure(brand.stolzl),
       maxWidth: VERTICAL_FRAME.width,
       maxHeight: 390,
       maximumFontSize: 180,
@@ -352,26 +388,30 @@ function verticalSceneContent(
       )
       .join("  •  ");
     const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
+      measure: canonicalTextMeasure(brand.figtree),
       maxWidth: VERTICAL_FRAME.width - CONTAINER_INSET * 2,
       maxHeight: 420,
       maximumFontSize: 52,
       minimumFontSize: 40,
     });
     return `<text x="${VERTICAL_FRAME.x}" y="410" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="700">O TROCO CERTO É</text>
-      ${textBlock(answer, VERTICAL_FRAME.x, 470, "Stolzl")}
+      ${textBlock(brand, answer, VERTICAL_FRAME.x, 470, "Stolzl")}
       <rect x="${VERTICAL_FRAME.x}" y="980" width="${VERTICAL_FRAME.width}" height="470" rx="40" fill="${designTokens.colors.paper}"/>
       <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="1070" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="30" font-weight="700">UMA FORMA DE SEPARAR</text>
-      ${textBlock(breakdown, VERTICAL_FRAME.x + CONTAINER_INSET, 1120, "Figtree")}`;
+      ${textBlock(brand, breakdown, VERTICAL_FRAME.x + CONTAINER_INSET, 1120, "Figtree")}`;
   }
 
-  const explanation = fitText(
-    plan.copy.explanation,
-    verticalTextLayouts.explanation,
-  );
-  const cta = fitText(plan.copy.cta, verticalTextLayouts.cta);
-  return `${textBlock(explanation, VERTICAL_FRAME.x, 300, "Figtree", 700)}
+  const explanation = fitText(plan.copy.explanation, {
+    ...verticalTextLayouts.explanation,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  const cta = fitText(plan.copy.cta, {
+    ...verticalTextLayouts.cta,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  return `${textBlock(brand, explanation, VERTICAL_FRAME.x, 300, "Figtree", 700)}
     <rect x="${VERTICAL_FRAME.x}" y="1280" width="${VERTICAL_FRAME.width}" height="430" rx="44" fill="${designTokens.colors.ink}"/>
-    ${textBlock(cta, VERTICAL_FRAME.x + CONTAINER_INSET, 1360, "Figtree", 700, designTokens.colors.paper)}
+    ${textBlock(brand, cta, VERTICAL_FRAME.x + CONTAINER_INSET, 1360, "Figtree", 700, designTokens.colors.paper)}
     <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="1640" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="36" font-weight="700">troco.net</text>`;
 }
 
@@ -394,6 +434,6 @@ export function createVerticalSceneSvg({
     ${embeddedFonts(brand)}
     <rect width="${WIDTH}" height="${VERTICAL_HEIGHT}" fill="${backgroundByPalette[plan.palette]}"/>
     ${verticalHeader(plan, brand, sceneIndex)}
-    ${verticalSceneContent(plan, scene)}
+    ${verticalSceneContent(plan, scene, brand)}
   </svg>`;
 }

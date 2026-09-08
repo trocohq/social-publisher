@@ -83,7 +83,7 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   const svg = createFeedSlideSvg({ plan, brand, slide: 0 });
   const headlineSize = Number(
     svg.match(
-      /<text x="30" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
+      /<g data-feed-text="true" data-x="30"[^>]*font-family="Stolzl" font-size="(\d+)"/,
     )?.[1],
   );
 
@@ -94,7 +94,7 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   assert.match(svg, /<rect x="30" y="610" width="1020" height="390"/u);
   assert.match(
     svg,
-    /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"><tspan x="30"/u,
+    /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700" aria-label="/u,
   );
   assert.match(
     svg,
@@ -102,7 +102,7 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   );
   assert.match(
     svg,
-    /<text x="78" y="\d+" fill="#FEFDFB" font-family="Figtree" font-size="40" font-weight="700">/u,
+    /data-x="78"[^>]*fill="#FEFDFB" font-family="Figtree" font-size="40" font-weight="700"/u,
   );
 
   const carousel = createCampaign({
@@ -118,6 +118,6 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   assert.match(lastSlide, /<rect x="30" y="980" width="1020" height="200"/u);
   assert.match(
     lastSlide,
-    /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"><tspan x="30"/u,
+    /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700" aria-label="/u,
   );
 });

@@ -135,16 +135,16 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
   assert.match(answer, /<rect x="30" y="980" width="1020" height="470"/u);
   assert.match(
     answer,
-    /font-family="Stolzl" font-size="180"[^>]*><tspan[^>]*>R\$/u,
+    /font-family="Stolzl" font-size="180"[^>]*aria-label="R\$/u,
   );
   assert.match(endCard, /<rect x="30" y="1280" width="1020" height="430"/u);
   assert.match(
     endCard,
-    /font-family="Figtree" font-size="(?:[5-7][0-9])" font-weight="700"><tspan x="30"/u,
+    /font-family="Figtree" font-size="(?:[5-7][0-9])" font-weight="700" aria-label="/u,
   );
   assert.match(
     endCard,
-    /fill="#FEFDFB" font-family="Figtree" font-size="56" font-weight="700">/u,
+    /fill="#FEFDFB" font-family="Figtree" font-size="56" font-weight="700"/u,
   );
   assert.match(endCard, /<text x="78" y="1640"[^>]*>troco\.net<\/text>/u);
 });
