@@ -70,6 +70,20 @@
     ],
     "video": "585958c21bc43ba4675e7e9c7c76b75a9f99be88f22f3f7fdedacf54f8e750d3"
   },
+  "platformMedia": {
+    "schemaVersion": 1,
+    "approvalSha256": "a2d102ad58ee2c58dfafa2bab66505272d1fc54ac25bdcb6a5d359760bc55c4c",
+    "assets": [
+      {
+        "sha256": "799e4a6475e154cd9eeb089f79eae8b8b448ae5bfce7bb3a83a5f6fc58612f7c",
+        "byteSize": 188208
+      },
+      {
+        "sha256": "585958c21bc43ba4675e7e9c7c76b75a9f99be88f22f3f7fdedacf54f8e750d3",
+        "byteSize": 402551
+      }
+    ]
+  },
   "media": {
     "stage": "media_verified",
     "attempts": 0,
@@ -93,8 +107,8 @@
   },
   "channels": {
     "instagram": {
-      "stage": "media_verified",
-      "attempts": 0,
+      "stage": "scheduling",
+      "attempts": 1,
       "transitions": [
         {
           "from": "planned",
@@ -110,6 +124,11 @@
           "from": "deploying",
           "to": "media_verified",
           "at": "2026-09-08T04:36:30.056Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-08T04:36:32.177Z"
         }
       ]
     },
