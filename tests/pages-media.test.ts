@@ -15,7 +15,12 @@ import { verifyPublicAsset } from "../src/media/verify-public.js";
 import { sha256 } from "../src/shared/determinism.js";
 
 test("rescheduled campaigns retain original media through their new delivery date", () => {
-  const state = campaignStateFixture({ instagram: "scheduled" });
+  const state = campaignStateFixture({
+    instagram: "scheduled",
+    facebook: "published",
+    tiktok: "skipped_disabled",
+    youtube: "skipped_expired",
+  });
   state.channels.instagram.scheduledAt = "2026-09-09T21:30:00Z";
   assert.deepEqual(
     retainedCampaignIds([state], new Date("2026-09-09T22:00:00Z")),
@@ -23,7 +28,68 @@ test("rescheduled campaigns retain original media through their new delivery dat
   );
   assert.deepEqual(
     retainedCampaignIds([state], new Date("2026-09-12T22:00:00Z")),
+    [state.plan.id],
+  );
+  state.channels.instagram.stage = "published";
+  assert.deepEqual(
+    retainedCampaignIds([state], new Date("2026-09-12T22:00:00Z")),
     [],
+  );
+});
+
+test("every in-flight channel retains old original and rescheduled media with or without a provider ID", () => {
+  for (const channel of [
+    "instagram",
+    "facebook",
+    "tiktok",
+    "youtube",
+  ] as const) {
+    for (const stage of ["scheduling", "scheduled", "publishing"] as const) {
+      for (const rescheduled of [false, true]) {
+        for (const providerId of [undefined, "provider-post"]) {
+          const state = campaignStateFixture({
+            instagram: "published",
+            facebook: "failed",
+            tiktok: "skipped_disabled",
+            youtube: "skipped_expired",
+          });
+          state.channels[channel].stage = stage;
+          if (providerId) state.channels[channel].providerId = providerId;
+          if (rescheduled)
+            state.channels[channel].scheduledAt = "2026-09-01T12:00:00Z";
+          assert.deepEqual(
+            retainedCampaignIds([state], new Date("2026-10-01T12:00:00Z")),
+            [state.plan.id],
+          );
+        }
+      }
+    }
+  }
+});
+
+test("terminal campaigns retain only the existing two-day reschedule grace", () => {
+  const state = campaignStateFixture({
+    instagram: "published",
+    facebook: "failed",
+    tiktok: "skipped_disabled",
+    youtube: "skipped_expired",
+  });
+  assert.deepEqual(
+    retainedCampaignIds([state], new Date("2026-10-01T12:00:00Z")),
+    [],
+  );
+  state.channels.instagram.scheduledAt = "2026-09-09T12:00:00Z";
+  assert.deepEqual(
+    retainedCampaignIds([state], new Date("2026-09-11T12:00:00Z")),
+    [state.plan.id],
+  );
+  assert.deepEqual(
+    retainedCampaignIds([state], new Date("2026-09-11T12:00:01Z")),
+    [],
+  );
+  assert.throws(
+    () => retainedCampaignIds([state], new Date("invalid")),
+    /Invalid retention time/,
   );
 });
 
