@@ -188,7 +188,7 @@
       ]
     },
     "youtube": {
-      "stage": "scheduled",
+      "stage": "failed",
       "attempts": 1,
       "transitions": [
         {
@@ -215,10 +215,19 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-31T05:36:36.707Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "failed",
+          "at": "2026-09-08T11:19:28.687Z"
         }
       ],
       "providerId": "6a9512e5cf2d289216bf9f61",
-      "scheduledAt": "2026-09-06T15:17:00.000Z"
+      "scheduledAt": "2026-09-06T15:17:00.000Z",
+      "lastError": {
+        "category": "buffer_async_failure",
+        "message": "Buffer reported an asynchronous delivery failure"
+      }
     }
   }
 }
