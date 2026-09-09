@@ -1,0 +1,149 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-15-cashier-shortcut-v1-1",
+    "localDate": "2026-09-15",
+    "targetAt": "2026-09-15T12:17:00-03:00",
+    "family": "cashier_shortcut",
+    "recipeId": "cashier-shortcut-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-15:cashier_shortcut:v1",
+    "palette": "blue",
+    "ctaKind": "save_share",
+    "mediaKind": "carousel",
+    "slideCount": 4,
+    "scenario": {
+      "purchaseMinor": 1900,
+      "receivedMinor": 2000,
+      "resultMinor": 100,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 100,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Notas e moedas na ordem. R$ 19,00 na compra. Recebeu R$ 20,00.",
+      "answer": "R$ 1,00",
+      "explanation": "Confirme o valor da compra e quanto recebeu. Depois calcule o troco.",
+      "cta": "Salve para consultar no próximo atendimento.",
+      "channels": {
+        "instagram": {
+          "caption": "Notas e moedas na ordem. R$ 19,00 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 1,00.\nUma forma: 1 moeda de R$ 1,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-15-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Notas e moedas na ordem. R$ 19,00 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 1,00.\nUma forma: 1 moeda de R$ 1,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-15-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Notas e moedas na ordem. R$ 19,00 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 1,00.\nUma forma: 1 moeda de R$ 1,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-15-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Notas e moedas na ordem"
+        },
+        "youtube": {
+          "title": "Notas e moedas na ordem. R$ 19,00 na compra. Recebeu R$ 20,00.",
+          "description": "Notas e moedas na ordem. R$ 19,00 na compra. Recebeu R$ 20,00.\n\nA resposta é R$ 1,00.\nUma forma: 1 moeda de R$ 1,00.\n\nConfirme o valor da compra e quanto recebeu. Depois calcule o troco.\n\nSalve para consultar no próximo atendimento.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-15-cashier-shortcut-v1-1&utm_content=cashier_shortcut\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "cashier.confirm-received"
+    ],
+    "fingerprints": {
+      "headline": "63537e29f7e052f66836856e6d99101cba6b79f6e7817f60103b54dcfef41844",
+      "caption": "f6bc5157f7391e39cbc2d73a3657aaebfa3b5984ddbdb434ad96d1a097f350d2"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "766c4cf295180a80074d81ab7791abb8e28c6da3b2032c86bfceb55ca791b4d9",
+      "49bba48a5b03fc3b2f62c61e0c98bb311dc99c6f7bd3431100c3b319707e8fbc",
+      "1bf90b96678cc376fcd0a81fc1e650e5dcad96a74d21e62ec2d93482180be01a",
+      "6572b7bd4fcbd9c3ad3c81da2aacebb27c5802de0489545820a9de5d9ed1952f"
+    ],
+    "video": "10c27d325fe2005d09fa7d0ca3edab9fb7b4983cd5b867e0afe0718cd4a876f0"
+  },
+  "media": {
+    "stage": "deploying",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-09T04:42:10.941Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-09T04:42:10.941Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-09T04:42:10.941Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-09T04:42:10.941Z"
+        }
+      ]
+    },
+    "facebook": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-09T04:42:10.941Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-09T04:42:10.941Z"
+        }
+      ]
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-09T04:42:10.941Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "deploying",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-09T04:42:10.941Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-09T04:42:10.941Z"
+        }
+      ]
+    }
+  }
+}
