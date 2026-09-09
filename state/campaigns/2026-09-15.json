@@ -69,6 +69,32 @@
     ],
     "video": "10c27d325fe2005d09fa7d0ca3edab9fb7b4983cd5b867e0afe0718cd4a876f0"
   },
+  "platformMedia": {
+    "schemaVersion": 1,
+    "approvalSha256": "ef0a9fae8534b1ef55cebebf72c1d69479e6dce1b3f532a37fa161e4fc0432f7",
+    "assets": [
+      {
+        "sha256": "766c4cf295180a80074d81ab7791abb8e28c6da3b2032c86bfceb55ca791b4d9",
+        "byteSize": 108784
+      },
+      {
+        "sha256": "49bba48a5b03fc3b2f62c61e0c98bb311dc99c6f7bd3431100c3b319707e8fbc",
+        "byteSize": 67902
+      },
+      {
+        "sha256": "1bf90b96678cc376fcd0a81fc1e650e5dcad96a74d21e62ec2d93482180be01a",
+        "byteSize": 52922
+      },
+      {
+        "sha256": "6572b7bd4fcbd9c3ad3c81da2aacebb27c5802de0489545820a9de5d9ed1952f",
+        "byteSize": 84283
+      },
+      {
+        "sha256": "10c27d325fe2005d09fa7d0ca3edab9fb7b4983cd5b867e0afe0718cd4a876f0",
+        "byteSize": 405650
+      }
+    ]
+  },
   "media": {
     "stage": "media_verified",
     "attempts": 0,
@@ -92,8 +118,8 @@
   },
   "channels": {
     "instagram": {
-      "stage": "media_verified",
-      "attempts": 0,
+      "stage": "scheduling",
+      "attempts": 1,
       "transitions": [
         {
           "from": "planned",
@@ -109,6 +135,11 @@
           "from": "deploying",
           "to": "media_verified",
           "at": "2026-09-09T04:42:34.313Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-09T04:42:36.560Z"
         }
       ]
     },
