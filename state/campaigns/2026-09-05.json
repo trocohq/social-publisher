@@ -93,7 +93,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "scheduled",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -125,10 +125,16 @@
           "from": "scheduled",
           "to": "scheduled",
           "at": "2026-09-07T00:53:23.000Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "published",
+          "at": "2026-09-08T23:23:41.083Z"
         }
       ],
       "providerId": "6a93bee719e5b3c30eb3a205",
-      "scheduledAt": "2026-09-08T21:30:00.000Z"
+      "scheduledAt": "2026-09-08T21:30:00.000Z",
+      "publishedAt": "2026-09-08T23:23:41.083Z"
     },
     "facebook": {
       "stage": "failed",
