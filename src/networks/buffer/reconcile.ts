@@ -104,6 +104,17 @@ export async function reconcileBufferPost({
   });
   if (response.kind !== "success") return response;
   const match = matchExistingBufferPost(expected, response.value);
+  if (
+    match &&
+    (typeof match.status !== "string" ||
+      !["scheduled", "sending", "sent", "error"].includes(match.status))
+  ) {
+    return {
+      kind: "permanent_error",
+      category: "buffer_malformed_response",
+      message: "Buffer returned an invalid post status",
+    };
+  }
   if (match?.status === "error") {
     return {
       kind: "permanent_error",

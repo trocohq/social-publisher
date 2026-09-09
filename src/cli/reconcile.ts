@@ -13,9 +13,25 @@ import {
   writeCampaignState,
 } from "../state/storage.js";
 import { parseAction, providerAdaptersForAction } from "./publish.js";
+import { reconcileFailedBufferPublication } from "../publishing/failed-buffer-reconciliation.js";
 
-async function run(args: readonly string[]): Promise<void> {
+export async function runReconcile(
+  args: readonly string[],
+  dependencies: Readonly<{
+    environment?: Readonly<Record<string, string | undefined>>;
+    fetchImplementation?: typeof fetch;
+    now?: () => Date;
+  }> = {},
+): Promise<void> {
   const actionIndex = args.indexOf("--action");
+  const recoverFailed = args.includes("--recover-failed");
+  if (
+    recoverFailed &&
+    (actionIndex < 0 ||
+      args.filter((value) => value === "--action").length !== 1)
+  ) {
+    throw new Error("Failed Buffer recovery requires one explicit --action");
+  }
   const stateRootIndex = args.indexOf("--state-root");
   const renderRootIndex = args.indexOf("--render-root");
   const stateRoot = resolve(
@@ -24,7 +40,10 @@ async function run(args: readonly string[]): Promise<void> {
   const renderRoot = resolve(
     renderRootIndex >= 0 ? (args[renderRootIndex + 1] ?? "") : ".tmp/render",
   );
-  const environment = parseEnvironment(process.env, "provider");
+  const environment = parseEnvironment(
+    dependencies.environment ?? process.env,
+    "provider",
+  );
   const targets: { state: CampaignState; channel: PublicationChannel }[] = [];
 
   if (actionIndex >= 0) {
@@ -72,15 +91,31 @@ async function run(args: readonly string[]): Promise<void> {
           : "scheduling",
       environment,
       renderRoot,
+      ...(dependencies.fetchImplementation
+        ? { bufferFetchImplementation: dependencies.fetchImplementation }
+        : {}),
     });
-    const result = await reconcilePublication({
+    const reconciliation = {
       state: latest,
       channel: target.channel,
       reconcile: adapters.reconcile,
-      now: new Date(),
-      persist: (value) => writeCampaignState(stateRoot, value),
-    });
-    assertPublicationSucceeded(result.state, target.channel);
+      now: dependencies.now?.() ?? new Date(),
+      persist: (value: CampaignState) => writeCampaignState(stateRoot, value),
+    };
+    const result = recoverFailed
+      ? await reconcileFailedBufferPublication({
+          ...reconciliation,
+          bufferChannelId: environment.buffer.channelIds[target.channel],
+        })
+      : await reconcilePublication(reconciliation);
+    if (recoverFailed) {
+      if (
+        !result.matched &&
+        latest.channels[target.channel].stage === "failed"
+      ) {
+        throw new Error("Failed Buffer recovery was not confirmed");
+      }
+    } else assertPublicationSucceeded(result.state, target.channel);
     if (result.matched) matched += 1;
   }
   process.stdout.write(
@@ -90,7 +125,7 @@ async function run(args: readonly string[]): Promise<void> {
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
 if (invokedPath === fileURLToPath(import.meta.url)) {
-  run(process.argv.slice(2)).catch((error: unknown) => {
+  runReconcile(process.argv.slice(2)).catch((error: unknown) => {
     process.stderr.write(
       `${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "Reconciliation failed" })}\n`,
     );
