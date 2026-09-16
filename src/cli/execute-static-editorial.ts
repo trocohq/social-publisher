@@ -1,16 +1,24 @@
 import { fileURLToPath } from "node:url";
 
+import {
+  runStaticEditorialCycle,
+  type ApprovedStaticTarget,
+  type PendingStaticIntent,
+  type StaticCycleSummary,
+} from "../static-editorial/cycle.js";
+
 type ExecutionMode = "scheduled" | "reconcile-only";
 type Environment = Readonly<Record<string, string | undefined>>;
-
-export function planStaticEditorialExecution(
-  input: Readonly<{ args: readonly string[]; env: Environment }>,
-): Readonly<{
+export type StaticExecutionPlan = Readonly<{
   mode: ExecutionMode;
   repositoryId: number;
   ref: string;
   status: "ready";
-}> {
+}>;
+
+export function planStaticEditorialExecution(
+  input: Readonly<{ args: readonly string[]; env: Environment }>,
+): StaticExecutionPlan {
   if (
     input.args.length !== 2 ||
     input.args[0] !== "--mode" ||
@@ -43,6 +51,35 @@ export function planStaticEditorialExecution(
   )
     throw new Error("STATIC_EXECUTION_IDENTITY_INVALID");
   return { mode, repositoryId, ref, status: "ready" };
+}
+
+export async function executePlannedStaticEditorial(
+  input: Readonly<{
+    plan: StaticExecutionPlan;
+    runtime: Readonly<{
+      loadPending(
+        plan: StaticExecutionPlan,
+      ): Promise<readonly PendingStaticIntent[]>;
+      loadApproved(
+        plan: StaticExecutionPlan,
+      ): Promise<readonly ApprovedStaticTarget[]>;
+      reconcile(item: PendingStaticIntent): Promise<"reconciled" | "uncertain">;
+      schedule(item: ApprovedStaticTarget): Promise<"accepted" | "uncertain">;
+    }>;
+  }>,
+): Promise<StaticCycleSummary> {
+  const pending = await input.runtime.loadPending(input.plan);
+  const approved =
+    input.plan.mode === "scheduled"
+      ? await input.runtime.loadApproved(input.plan)
+      : [];
+  return runStaticEditorialCycle({
+    mode: input.plan.mode,
+    pending,
+    approved,
+    reconcile: input.runtime.reconcile,
+    schedule: input.runtime.schedule,
+  });
 }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {

@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { planStaticEditorialExecution } from "../src/cli/execute-static-editorial.js";
+import {
+  executePlannedStaticEditorial,
+  planStaticEditorialExecution,
+} from "../src/cli/execute-static-editorial.js";
 
 const env = {
   STATIC_EDITORIAL_ENABLED: "true",
@@ -67,4 +70,38 @@ test("returns only opaque execution metadata", () => {
     planStaticEditorialExecution({ args: ["--mode", "scheduled"], env }),
   );
   assert.doesNotMatch(result, /private-editorial|secret|buffer/u);
+});
+
+test("loads private records and delegates only opaque targets", async () => {
+  const plan = planStaticEditorialExecution({
+    args: ["--mode", "scheduled"],
+    env,
+  });
+  const calls: string[] = [];
+  assert.deepEqual(
+    await executePlannedStaticEditorial({
+      plan,
+      runtime: {
+        loadPending: () => Promise.resolve([{ opaqueId: "pending" }]),
+        loadApproved: () =>
+          Promise.resolve([
+            {
+              opaqueId: "approved",
+              accountChannelKey: "instagram:a",
+              decision: "ready" as const,
+            },
+          ]),
+        reconcile: (item) => {
+          calls.push(`reconcile:${item.opaqueId}`);
+          return Promise.resolve("reconciled" as const);
+        },
+        schedule: (item) => {
+          calls.push(`schedule:${item.opaqueId}`);
+          return Promise.resolve("accepted" as const);
+        },
+      },
+    }),
+    { reconciled: 1, uncertain: 0, accepted: 1, held: 0, failed: 0 },
+  );
+  assert.deepEqual(calls, ["reconcile:pending", "schedule:approved"]);
 });
