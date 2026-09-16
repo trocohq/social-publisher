@@ -270,3 +270,17 @@ Rollback stops new static creation while preserving every provider ID and
 continuing reconciliation. It never resets state, deletes media, or re-enables
 the legacy creator automatically. The rehearsal emits counts and opaque keys;
 it does not expose captions, private paths, credentials or provider responses.
+
+## Static acceptance record template
+
+Keep authored Markdown, preview bytes and complete provider receipts private.
+After a controlled real acceptance, record the permanent entry ID, approved
+revision, ordered media SHA-256 hashes, channel, placement, opaque account
+reference, requested timestamp, provider ID, observed state/time and verified
+published URL. Record whether Story reused the exact feed hashes or was held as
+unsupported.
+
+An `accepted`, queued or publicly reachable image response is not publication
+proof. Acceptance stays pending until the exact account, provider ID and
+approved hashes reconcile to the eventual published state. A Story capability
+failure blocks only Story and does not invalidate a successful feed target.
