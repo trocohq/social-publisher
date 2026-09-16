@@ -232,3 +232,28 @@ requires a state rewrite.
 4. Revoke provider credentials if the automation is being retired.
 5. Keep sanitized state and incident history for audit; generated media may be
    removed by normal Pages retention.
+
+## Legacy Buffer failure classification
+
+The static editorial migration does not reset, recreate, or automatically retry
+historical Buffer failures. The audited September 4–6 snapshot contains six
+failed deliveries with original provider IDs:
+
+- two static deliveries: the September 4 Facebook carousel and September 6
+  Facebook feed image;
+- four legacy video deliveries: Facebook on September 5 and YouTube on all
+  three dates. YouTube selected the campaign MP4 even when the plan label was
+  `feed` or `carousel`.
+
+`buildLegacyDeliveryInventory` derives this classification from the persisted
+campaign and channel evidence and emits only sanitized records. Missing IDs,
+non-Buffer failures, and incomplete media evidence are excluded or classified
+as `unknown`; they are never guessed into a recovery path.
+
+The two static records may use the existing explicit, read-only same-ID
+reconciliation only after a separately authorized provider observation. If the
+provider object still needs mutation, require approved replacement bytes, an
+explicit future date, and verified same-ID edit support. Do not reset either
+record to retryable or create a replacement post. The four video records retain
+their original media and IDs as a separate maintenance track and do not block
+new static batches.
