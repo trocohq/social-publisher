@@ -27,6 +27,7 @@
     "health": "node --import tsx src/cli/health.ts",
     "incident": "node --import tsx src/cli/incident.ts",
     "static:preview": "node --import tsx src/cli/preview-static-editorial.ts",
+    "static:execute": "node --import tsx src/cli/execute-static-editorial.ts",
     "validate": "node --import tsx src/validation/run.ts",
     "check": "npm run format:check && npm run typecheck && npm test"
   },
