@@ -257,3 +257,16 @@ explicit future date, and verified same-ID edit support. Do not reset either
 record to retryable or create a replacement post. The four video records retain
 their original media and IDs as a separate maintenance track and do not block
 new static batches.
+
+## Static owner cutover
+
+Before enabling the new executor, freeze only the legacy creator and retain its
+reconciler. Reconcile all existing IDs and uncertain intents, run the sanitized
+cutover rehearsal, resolve conflicts and missing media privately, then persist
+and read back the exclusive owner fence. Enable the new creator only when
+`decideStaticCutover` reports `ready-to-enable`.
+
+Rollback stops new static creation while preserving every provider ID and
+continuing reconciliation. It never resets state, deletes media, or re-enables
+the legacy creator automatically. The rehearsal emits counts and opaque keys;
+it does not expose captions, private paths, credentials or provider responses.
