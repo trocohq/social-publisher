@@ -1,0 +1,211 @@
+[
+  {
+    "hook": ["Print de Pix", "não confirma", "pagamento."],
+    "slides": [
+      {
+        "title": ["Mostrou o print?"],
+        "body": ["Ainda falta conferir", "se o dinheiro entrou."]
+      },
+      {
+        "title": ["Confira no", "seu banco."],
+        "body": ["Abra o app por conta própria", "e veja o crédito no extrato."]
+      },
+      {
+        "title": ["Confirme primeiro.", "Libere depois."],
+        "body": ["O comprovante não substitui", "a conferência do recebimento."]
+      }
+    ]
+  },
+  {
+    "hook": ["Pix por engano?", "Devolva pelo", "caminho certo."],
+    "slides": [
+      {
+        "title": ["Antes de devolver,", "confira."],
+        "body": ["Veja no extrato se o valor", "realmente entrou."]
+      },
+      {
+        "title": ["Use a função", "de devolução."],
+        "body": ["Ela fica na transação", "do Pix recebido."]
+      },
+      {
+        "title": ["Volte à", "transação original."],
+        "body": ["A devolução fica ligada", "ao Pix que você recebeu."]
+      }
+    ]
+  },
+  {
+    "hook": ["Devolver o Pix", "para outra chave?"],
+    "slides": [
+      {
+        "title": ["A chave mudou?"],
+        "body": ["Confira o recebimento", "antes de fazer qualquer coisa."]
+      },
+      {
+        "title": ["Não faça", "um novo Pix."],
+        "body": ["Use a devolução na", "transação original."]
+      },
+      {
+        "title": ["Recebeu por engano?"],
+        "body": ["Abra o Pix recebido e use", "a função de devolução."]
+      }
+    ]
+  },
+  {
+    "hook": ["A pressa do cliente", "não confirma", "o pagamento."],
+    "slides": [
+      {
+        "title": ["“Já paguei.", "Pode liberar.”"],
+        "body": ["Mesmo com pressa,", "vale conferir."]
+      },
+      {
+        "title": ["Olhe o extrato."],
+        "body": ["O valor precisa aparecer", "no seu banco."]
+      },
+      {
+        "title": ["Conferir faz parte", "da venda."],
+        "body": ["Um print pode ser falso.", "Confirme antes de liberar."]
+      }
+    ]
+  },
+  {
+    "hook": ["15% de R$ 200.", "Como fazer", "de cabeça?"],
+    "slides": [
+      {
+        "title": ["Comece com 10%."],
+        "body": ["R$ 200 ÷ 10 = R$ 20.", "Para achar 5%, use a metade."]
+      },
+      {
+        "title": ["R$ 30"],
+        "body": ["R$ 20 + R$ 10.", "10% + 5% = 15%."],
+        "number": true
+      },
+      {
+        "title": ["Divida a conta", "em partes."],
+        "body": ["Ache 10%, pegue a metade", "e some os dois valores."]
+      }
+    ]
+  },
+  {
+    "hook": ["5% de R$ 80.", "Comece pelos 10%."],
+    "slides": [
+      {
+        "title": ["Ache 10% primeiro."],
+        "body": ["R$ 80 ÷ 10 = R$ 8."]
+      },
+      {
+        "title": ["R$ 4"],
+        "body": ["5% é a metade de 10%.", "Metade de R$ 8 é R$ 4."],
+        "number": true
+      },
+      {
+        "title": ["10%. Depois,", "a metade."],
+        "body": ["Um jeito simples de achar 5%.", "Confira o valor de partida."]
+      }
+    ]
+  },
+  {
+    "hook": ["19 peças.", "R$ 12 cada.", "Quanto dá?"],
+    "slides": [
+      {
+        "title": ["Faça a conta", "com 20 peças."],
+        "body": ["20 × R$ 12 = R$ 240."]
+      },
+      {
+        "title": ["R$ 228"],
+        "body": ["Agora tire uma peça:", "R$ 240 − R$ 12."],
+        "number": true
+      },
+      {
+        "title": ["Arredonde.", "Depois, ajuste."],
+        "body": ["Uma quantidade redonda", "pode facilitar a conta."]
+      }
+    ]
+  },
+  {
+    "hook": ["Deu R$ 37.", "Recebeu R$ 50.", "E o troco?"],
+    "slides": [
+      {
+        "title": ["Complete até 40."],
+        "body": ["De R$ 37 a R$ 40: R$ 3.", "De R$ 40 a R$ 50: R$ 10."]
+      },
+      {
+        "title": ["R$ 13"],
+        "body": ["R$ 3 + R$ 10.", "Esse é o troco."],
+        "number": true
+      },
+      {
+        "title": ["Vá por etapas."],
+        "body": ["Complete até um valor redondo", "e some o que faltou."]
+      }
+    ]
+  },
+  {
+    "hook": ["Uma conta clara", "passa confiança."],
+    "slides": [
+      {
+        "title": ["Confirme", "os valores."],
+        "body": ["Qual é a quantidade?", "Qual é o preço por unidade?"]
+      },
+      {
+        "title": ["Mostre de onde", "veio o total."],
+        "body": ["Quantidade × preço.", "Uma explicação simples ajuda."]
+      },
+      {
+        "title": ["Confira antes", "de passar."],
+        "body": ["Repita os valores e revise", "o resultado antes de enviar."]
+      }
+    ]
+  },
+  {
+    "hook": ["Vai passar", "o caixa?", "Deixe tudo claro."],
+    "slides": [
+      {
+        "title": ["O que ficou", "pendente?"],
+        "body": ["Anote o assunto e o que", "ainda precisa ser feito."]
+      },
+      {
+        "title": ["Qual é o", "próximo passo?"],
+        "body": ["Registre também quem", "precisa acompanhar."]
+      },
+      {
+        "title": ["Seu turno termina.", "A informação fica."],
+        "body": ["Uma anotação clara ajuda", "quem assume depois."]
+      }
+    ]
+  },
+  {
+    "hook": ["Errou a conta?", "Vamos corrigir."],
+    "slides": [
+      {
+        "title": ["Confira", "o valor certo."],
+        "body": ["Refaça a conta antes", "de passar a correção."]
+      },
+      {
+        "title": ["Avise quem", "precisa saber."],
+        "body": ["Mostre o valor correto", "e explique o que mudou."]
+      },
+      {
+        "title": ["Corrija", "com clareza."],
+        "body": ["Siga o procedimento", "da sua equipe."]
+      }
+    ]
+  },
+  {
+    "hook": ["O chefe pediu", "uma conta rápida.", "Por onde começar?"],
+    "slides": [
+      {
+        "title": ["Entenda o pedido."],
+        "body": ["Confirme quantidade, preço", "e o que entra no total."]
+      },
+      {
+        "title": ["R$ 96"],
+        "body": ["12 unidades × R$ 8.", "Neste exemplo, sem o frete."],
+        "number": true
+      },
+      {
+        "title": ["Dê o total.", "Explique a base."],
+        "body": ["Assim, quem recebe a conta", "sabe o que está incluído."]
+      }
+    ]
+  }
+]

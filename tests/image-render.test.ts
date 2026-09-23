@@ -83,23 +83,29 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   const svg = createFeedSlideSvg({ plan, brand, slide: 0 });
   const headlineSize = Number(
     svg.match(
-      /<text x="40" y="\d+"[^>]*font-family="Stolzl" font-size="(\d+)"/,
+      /<g data-feed-text="true" data-x="40"[^>]*font-family="Manrope" font-size="(\d+)"/,
     )?.[1],
   );
 
   assert.ok(headlineSize >= 88, `headline rendered at ${headlineSize}px`);
   assert.match(svg, /<image x="40" y="60" width="72" height="72"/u);
-  assert.match(svg, /font-family="Stolzl" font-size="54">R\$/u);
-  assert.match(svg, /font-family="Stolzl" font-size="68">R\$/u);
+  assert.match(
+    svg,
+    /font-family="Manrope" font-size="54" font-weight="700">R\$/u,
+  );
+  assert.match(
+    svg,
+    /font-family="Manrope" font-size="68" font-weight="700">R\$/u,
+  );
   assert.match(svg, /<rect x="40" y="610" width="1000" height="390"/u);
   assert.match(
     svg,
-    /font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"><tspan x="40"/u,
+    /data-x="40"[^>]*font-family="Figtree" font-size="(?:5[0-4]|4[8-9])" font-weight="700"/u,
   );
   assert.doesNotMatch(svg, /<rect[^>]*y="1160"/u);
   assert.match(
     svg,
-    /<text x="88" y="\d+" fill="#213130" font-family="Figtree" font-size="40" font-weight="700">/u,
+    /data-x="88"[^>]*fill="#213130" font-family="Figtree" font-size="40" font-weight="700"/u,
   );
 
   const carousel = createCampaign({
@@ -115,6 +121,6 @@ test("feed hierarchy uses larger type and a distinct call-to-action stage", asyn
   assert.doesNotMatch(lastSlide, /<rect[^>]*y="980"/u);
   assert.match(
     lastSlide,
-    /font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"><tspan x="40"/u,
+    /data-x="40"[^>]*font-family="Figtree" font-size="(?:[4-6][0-9])" font-weight="700"/u,
   );
 });

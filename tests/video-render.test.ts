@@ -28,7 +28,7 @@ import { renderFixtureCampaign } from "./support/render-fixture.js";
 
 const frontendPublic = canonicalBrandRoot();
 
-for (const family of ["stolzl", "figtree"] as const)
+for (const family of ["manrope", "figtree"] as const)
   test(`vertical raster pixels use the canonical ${family} buffer`, async () => {
     const plan = createCampaign({
       localDate: "2026-08-27",
@@ -45,7 +45,7 @@ for (const family of ["stolzl", "figtree"] as const)
         .raw()
         .toBuffer();
     const canonical = await pixels(brand);
-    const substitute = family === "stolzl" ? brand.figtree : brand.stolzl;
+    const substitute = family === "manrope" ? brand.figtree : brand.manrope;
     assert.ok(
       !(await pixels({ ...brand, [family]: substitute })).equals(canonical),
       `${family} pixels must come from its canonical buffer`,
@@ -273,11 +273,11 @@ test("vertical scenes prioritize larger hook, values, answer, and CTA", async ()
   );
   assert.match(
     answer,
-    /font-family="Stolzl" font-size="192"[^>]*aria-label="R\$/u,
+    /font-family="Manrope" font-size="192"[^>]*aria-label="R\$/u,
   );
   const displaySize = Number(
     endCard.match(
-      /data-x="0"[^>]*font-family="Stolzl" font-size="([\d.]+)" font-weight="400"/u,
+      /data-x="0"[^>]*font-family="Manrope" font-size="([\d.]+)" font-weight="700"/u,
     )?.[1],
   );
   assert.ok(

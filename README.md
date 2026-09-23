@@ -71,7 +71,7 @@ publication state and performs no network request.
 
 Canonical brand assets come from `frontend/public` and are verified against
 reviewed SHA-256 hashes before rendering. The loader requires both Troco marks,
-Stolzl, and Figtree. It rejects missing files, changed bytes, symlinks, unsafe
+Manrope, and Figtree. It rejects missing files, changed bytes, symlinks, unsafe
 SVG content, and external SVG references. There is deliberately no fallback or
 generated substitute for the Troco mark.
 
@@ -106,7 +106,7 @@ across all four scenes and the thumbnail. Ink uses the canonical inverse mark;
 Paper uses the canonical normal mark. The color treatments use the canonical
 normal/inverse marks according to their contrast contract. The canonical web
 lockup has a 22% corner radius, with Figtree 700 with -0.04em tracking for the
-wordmark and Stolzl titles.
+wordmark and Manrope titles.
 
 Every vertical scene has vertically stacked content, centered horizontally and
 vertically within the safe area. Review the hook, scenario, answer, and end card

@@ -101,6 +101,143 @@ test("an uncertain old intent is reconciled but never blindly recreated", async 
   );
 });
 
+test("a fresh intent can retry after a read failure before any creation", async () => {
+  const interrupted = await deliverStory({
+    state: prepared(),
+    environment,
+    now,
+    allowCreate: true,
+    fetchImplementation: async (_url, options) => {
+      assert.ok(!String(options?.body).includes("mutation"));
+      return new Response(null, { status: 503 });
+    },
+  });
+  assert.equal(interrupted.instagramStory?.stage, "pending");
+  assert.equal(
+    interrupted.instagramStory?.lastError?.category,
+    "buffer_server",
+  );
+  let creates = 0;
+  const retried = await deliverStory({
+    state: prepareStory(interrupted, now),
+    environment,
+    now,
+    allowCreate: true,
+    fetchImplementation: async (_url, options) => {
+      if (!String(options?.body).includes("mutation")) return empty();
+      creates++;
+      return Response.json({
+        data: { createPost: { post: { id: "story-retry", status: "sent" } } },
+      });
+    },
+  });
+  assert.equal(creates, 1);
+  assert.equal(retried.instagramStory?.stage, "published");
+  assert.equal(retried.instagramStory?.lastError, undefined);
+});
+
+for (const stage of ["uncertain", "accepted"] as const) {
+  for (const status of [503, 401]) {
+    test(`${stage} Story preserves reconciliation after HTTP ${status}`, async () => {
+      const state = campaignStateSchema.parse({
+        ...prepared(),
+        instagramStory: {
+          stage,
+          intentAt: now.toISOString(),
+          ...(stage === "accepted" ? { providerId: "story-retained" } : {}),
+        },
+      });
+      const result = await deliverStory({
+        state,
+        environment,
+        now,
+        allowCreate: false,
+        fetchImplementation: async (_url, options) => {
+          assert.ok(!String(options?.body).includes("mutation"));
+          return new Response(null, { status });
+        },
+      });
+      assert.equal(result.instagramStory?.stage, stage);
+      assert.equal(
+        result.instagramStory?.providerId,
+        state.instagramStory?.providerId,
+      );
+      assert.ok(result.instagramStory?.lastError);
+      if (stage === "accepted") {
+        const recovered = await deliverStory({
+          state: result,
+          environment,
+          now,
+          allowCreate: false,
+          fetchImplementation: async (_url, options) => {
+            assert.ok(!String(options?.body).includes("mutation"));
+            return Response.json({
+              data: {
+                posts: {
+                  edges: [
+                    {
+                      node: {
+                        id: "story-retained",
+                        channelId: "ig_1",
+                        status: "sent",
+                      },
+                    },
+                  ],
+                  pageInfo: { hasNextPage: false },
+                },
+              },
+            });
+          },
+        });
+        assert.equal(recovered.instagramStory?.stage, "published");
+        assert.equal(recovered.instagramStory?.providerId, "story-retained");
+        assert.equal(recovered.instagramStory?.lastError, undefined);
+      }
+    });
+  }
+}
+
+test("a confirmed provider delivery failure remains terminal", async () => {
+  const state = campaignStateSchema.parse({
+    ...prepared(),
+    instagramStory: {
+      stage: "accepted",
+      intentAt: now.toISOString(),
+      providerId: "story-failed",
+    },
+  });
+  const result = await deliverStory({
+    state,
+    environment,
+    now,
+    allowCreate: false,
+    fetchImplementation: async (_url, options) => {
+      assert.ok(!String(options?.body).includes("mutation"));
+      return Response.json({
+        data: {
+          posts: {
+            edges: [
+              {
+                node: {
+                  id: "story-failed",
+                  channelId: "ig_1",
+                  status: "error",
+                },
+              },
+            ],
+            pageInfo: { hasNextPage: false },
+          },
+        },
+      });
+    },
+  });
+  assert.equal(result.instagramStory?.stage, "failed");
+  assert.equal(
+    result.instagramStory?.lastError?.category,
+    "buffer_async_failure",
+  );
+});
+
 test("timeout recovery adopts the existing Story without creating another", async () => {
   const state = prepared();
   const timeout = await deliverStory({

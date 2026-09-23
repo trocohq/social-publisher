@@ -132,7 +132,7 @@ test("the campaign documentation describes the centered vertical catalog contrac
     "9-second source loops and trims to 12 seconds",
     "canonical normal/inverse marks",
     "Figtree 700 with -0.04em tracking",
-    "Stolzl titles",
+    "Manrope titles",
     "feed and carousel remain unchanged",
   ]) {
     assert.ok(readme.includes(phrase), `README is missing ${phrase}`);

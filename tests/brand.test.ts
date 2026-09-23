@@ -11,7 +11,7 @@ test("the current canonical Troco mark and fonts pass the reviewed manifest", as
 
   assert.match(brand.markSvg, /viewBox="0 0 1080 1080"/);
   assert.match(brand.inverseMarkSvg, /viewBox="0 0 1080 1080"/);
-  assert.ok(brand.stolzl.length > 1_000);
+  assert.ok(brand.manrope.length > 1_000);
   assert.ok(brand.figtree.length > 1_000);
 });
 

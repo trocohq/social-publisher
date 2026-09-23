@@ -10,6 +10,7 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
+    "package:approved": "node --import tsx src/cli/approved-package.ts",
     "typecheck": "tsc -p tsconfig.build.json --noEmit",
     "format": "prettier --write .",
     "format:check": "prettier --check .",

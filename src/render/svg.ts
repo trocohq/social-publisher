@@ -10,12 +10,13 @@ import {
   carouselTextLayouts,
   feedTextLayouts,
   fitText,
+  lessonTextLayouts,
   thumbnailHeadlineLayout,
   verticalTextLayouts,
   type TextLayout,
 } from "./text-layout.js";
 import { safeAreaFor } from "./safe-area.js";
-import { outlineText } from "./font-paths.js";
+import { outlineText, canonicalTextMeasure } from "./font-paths.js";
 import {
   lessonAccent,
   lessonIllustrationFor,
@@ -88,26 +89,34 @@ export function escapeXml(value: string): string {
   });
 }
 
-function textBlock(
+function outlinedTextBlock(
+  brand: BrandAssets,
   layout: TextLayout,
   x: number,
   top: number,
-  fontFamily: "Stolzl" | "Figtree",
+  fontFamily: "Manrope" | "Figtree",
   weight = 400,
   fill: string = designTokens.colors.ink,
 ): string {
-  const spans = layout.lines
-    .map(
-      (line, index) =>
-        `<tspan x="${x}" dy="${index === 0 ? 0 : layout.lineHeight}">${escapeXml(line)}</tspan>`,
-    )
+  return layout.lines
+    .map((line, index) => {
+      const outline = outlineText({
+        bytes: fontFamily === "Manrope" ? brand.manrope : brand.figtree,
+        text: line,
+        size: layout.fontSize,
+        weight,
+      });
+      const baseline = top + layout.fontSize + index * layout.lineHeight;
+      // Render exactly the glyphs used to measure the line, including on hosts
+      // where the SVG rasterizer does not load embedded @font-face rules.
+      return `<g data-feed-text="true" data-x="${x}" data-y="${baseline}" data-ink-width="${outline.right - outline.left}" fill="${fill}" font-family="${fontFamily}" font-size="${layout.fontSize}" font-weight="${weight}" aria-label="${escapeXml(line)}"><g transform="translate(${x - Math.min(0, outline.left)} ${baseline})">${outline.paths}</g></g>`;
+    })
     .join("");
-  return `<text x="${x}" y="${top + layout.fontSize}" fill="${fill}" font-family="${fontFamily}" font-size="${layout.fontSize}" font-weight="${weight}">${spans}</text>`;
 }
 
 function embeddedFonts(brand: BrandAssets): string {
   return `<style>
-    @font-face{font-family:'Stolzl';src:url(data:font/woff2;base64,${brand.stolzl.toString("base64")}) format('woff2');font-weight:400}
+    @font-face{font-family:'Manrope';src:url(data:font/woff2;base64,${brand.manrope.toString("base64")}) format('woff2');font-weight:700}
     @font-face{font-family:'Figtree';src:url(data:font/ttf;base64,${brand.figtree.toString("base64")}) format('truetype');font-weight:400 900}
   </style>`;
 }
@@ -134,24 +143,32 @@ function scenarioCard(plan: CampaignPlan, top: number): string {
   return `
     <rect x="${FEED_FRAME.x}" y="${top}" width="${FEED_FRAME.width}" height="390" rx="36" fill="${designTokens.colors.paper}"/>
     <text x="${contentLeft}" y="${top + 86}" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="32">COMPRA</text>
-    <text x="${contentRight}" y="${top + 88}" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="54">${escapeXml(purchase)}</text>
+    <text x="${contentRight}" y="${top + 88}" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Manrope" font-size="54" font-weight="700">${escapeXml(purchase)}</text>
     <line x1="${contentLeft}" x2="${contentRight}" y1="${top + 128}" y2="${top + 128}" stroke="${designTokens.colors.border}" stroke-width="2"/>
     <text x="${contentLeft}" y="${top + 210}" fill="${designTokens.colors.midInk}" font-family="Figtree" font-size="32">RECEBIDO</text>
-    <text x="${contentRight}" y="${top + 212}" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Stolzl" font-size="54">${escapeXml(received)}</text>
+    <text x="${contentRight}" y="${top + 212}" text-anchor="end" fill="${designTokens.colors.ink}" font-family="Manrope" font-size="54" font-weight="700">${escapeXml(received)}</text>
     <rect x="${answerBandLeft}" y="${top + 246}" width="${answerBandRight - answerBandLeft}" height="120" rx="28" fill="${designTokens.colors.ink}"/>
     <text x="${answerBandLeft + CONTAINER_INSET}" y="${top + 322}" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="30">TROCO</text>
-    <text x="${answerBandRight - CONTAINER_INSET}" y="${top + 326}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Stolzl" font-size="68">${escapeXml(answer)}</text>`;
+    <text x="${answerBandRight - CONTAINER_INSET}" y="${top + 326}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Manrope" font-size="68" font-weight="700">${escapeXml(answer)}</text>`;
 }
 
-function feedContent(plan: CampaignPlan): string {
-  const headline = fitText(plan.copy.headline, feedTextLayouts.headline);
-  const explanation = fitText(
-    plan.copy.explanation,
-    feedTextLayouts.explanation,
-  );
-  const cta = fitText(SOCIAL_CTA, feedTextLayouts.cta);
+function feedContent(plan: CampaignPlan, brand: BrandAssets): string {
+  const textBlock = outlinedTextBlock.bind(null, brand);
+  const headline = fitText(plan.copy.headline, {
+    ...feedTextLayouts.headline,
+    measure: canonicalTextMeasure(brand.manrope, 700),
+  });
+  const explanation = fitText(plan.copy.explanation, {
+    ...feedTextLayouts.explanation,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  const cta = fitText(SOCIAL_CTA, {
+    ...feedTextLayouts.cta,
+    maxWidth: FEED_FRAME.width - 2 * CONTAINER_INSET,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
   return [
-    textBlock(headline, FEED_FRAME.x, 178, "Stolzl"),
+    textBlock(headline, FEED_FRAME.x, 178, "Manrope", 700),
     scenarioCard(plan, 610),
     textBlock(explanation, FEED_FRAME.x, 1005, "Figtree", 700),
     textBlock(
@@ -165,23 +182,33 @@ function feedContent(plan: CampaignPlan): string {
   ].join("");
 }
 
-function carouselContent(plan: CampaignPlan, slide: number): string {
+function carouselContent(
+  plan: CampaignPlan,
+  slide: number,
+  brand: BrandAssets,
+): string {
+  const textBlock = outlinedTextBlock.bind(null, brand);
   if (slide === 0) {
-    const headline = fitText(plan.copy.headline, carouselTextLayouts.headline);
-    return `${textBlock(headline, FEED_FRAME.x, 260, "Stolzl")}
+    const headline = fitText(plan.copy.headline, {
+      ...carouselTextLayouts.headline,
+      measure: canonicalTextMeasure(brand.manrope, 700),
+    });
+    return `${textBlock(headline, FEED_FRAME.x, 260, "Manrope", 700)}
       <text x="${FEED_FRAME.x}" y="1170" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="34" font-weight="700">DESLIZE PARA CONFERIR →</text>`;
   }
   if (slide === 1) {
     const title = fitText("Qual é o troco?", {
+      measure: canonicalTextMeasure(brand.manrope, 700),
       maxWidth: FEED_FRAME.width,
       maxHeight: 160,
       maximumFontSize: 80,
       minimumFontSize: 64,
     });
-    return `${textBlock(title, FEED_FRAME.x, 250, "Stolzl")}${scenarioCard(plan, 530)}`;
+    return `${textBlock(title, FEED_FRAME.x, 250, "Manrope", 700)}${scenarioCard(plan, 530)}`;
   }
   if (slide === 2) {
     const answer = fitText(plan.copy.answer, {
+      measure: canonicalTextMeasure(brand.manrope, 700),
       maxWidth: FEED_FRAME.width,
       maxHeight: 260,
       maximumFontSize: 150,
@@ -194,22 +221,27 @@ function carouselContent(plan: CampaignPlan, slide: number): string {
       )
       .join("  •  ");
     const breakdown = fitText(detail || "Pagamento exato, sem troco.", {
+      measure: canonicalTextMeasure(brand.figtree),
       maxWidth: FEED_FRAME.width - CONTAINER_INSET * 2,
       maxHeight: 250,
       maximumFontSize: 42,
       minimumFontSize: 34,
     });
     return `<text x="${FEED_FRAME.x}" y="310" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="32" font-weight="700">A RESPOSTA É</text>
-      ${textBlock(answer, FEED_FRAME.x, 350, "Stolzl")}
+      ${textBlock(answer, FEED_FRAME.x, 350, "Manrope", 700)}
       <rect x="${FEED_FRAME.x}" y="710" width="${FEED_FRAME.width}" height="360" rx="32" fill="${designTokens.colors.paper}"/>
       ${textBlock(breakdown, FEED_FRAME.x + CONTAINER_INSET, 770, "Figtree")}`;
   }
 
-  const explanation = fitText(
-    plan.copy.explanation,
-    carouselTextLayouts.explanation,
-  );
-  const cta = fitText(SOCIAL_CTA, carouselTextLayouts.cta);
+  const explanation = fitText(plan.copy.explanation, {
+    ...carouselTextLayouts.explanation,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
+  const cta = fitText(SOCIAL_CTA, {
+    ...carouselTextLayouts.cta,
+    maxWidth: FEED_FRAME.width - 2 * CONTAINER_INSET,
+    measure: canonicalTextMeasure(brand.figtree, 700),
+  });
   return `${textBlock(explanation, FEED_FRAME.x, 250, "Figtree", 700)}
     ${textBlock(cta, FEED_FRAME.x + CONTAINER_INSET, 1015, "Figtree", 700, designTokens.colors.ink)}`;
 }
@@ -229,8 +261,8 @@ export function createFeedSlideSvg({
   const background = backgroundByPalette[plan.palette];
   const content =
     plan.mediaKind === "carousel"
-      ? carouselContent(plan, slide)
-      : feedContent(plan);
+      ? carouselContent(plan, slide, brand)
+      : feedContent(plan, brand);
 
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${WIDTH}" height="${HEIGHT}" viewBox="0 0 ${WIDTH} ${HEIGHT}">
     ${embeddedFonts(brand)}
@@ -277,11 +309,15 @@ function verticalItems(
   scene: VerticalScene,
 ): readonly VerticalItem[] {
   const items: VerticalItem[] = [];
+  const sectionGap = plan.copy.lesson ? 96 : VERTICAL_SECTION_GAP;
+  const textLayouts = plan.copy.lesson
+    ? lessonTextLayouts
+    : verticalTextLayouts;
   let cursor = 0;
   const add = (
     kind: VerticalItem["kind"],
     height: number,
-    gap = VERTICAL_SECTION_GAP,
+    gap = sectionGap,
     text?: TextLayout,
   ) => {
     items.push({ kind, top: cursor, height, ...(text ? { text } : {}) });
@@ -291,12 +327,13 @@ function verticalItems(
   add("label", VERTICAL_LABEL_HEIGHT);
   try {
     if (scene === "hook") {
-      add("kicker", THUMBNAIL_KICKER_HEIGHT, THUMBNAIL_MESSAGE_INSET);
+      if (!plan.copy.lesson)
+        add("kicker", THUMBNAIL_KICKER_HEIGHT, THUMBNAIL_MESSAGE_INSET);
       const headline = fitText(
         createThumbnailCopy(plan),
-        thumbnailHeadlineLayout,
+        plan.copy.lesson ? lessonTextLayouts.headline : thumbnailHeadlineLayout,
       );
-      add("message", headline.height, VERTICAL_SECTION_GAP, headline);
+      add("message", headline.height, sectionGap, headline);
     } else if (
       plan.copy.lesson &&
       (scene === "scenario" || scene === "answer")
@@ -306,9 +343,9 @@ function verticalItems(
         scene === "scenario"
           ? plan.copy.lesson.setup
           : plan.copy.lesson.takeaway,
-        verticalTextLayouts.explanation,
+        textLayouts.explanation,
       );
-      add("message", text.height, VERTICAL_SECTION_GAP, text);
+      add("message", text.height, sectionGap, text);
     } else if (scene === "scenario") {
       const title = fitText("Dois valores. Uma conta.", {
         maxWidth: VERTICAL_FRAME.width,
@@ -351,11 +388,11 @@ function verticalItems(
     } else {
       const explanation = fitText(
         plan.copy.explanation,
-        verticalTextLayouts.explanation,
+        textLayouts.explanation,
       );
-      const cta = fitText(SOCIAL_CTA, verticalTextLayouts.cta);
-      add("message", explanation.height, VERTICAL_SECTION_GAP, explanation);
-      add("cta", cta.height, VERTICAL_SECTION_GAP, cta);
+      const cta = fitText(SOCIAL_CTA, textLayouts.cta);
+      add("message", explanation.height, sectionGap, explanation);
+      add("cta", cta.height, sectionGap, cta);
     }
   } catch (cause) {
     throw new Error(
@@ -410,7 +447,7 @@ function verticalText(
   text: string,
   x: number,
   baseline: number,
-  family: "Stolzl" | "Figtree",
+  family: "Manrope" | "Figtree",
   size: number,
   weight: number,
   fill: string,
@@ -418,7 +455,7 @@ function verticalText(
   tracking = 0,
 ): string {
   const outline = outlineText({
-    bytes: family === "Stolzl" ? brand.stolzl : brand.figtree,
+    bytes: family === "Manrope" ? brand.manrope : brand.figtree,
     text,
     size,
     weight,
@@ -437,14 +474,14 @@ function verticalTextBlock(
   brand: BrandAssets,
   layout: TextLayout,
   top: number,
-  family: "Stolzl" | "Figtree",
+  family: "Manrope" | "Figtree",
   weight: number,
   fill: string,
   maxWidth = VERTICAL_FRAME.width,
 ): string {
   const outlines = layout.lines.map((text) =>
     outlineText({
-      bytes: family === "Stolzl" ? brand.stolzl : brand.figtree,
+      bytes: family === "Manrope" ? brand.manrope : brand.figtree,
       text,
       size: layout.fontSize,
       weight,
@@ -566,9 +603,12 @@ function verticalItemSvg(
         brand,
         item.text!,
         top,
-        "Stolzl",
-        400,
+        "Manrope",
+        700,
         treatment.foreground,
+        plan.copy.lesson
+          ? lessonTextLayouts.explanation.maxWidth
+          : VERTICAL_FRAME.width,
       );
     case "progress":
       return label(

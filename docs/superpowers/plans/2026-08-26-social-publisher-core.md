@@ -848,7 +848,7 @@ const frontendPublic = new URL("../../frontend/public/", import.meta.url);
 test("the current canonical Troco mark and fonts pass the reviewed manifest", async () => {
   const brand = await loadBrand(frontendPublic);
   assert.match(brand.markSvg, /viewBox="0 0 1080 1080"/);
-  assert.ok(brand.stolzl.length > 1_000);
+  assert.ok(brand.manrope.length > 1_000);
   assert.ok(brand.figtree.length > 1_000);
 });
 
@@ -875,14 +875,14 @@ export const brandManifest = {
     "d577f306ff034f6ee86fbc497a2d28158aa46b3cbb667d1068009a1f4631a422",
   "brand/troco-mark-inverse.svg":
     "4dddbd9361cd8bb0e77319705ece8152499a189d0d5f5d3be374767828b8bb43",
-  "fonts/stolzl-regular.woff2":
+  "fonts/manrope-bold.woff2":
     "c9d162816a718cbc2127556f95f6ffcad24bd2b0cb2ee1104f32ae39091ff881",
   "fonts/figtree-variable.ttf":
     "1851150b35645dab3a4ef935a349a2d1f5373221c0d5b6993d145210766c54de",
 } as const;
 ```
 
-`loadBrand(root)` must resolve only the four fixed relative paths, reject symlinks or paths outside `root`, require every exact hash above, require both fonts to be non-empty, reject SVG script/foreign-object/external-reference nodes, and return `{ markSvg, inverseMarkSvg, stolzl, figtree }`. Do not add a fallback or generated mark. The manifest corresponds to frontend commit `298381c8e6c3220cde11a8109ddb727a28223d7c`.
+`loadBrand(root)` must resolve only the four fixed relative paths, reject symlinks or paths outside `root`, require every exact hash above, require both fonts to be non-empty, reject SVG script/foreign-object/external-reference nodes, and return `{ markSvg, inverseMarkSvg, manrope, figtree }`. Do not add a fallback or generated mark. The manifest corresponds to the canonical frontend assets.
 
 - [ ] **Step 4: Run the brand suite**
 
@@ -969,7 +969,7 @@ Expected: FAIL because `render/image.ts` does not exist.
 
 - [ ] **Step 3: Implement safe Product Editorial SVG and JPEG rendering**
 
-`svg.ts` must expose `escapeXml`, `measureText`, `fitText`, and `createFeedSlideSvg`. Embed the validated Stolzl and Figtree bytes as data URLs, insert only the validated canonical mark, escape every content string, use the approved token colors from `@trocohq/design-tokens`, and calculate text boxes inside a 96 px side safe area. Reject a layout if the fitted display size drops below 64 px or body size below 34 px.
+`svg.ts` must expose `escapeXml`, `measureText`, `fitText`, and `createFeedSlideSvg`. Embed the validated Manrope and Figtree bytes as data URLs, insert only the validated canonical mark, escape every content string, use the approved token colors from `@trocohq/design-tokens`, and calculate text boxes inside a 96 px side safe area. Reject a layout if the fitted display size drops below 64 px or body size below 34 px.
 
 `image.ts` must render one scene for feed-image families and two to five scene SVGs for carousel families through:
 

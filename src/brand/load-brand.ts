@@ -8,7 +8,7 @@ import { brandManifest, type BrandAssetPath } from "./manifest.js";
 export type BrandAssets = Readonly<{
   markSvg: string;
   inverseMarkSvg: string;
-  stolzl: Buffer;
+  manrope: Buffer;
   figtree: Buffer;
 }>;
 
@@ -74,10 +74,10 @@ export async function loadBrand(root: URL): Promise<BrandAssets> {
     throw missingAsset(dirname(rootPath), error);
   }
 
-  const [mark, inverseMark, stolzl, figtree] = await Promise.all([
+  const [mark, inverseMark, manrope, figtree] = await Promise.all([
     loadAsset(rootPath, canonicalRoot, "brand/troco-mark.svg"),
     loadAsset(rootPath, canonicalRoot, "brand/troco-mark-inverse.svg"),
-    loadAsset(rootPath, canonicalRoot, "fonts/stolzl-regular.woff2"),
+    loadAsset(rootPath, canonicalRoot, "fonts/manrope-bold.woff2"),
     loadAsset(rootPath, canonicalRoot, "fonts/figtree-variable.ttf"),
   ]);
   const markSvg = mark.toString("utf8");
@@ -85,5 +85,5 @@ export async function loadBrand(root: URL): Promise<BrandAssets> {
   validateSvg("brand/troco-mark.svg", markSvg);
   validateSvg("brand/troco-mark-inverse.svg", inverseMarkSvg);
 
-  return Object.freeze({ markSvg, inverseMarkSvg, stolzl, figtree });
+  return Object.freeze({ markSvg, inverseMarkSvg, manrope, figtree });
 }

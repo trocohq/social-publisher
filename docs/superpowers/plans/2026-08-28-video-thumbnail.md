@@ -259,7 +259,7 @@ export function createVerticalThumbnailSvg({
     <rect x="706" y="${layout.top + 10}" width="344" height="62" rx="31" fill="${designTokens.colors.paper}" fill-opacity="0.78"/>
     <text x="878" y="${layout.top + 50}" text-anchor="middle" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="22" font-weight="700">${escapeXml(label)}</text>
     <text x="${VERTICAL_FRAME.x}" y="${messageTop + THUMBNAIL_KICKER_HEIGHT}" fill="${designTokens.colors.ink}" font-family="Figtree" font-size="38" font-weight="800">FAÇA A CONTA</text>
-    ${textBlock(layout.headline, VERTICAL_FRAME.x, questionTop, "Stolzl")}
+    ${textBlock(layout.headline, VERTICAL_FRAME.x, questionTop, "Manrope")}
     <rect x="${VERTICAL_FRAME.x}" y="${layout.ctaTop}" width="${VERTICAL_FRAME.width}" height="${THUMBNAIL_CTA_HEIGHT}" rx="40" fill="${designTokens.colors.ink}"/>
     <text x="${VERTICAL_FRAME.x + CONTAINER_INSET}" y="${layout.ctaTop + 116}" fill="${designTokens.colors.paper}" font-family="Figtree" font-size="46" font-weight="700">DESCUBRA NO VÍDEO</text>
     <text x="${VERTICAL_FRAME.right - CONTAINER_INSET}" y="${layout.ctaTop + 116}" text-anchor="end" fill="${designTokens.colors.primary}" font-family="Figtree" font-size="40" font-weight="700">12s →</text>

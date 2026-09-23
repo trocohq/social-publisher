@@ -398,7 +398,7 @@ export type VerticalStackLayout = Readonly<{
 function centeredTextBlock(
   layout: TextLayout,
   top: number,
-  font: "Stolzl" | "Figtree",
+  font: "Manrope" | "Figtree",
   weight = 400,
   fill = designTokens.colors.ink,
 ): string {
@@ -589,7 +589,7 @@ Expected: catalog, brand, render, media, state, and workflow validation PASS.
 
 Run dry runs for enough dates/campaign IDs to cover both soundtrack IDs, all seven treatments, and every campaign family. Use an output directory outside Git, then inspect each generated HTML review and `short.mp4`.
 
-Expected: all four scenes remain centered within overlay-safe bounds; the same treatment persists across a video; Paper/Ink mark switching is correct; Figtree and Stolzl match the web; audio fills all 12 seconds and fades cleanly.
+Expected: all four scenes remain centered within overlay-safe bounds; the same treatment persists across a video; Paper/Ink mark switching is correct; Figtree and Manrope match the web; audio fills all 12 seconds and fades cleanly.
 
 - [ ] **Step 5: Verify the final diff is scoped**
 

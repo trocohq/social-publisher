@@ -74,7 +74,7 @@ for all four scenes and the thumbnail. Ink uses the canonical inverse mark;
 Paper uses the canonical normal mark. The color treatments use the canonical
 normal/inverse marks according to their contrast contract. The canonical web
 lockup has a 22% corner radius, with Figtree 700 with -0.04em tracking for the
-wordmark and Stolzl titles.
+wordmark and Manrope titles.
 
 Review the hook, scenario, answer, end card, and thumbnail as a single system:
 each has vertically stacked content, centered horizontally and vertically within
@@ -83,11 +83,24 @@ unchanged.
 
 ## Controlled activation
 
+### Companion Instagram Stories recovery
+
+Stories wait for the primary Instagram post to be confirmed. A temporary
+reconciliation read failure on a fresh intent returns it to pending only when
+no creation request has been attempted in that run. Older uncertain intents
+and accepted provider IDs remain reconciliation-only, including after read
+authentication errors; restore access and let the next run check delivery.
+Creation timeouts never trigger a blind retry. A confirmed provider delivery
+failure remains terminal and requires operator review.
+
 ### Video thumbnail
 
 - Confirm the brand header, kicker, and headline form one centered block.
 - Confirm at least 40 pixels of lateral padding in 1080-pixel artwork.
 - Confirm 72-pixel gaps between major sections and larger readable body text.
+- Practical lesson scenes use 80-pixel text margins and 96-pixel major gaps,
+  with headlines up to 124px and supporting copy up to 88px. Their hook omits
+  the redundant kicker; background colors still extend to every canvas edge.
 - Practical lessons use a small contextual illustration, an official accent
   color, and no decorative clutter or simulated CTA button.
 - Confirm the closing CTA reads “→ Link na bio” as plain centered text, without a button.
@@ -107,7 +120,7 @@ unchanged.
    video, the music starts and ends with clean fades, the level is comfortable,
    and no clipping or silence is audible before the final frame. Confirm all
    seven background treatments over the campaign rotation, the expected
-   normal/inverse mark contrast, the 22% rounded lockup, Figtree/Stolzl
+   normal/inverse mark contrast, the 22% rounded lockup, Figtree/Manrope
    typography, and the centered safe-area stack before accepting a variant.
 3. Choose one campaign dated in the future. Dispatch the production workflow
    in `controlled` mode with its exact campaign ID and confirmation

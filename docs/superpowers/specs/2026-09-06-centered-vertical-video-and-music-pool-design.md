@@ -40,7 +40,7 @@ The choice is derived deterministically from the campaign ID. This creates varia
 
 The `ink` background uses `frontend/public/brand/troco-mark-inverse.svg` and Paper foreground text. All six light backgrounds use `frontend/public/brand/troco-mark.svg` and Ink foreground text. Supporting cards and CTAs use only the Ink/Paper pair required for strong contrast. Soft color variants are excluded to keep the set distinct and minimal.
 
-Typography mirrors the web design system: Stolzl Regular for display headlines and Figtree Variable for the brand word label, supporting text, values, labels, and CTAs. The renderer embeds the same hash-verified files from `frontend/public/fonts/`.
+Typography mirrors the web design system: Manrope Bold for display headlines and Figtree Variable for the brand word label, supporting text, values, labels, and CTAs. The renderer embeds the same hash-verified files from `frontend/public/fonts/`.
 
 ## Music Selection
 
@@ -78,5 +78,5 @@ Rendering stops before publishing when an audio source is missing, has a digest 
 8. Every vertical scene embeds a hash-verified canonical mark with a `22%` corner radius and renders `Troco` in Figtree 700 with `-0.04em` letter spacing.
 9. Every campaign selects one official background treatment from its campaign ID and uses it consistently across all scenes and its thumbnail.
 10. The Ink treatment uses the inverse mark and Paper foreground; all light treatments use the regular mark and Ink foreground.
-11. Display headlines use Stolzl Regular, while supporting and functional text uses Figtree Variable.
+11. Display headlines use Manrope Bold, while supporting and functional text uses Figtree Variable.
 12. `npm run check` and `npm run validate` pass.

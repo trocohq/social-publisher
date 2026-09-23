@@ -83,7 +83,24 @@ export async function deliverStory({
     },
     ...transport,
   });
-  let outcome = found;
+  if (found.kind !== "success") {
+    // Only this run's fresh intent proves no create request was attempted.
+    const fresh =
+      allowCreate && !story.providerId && story.stage === "uncertain";
+    return withStory(state, {
+      ...story,
+      stage:
+        found.category === "buffer_async_failure"
+          ? "failed"
+          : fresh
+            ? found.kind === "retryable_error"
+              ? "pending"
+              : "failed"
+            : story.stage,
+      lastError: { category: found.category, message: found.message },
+    });
+  }
+  let outcome: Awaited<ReturnType<typeof reconcileBufferPost>> = found;
   if (found.kind === "success" && !found.value) {
     if (!allowCreate || story.providerId || story.stage !== "uncertain") {
       return withStory(state, {

@@ -10,6 +10,25 @@ type TextOutline = Readonly<{
 
 const parsedFonts = new WeakMap<Buffer, Map<number, Font>>();
 
+export function canonicalTextMeasure(
+  bytes: Buffer,
+  weight = 400,
+): (text: string, size: number) => number {
+  const font = fontFor(bytes, weight);
+  const widths = new Map<string, number>();
+  return (text, size) => {
+    let width = widths.get(text);
+    if (width === undefined) {
+      const run = font.layout(text);
+      // Include advance and ink overhangs, not just character count.
+      width =
+        Math.max(run.advanceWidth, run.bbox.maxX) - Math.min(0, run.bbox.minX);
+      widths.set(text, width);
+    }
+    return Math.ceil((width * size) / font.unitsPerEm);
+  };
+}
+
 function fontFor(bytes: Buffer, weight: number): Font {
   let weights = parsedFonts.get(bytes);
   if (!weights) {

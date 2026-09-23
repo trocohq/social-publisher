@@ -185,7 +185,7 @@ Download destinations use channel and campaign attribution parameters where supp
 The approved direction is **Product Editorial**:
 
 - broad Troco color fields;
-- large Stolzl display type;
+- large Manrope display type;
 - Figtree for supporting copy;
 - the numeric answer as the primary visual subject;
 - rounded paper stages and restrained depth;
@@ -209,7 +209,7 @@ The publisher never redraws or approximates the Troco mark. It consumes:
 
 - `frontend/public/brand/troco-mark.svg`;
 - `frontend/public/brand/troco-mark-inverse.svg`;
-- `frontend/public/fonts/stolzl-regular.woff2`;
+- `frontend/public/fonts/manrope-bold.woff2`;
 - `frontend/public/fonts/figtree-variable.ttf`;
 - the canonical design-token package or its exact source checkout.
 
