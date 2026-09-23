@@ -20,8 +20,8 @@ on:
         required: false
 
 permissions:
-  actions: read
   contents: write
+  actions: read
   pages: write
   id-token: write
   issues: write
@@ -138,30 +138,44 @@ jobs:
           retention-days: 3
           if-no-files-found: error
 
-      - name: Verify Pages destination
-        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+      - name: Recover interrupted platform submissions
+        if: vars.PUBLISHING_SHADOW_ENABLED == 'true' && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
         working-directory: publisher
         env:
-          GH_TOKEN: ${{ github.token }}
+          PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISHING_ENDPOINT: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_ENDPOINT || '' }}
+          PUBLISHING_CLIENT_ID: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_ID || '' }}
+          PUBLISHING_CLIENT_SECRET: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_SECRET || '' }}
+          RECOVERY_MODE: ${{ steps.mode.outputs.value }}
+          RECOVERY_CAMPAIGN: ${{ inputs.campaign_id }}
+          RECOVERY_CONFIRMATION: ${{ inputs.confirmation }}
         run: |
           set -euo pipefail
-          if ! gh api "repos/$GITHUB_REPOSITORY/pages" --silent; then
-            echo "::error::GitHub Pages is unavailable. Configure the media hosting destination before publishing."
-            exit 1
+          extra=()
+          if [[ "$RECOVERY_MODE" == "controlled" ]]; then
+            extra=(--campaign "$RECOVERY_CAMPAIGN" --confirm "$RECOVERY_CONFIRMATION")
           fi
+          set +e
+          node --import tsx src/cli/recover-platform.ts --mode "$RECOVERY_MODE" "${extra[@]}"
+          recovery_status=$?
+          set -e
+          scripts/commit-state.sh "chore(state): recover platform acknowledgements [skip ci]"
+          exit "$recovery_status"
 
-      - name: Restore immutable media archive
+      - name: Restore verified media archive
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
-        working-directory: publisher
         env:
           GH_TOKEN: ${{ github.token }}
+        working-directory: publisher
         run: |
           set -euo pipefail
-          runs="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '.artifacts[] | select(.name == "campaign-media-archive" and .expired == false and .workflow_run.head_branch == "main") | .workflow_run.id')"
-          archive_run="${runs%%$'\n'*}"
-          if [[ -n "$archive_run" ]]; then
-            [[ "$archive_run" =~ ^[0-9]+$ ]]
-            gh run download "$archive_run" --name campaign-media-archive --dir .tmp/render
+          archives="$(gh api --paginate "repos/$GITHUB_REPOSITORY/actions/artifacts?per_page=100" --jq '.artifacts[] | select((.name == "campaign-media-archive" or .name == "verified-recovery-media") and .expired == false and .workflow_run.head_branch == "main") | .id')"
+          archive_id="${archives%%$'\n'*}"
+          if [[ -n "$archive_id" ]]; then
+            [[ "$archive_id" =~ ^[0-9]+$ ]]
+            gh api "repos/$GITHUB_REPOSITORY/actions/artifacts/$archive_id/zip" > "$RUNNER_TEMP/troco-media.zip"
+            mkdir -p .tmp/render
+            unzip -q "$RUNNER_TEMP/troco-media.zip" -d .tmp/render
           fi
 
       - name: Plan rolling campaigns
@@ -169,9 +183,33 @@ jobs:
         working-directory: publisher
         run: npm run plan
 
-      - name: Preserve immutable media archive
+      - name: Resume platform submissions with restored media
+        if: vars.PUBLISHING_SHADOW_ENABLED == 'true' && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
+        working-directory: publisher
+        env:
+          PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISHING_ENDPOINT: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_ENDPOINT || '' }}
+          PUBLISHING_CLIENT_ID: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_ID || '' }}
+          PUBLISHING_CLIENT_SECRET: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_SECRET || '' }}
+          RECOVERY_MODE: ${{ steps.mode.outputs.value }}
+          RECOVERY_CAMPAIGN: ${{ inputs.campaign_id }}
+          RECOVERY_CONFIRMATION: ${{ inputs.confirmation }}
+        run: |
+          set -euo pipefail
+          extra=()
+          if [[ "$RECOVERY_MODE" == "controlled" ]]; then
+            extra=(--campaign "$RECOVERY_CAMPAIGN" --confirm "$RECOVERY_CONFIRMATION")
+          fi
+          set +e
+          node --import tsx src/cli/recover-platform.ts --mode "$RECOVERY_MODE" "${extra[@]}"
+          recovery_status=$?
+          set -e
+          scripts/commit-state.sh "chore(state): resume restored platform submissions [skip ci]"
+          exit "$recovery_status"
+
+      - name: Preserve verified media archive
         if: success() && (steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled')
-        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: campaign-media-archive
           path: publisher/.tmp/pages/media
@@ -225,6 +263,10 @@ jobs:
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         working-directory: publisher
         env:
+          PUBLISHING_SHADOW_ENABLED: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && 'true' || 'false' }}
+          PUBLISHING_ENDPOINT: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_ENDPOINT || '' }}
+          PUBLISHING_CLIENT_ID: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_ID || '' }}
+          PUBLISHING_CLIENT_SECRET: ${{ vars.PUBLISHING_SHADOW_ENABLED == 'true' && secrets.PUBLISHING_CLIENT_SECRET || '' }}
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
         run: |
           set -euo pipefail
@@ -276,22 +318,6 @@ jobs:
         run: |
           reconcile_status="${{ steps.reconciliation.outputs.status }}"
           if (( reconcile_status != 0 )); then exit "$reconcile_status"; fi
-
-      - name: Publish companion Instagram Stories
-        if: steps.mode.outputs.value == 'scheduled'
-        working-directory: publisher
-        env:
-          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
-        run: |
-          set -euo pipefail
-          fresh="$(env -u BUFFER_API_KEY node --import tsx src/cli/stories.ts --phase intent)"
-          scripts/commit-state.sh "chore(state): record Story intents [skip ci]"
-          set +e
-          node --import tsx src/cli/stories.ts --phase execute --new-intents "$fresh"
-          story_status=$?
-          set -e
-          scripts/commit-state.sh "chore(state): record Story results [skip ci]"
-          exit "$story_status"
 
       - name: Verify publication health
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'

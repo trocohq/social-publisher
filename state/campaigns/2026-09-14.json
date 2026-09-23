@@ -1,0 +1,223 @@
+{
+  "schemaVersion": 1,
+  "plan": {
+    "schemaVersion": 1,
+    "id": "2026-09-14-change-challenge-v1-1",
+    "localDate": "2026-09-14",
+    "targetAt": "2026-09-14T12:17:00-03:00",
+    "family": "change_challenge",
+    "recipeId": "change-challenge-v1",
+    "recipeVersion": 1,
+    "candidate": 1,
+    "seed": "2026-09-14:change_challenge:v1",
+    "palette": "green",
+    "ctaKind": "download",
+    "mediaKind": "video",
+    "slideCount": 1,
+    "scenario": {
+      "purchaseMinor": 925,
+      "receivedMinor": 1000,
+      "resultMinor": 75,
+      "outcome": "change_due",
+      "breakdown": [
+        {
+          "denominationMinor": 50,
+          "quantity": 1
+        },
+        {
+          "denominationMinor": 25,
+          "quantity": 1
+        }
+      ]
+    },
+    "copy": {
+      "headline": "Valendo o troco certo. R$ 9,25 na compra. Pagou com R$ 10,00. Quanto volta?",
+      "answer": "R$ 0,75",
+      "explanation": "Digite a compra e quanto recebeu. O Troco calcula a diferença.",
+      "cta": "Baixe o Troco grátis no Android.",
+      "channels": {
+        "instagram": {
+          "caption": "Valendo o troco certo. R$ 9,25 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=instagram&utm_medium=social&utm_campaign=2026-09-14-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #Varejo #Caixa"
+        },
+        "facebook": {
+          "caption": "Valendo o troco certo. R$ 9,25 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=facebook&utm_medium=social&utm_campaign=2026-09-14-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #Varejo"
+        },
+        "tiktok": {
+          "caption": "Valendo o troco certo. R$ 9,25 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=tiktok&utm_medium=social&utm_campaign=2026-09-14-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #TrocoCerto #Caixa",
+          "title": "Valendo o troco certo"
+        },
+        "youtube": {
+          "title": "Valendo o troco certo. R$ 9,25 na compra. Pagou com R$ 10,00. Quanto volta?",
+          "description": "Valendo o troco certo. R$ 9,25 na compra. Pagou com R$ 10,00. Quanto volta?\n\nA resposta é R$ 0,75.\nUma forma: 1 moeda de R$ 0,50 + 1 moeda de R$ 0,25.\n\nDigite a compra e quanto recebeu. O Troco calcula a diferença.\n\nBaixe o Troco grátis no Android.\nhttps://troco.net/?utm_source=youtube&utm_medium=social&utm_campaign=2026-09-14-change-challenge-v1-1&utm_content=change_challenge\n\n#Troco #Shorts #Varejo"
+        }
+      }
+    },
+    "sourceIds": [
+      "product.change-calculation"
+    ],
+    "fingerprints": {
+      "headline": "afa5fce78740b3f26733be254af2ce5e4797b376a24532d68c268516b021a902",
+      "caption": "9c43810a20bfb60dd4c175107885c3297967fc799a8d45c64d147fda875f34af"
+    }
+  },
+  "sourceCommits": {
+    "brand": "298381c8e6c3220cde11a8109ddb727a28223d7c",
+    "designTokens": "1fefd27a0de14a8d4115fe79c6076a3b17d3cf6d"
+  },
+  "renderHashes": {
+    "feed": [
+      "799e4a6475e154cd9eeb089f79eae8b8b448ae5bfce7bb3a83a5f6fc58612f7c"
+    ],
+    "video": "585958c21bc43ba4675e7e9c7c76b75a9f99be88f22f3f7fdedacf54f8e750d3"
+  },
+  "platformMedia": {
+    "schemaVersion": 1,
+    "approvalSha256": "a2d102ad58ee2c58dfafa2bab66505272d1fc54ac25bdcb6a5d359760bc55c4c",
+    "assets": [
+      {
+        "sha256": "799e4a6475e154cd9eeb089f79eae8b8b448ae5bfce7bb3a83a5f6fc58612f7c",
+        "byteSize": 188208
+      },
+      {
+        "sha256": "585958c21bc43ba4675e7e9c7c76b75a9f99be88f22f3f7fdedacf54f8e750d3",
+        "byteSize": 402551
+      }
+    ]
+  },
+  "platformShadow": {
+    "acknowledgedEnvelopeSha256": "61919bfaf7a6eb65a8f803bad76a7951bdf539d7fa58da88421fd67a49757df1"
+  },
+  "media": {
+    "stage": "media_verified",
+    "attempts": 0,
+    "transitions": [
+      {
+        "from": "planned",
+        "to": "rendered",
+        "at": "2026-09-08T04:36:09.481Z"
+      },
+      {
+        "from": "rendered",
+        "to": "deploying",
+        "at": "2026-09-08T04:36:09.481Z"
+      },
+      {
+        "from": "deploying",
+        "to": "media_verified",
+        "at": "2026-09-08T04:36:30.056Z"
+      }
+    ]
+  },
+  "channels": {
+    "instagram": {
+      "stage": "scheduled",
+      "attempts": 1,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-08T04:36:09.481Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-08T04:36:09.481Z"
+        },
+        {
+          "from": "deploying",
+          "to": "media_verified",
+          "at": "2026-09-08T04:36:30.056Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-08T04:36:32.177Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-09-08T04:36:33.849Z"
+        }
+      ],
+      "providerId": "6a9f90d5054b6beb81ad9e9f",
+      "scheduledAt": "2026-09-14T15:17:00.000Z"
+    },
+    "facebook": {
+      "stage": "scheduled",
+      "attempts": 1,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-08T04:36:09.481Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-08T04:36:09.481Z"
+        },
+        {
+          "from": "deploying",
+          "to": "media_verified",
+          "at": "2026-09-08T04:36:30.056Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-08T04:36:39.693Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-09-08T04:36:41.233Z"
+        }
+      ],
+      "providerId": "6a9f90d95b3dd39bb3a3de5a",
+      "scheduledAt": "2026-09-14T15:17:00.000Z"
+    },
+    "tiktok": {
+      "stage": "skipped_disabled",
+      "attempts": 0,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "skipped_disabled",
+          "at": "2026-09-08T04:36:09.481Z"
+        }
+      ]
+    },
+    "youtube": {
+      "stage": "scheduled",
+      "attempts": 1,
+      "transitions": [
+        {
+          "from": "planned",
+          "to": "rendered",
+          "at": "2026-09-08T04:36:09.481Z"
+        },
+        {
+          "from": "rendered",
+          "to": "deploying",
+          "at": "2026-09-08T04:36:09.481Z"
+        },
+        {
+          "from": "deploying",
+          "to": "media_verified",
+          "at": "2026-09-08T04:36:30.056Z"
+        },
+        {
+          "from": "media_verified",
+          "to": "scheduling",
+          "at": "2026-09-08T04:36:44.226Z"
+        },
+        {
+          "from": "scheduling",
+          "to": "scheduled",
+          "at": "2026-09-08T04:36:45.758Z"
+        }
+      ],
+      "providerId": "6a9f90de5b3dd39bb3a3de82",
+      "scheduledAt": "2026-09-14T15:17:00.000Z"
+    }
+  }
+}

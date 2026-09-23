@@ -270,3 +270,55 @@ requires a state rewrite.
 4. Revoke provider credentials if the automation is being retired.
 5. Keep sanitized state and incident history for audit; generated media may be
    removed by normal Pages retention.
+
+## Legacy Buffer failure classification
+
+The static editorial migration does not reset, recreate, or automatically retry
+historical Buffer failures. The audited September 4–6 snapshot contains six
+failed deliveries with original provider IDs:
+
+- two static deliveries: the September 4 Facebook carousel and September 6
+  Facebook feed image;
+- four legacy video deliveries: Facebook on September 5 and YouTube on all
+  three dates. YouTube selected the campaign MP4 even when the plan label was
+  `feed` or `carousel`.
+
+`buildLegacyDeliveryInventory` derives this classification from the persisted
+campaign and channel evidence and emits only sanitized records. Missing IDs,
+non-Buffer failures, and incomplete media evidence are excluded or classified
+as `unknown`; they are never guessed into a recovery path.
+
+The two static records may use the existing explicit, read-only same-ID
+reconciliation only after a separately authorized provider observation. If the
+provider object still needs mutation, require approved replacement bytes, an
+explicit future date, and verified same-ID edit support. Do not reset either
+record to retryable or create a replacement post. The four video records retain
+their original media and IDs as a separate maintenance track and do not block
+new static batches.
+
+## Static owner cutover
+
+Before enabling the new executor, freeze only the legacy creator and retain its
+reconciler. Reconcile all existing IDs and uncertain intents, run the sanitized
+cutover rehearsal, resolve conflicts and missing media privately, then persist
+and read back the exclusive owner fence. Enable the new creator only when
+`decideStaticCutover` reports `ready-to-enable`.
+
+Rollback stops new static creation while preserving every provider ID and
+continuing reconciliation. It never resets state, deletes media, or re-enables
+the legacy creator automatically. The rehearsal emits counts and opaque keys;
+it does not expose captions, private paths, credentials or provider responses.
+
+## Static acceptance record template
+
+Keep authored Markdown, preview bytes and complete provider receipts private.
+After a controlled real acceptance, record the permanent entry ID, approved
+revision, ordered media SHA-256 hashes, channel, placement, opaque account
+reference, requested timestamp, provider ID, observed state/time and verified
+published URL. Record whether Story reused the exact feed hashes or was held as
+unsupported.
+
+An `accepted`, queued or publicly reachable image response is not publication
+proof. Acceptance stays pending until the exact account, provider ID and
+approved hashes reconcile to the eventual published state. A Story capability
+failure blocks only Story and does not invalidate a successful feed target.

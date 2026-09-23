@@ -112,7 +112,7 @@
   },
   "channels": {
     "instagram": {
-      "stage": "scheduled",
+      "stage": "published",
       "attempts": 1,
       "transitions": [
         {
@@ -139,13 +139,29 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-29T03:12:54.176Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "failed",
+          "at": "2026-09-07T00:23:10.580Z"
+        },
+        {
+          "from": "failed",
+          "to": "scheduled",
+          "at": "2026-09-07T00:53:23.000Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "published",
+          "at": "2026-09-07T23:30:09.445Z"
         }
       ],
       "providerId": "6a924e37aa187a14a5e8a616",
-      "scheduledAt": "2026-09-04T15:17:00.000Z"
+      "scheduledAt": "2026-09-07T21:30:00.000Z",
+      "publishedAt": "2026-09-07T23:30:09.445Z"
     },
     "facebook": {
-      "stage": "scheduled",
+      "stage": "failed",
       "attempts": 1,
       "transitions": [
         {
@@ -172,10 +188,19 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-29T03:12:58.934Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "failed",
+          "at": "2026-09-07T04:41:59.529Z"
         }
       ],
       "providerId": "6a924e3baa187a14a5e8a650",
-      "scheduledAt": "2026-09-04T15:17:00.000Z"
+      "scheduledAt": "2026-09-04T15:17:00.000Z",
+      "lastError": {
+        "category": "buffer_async_failure",
+        "message": "Buffer reported an asynchronous delivery failure"
+      }
     },
     "tiktok": {
       "stage": "skipped_disabled",
@@ -189,7 +214,7 @@
       ]
     },
     "youtube": {
-      "stage": "scheduled",
+      "stage": "failed",
       "attempts": 1,
       "transitions": [
         {
@@ -216,10 +241,19 @@
           "from": "scheduling",
           "to": "scheduled",
           "at": "2026-08-29T03:13:03.214Z"
+        },
+        {
+          "from": "scheduled",
+          "to": "failed",
+          "at": "2026-09-07T12:32:53.568Z"
         }
       ],
       "providerId": "6a924e3faad1969d9e05b5f5",
-      "scheduledAt": "2026-09-04T15:17:00.000Z"
+      "scheduledAt": "2026-09-04T15:17:00.000Z",
+      "lastError": {
+        "category": "buffer_async_failure",
+        "message": "Buffer reported an asynchronous delivery failure"
+      }
     }
   }
 }

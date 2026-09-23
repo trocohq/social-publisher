@@ -21,25 +21,23 @@ export type RenderedFeed = Readonly<{
   format: "jpeg";
 }>;
 
-export async function renderFeed({
-  plan,
-  brand,
+export async function renderFeedSvgs({
+  svgs,
   output,
+  filenamePrefix = "slide",
 }: Readonly<{
-  plan: CampaignPlan;
-  brand: BrandAssets;
+  svgs: readonly string[];
   output: string;
+  filenamePrefix?: string;
 }>): Promise<RenderedFeed> {
   const outputRoot = resolve(output);
   await mkdir(outputRoot, { recursive: true });
-  const count = plan.mediaKind === "carousel" ? plan.slideCount : 1;
   const files: string[] = [];
   const hashes: string[] = [];
 
-  for (let slide = 0; slide < count; slide += 1) {
-    const filename = `slide-${String(slide + 1).padStart(2, "0")}.jpg`;
+  for (const [index, svg] of svgs.entries()) {
+    const filename = `${filenamePrefix}-${String(index + 1).padStart(2, "0")}.jpg`;
     const filePath = join(outputRoot, filename);
-    const svg = createFeedSlideSvg({ plan, brand, slide });
     await sharp(Buffer.from(svg))
       .flatten({ background: designTokens.colors.paper })
       .toColourspace("srgb")
@@ -69,5 +67,23 @@ export async function renderFeed({
     width: WIDTH,
     height: HEIGHT,
     format: "jpeg",
+  });
+}
+
+export async function renderFeed({
+  plan,
+  brand,
+  output,
+}: Readonly<{
+  plan: CampaignPlan;
+  brand: BrandAssets;
+  output: string;
+}>): Promise<RenderedFeed> {
+  const count = plan.mediaKind === "carousel" ? plan.slideCount : 1;
+  return renderFeedSvgs({
+    svgs: Array.from({ length: count }, (_value, slide) =>
+      createFeedSlideSvg({ plan, brand, slide }),
+    ),
+    output,
   });
 }

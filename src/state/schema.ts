@@ -63,6 +63,15 @@ export type InstagramStory = z.infer<typeof instagramStorySchema>;
 const commitSchema = z.string().regex(/^[a-f0-9]{40}$/);
 const hashSchema = z.string().regex(/^[a-f0-9]{64}$/);
 
+export const platformMediaSchema = z.object({
+  schemaVersion: z.literal(1),
+  approvalSha256: hashSchema,
+  assets: z.array(z.object({
+    sha256: hashSchema,
+    byteSize: z.number().int().positive().max(50_000_000),
+  }).strict()).min(1).max(6),
+}).strict();
+
 export const campaignStateSchema = z.object({
   schemaVersion: z.literal(1),
   plan: campaignPlanSchema,
@@ -75,6 +84,11 @@ export const campaignStateSchema = z.object({
     feed: z.array(hashSchema).min(1).max(5),
     video: hashSchema,
   }),
+  platformMedia: platformMediaSchema.optional(),
+  platformShadow: z.object({
+    acknowledgedEnvelopeSha256: hashSchema.optional(),
+    lastAttemptAt: z.iso.datetime({ offset: true }).optional(),
+  }).strict().optional(),
   media: stageRecordSchema,
   channels: z.object({
     instagram: stageRecordSchema,

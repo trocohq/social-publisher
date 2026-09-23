@@ -22,7 +22,12 @@ import {
 } from "../publishing/execute.js";
 import { persistPublicationIntent } from "../publishing/intent.js";
 import type { PublicationAction } from "../publishing/next-action.js";
+import {
+  capturePlatformMedia,
+  submitPlatformShadow,
+} from "../publishing/platform-bridge.js";
 import { localDateAt } from "../shared/time.js";
+import { acknowledgePlatformShadow } from "../publishing/platform-recovery.js";
 import type { CampaignState, PublicationChannel } from "../state/schema.js";
 import { readCampaignState, writeCampaignState } from "../state/storage.js";
 
@@ -242,7 +247,14 @@ function flagValues(args: readonly string[]): Map<string, string> {
   return values;
 }
 
-async function run(args: readonly string[]): Promise<void> {
+export async function runPublish(
+  args: readonly string[],
+  dependencies: Readonly<{
+    environment?: Readonly<Record<string, string | undefined>>;
+    fetchImplementation?: typeof fetch;
+  }> = {},
+): Promise<void> {
+  const source = dependencies.environment ?? process.env;
   const flags = flagValues(args);
   const phase = flags.get("--phase");
   const actionValue = flags.get("--action");
@@ -253,7 +265,7 @@ async function run(args: readonly string[]): Promise<void> {
     );
   }
   const parsedAction = parseAction(actionValue);
-  const planningEnvironment = parseEnvironment(process.env, "planning");
+  const planningEnvironment = parseEnvironment(source, "planning");
   assertPublicationChannelEnabled(planningEnvironment, parsedAction.channel);
   const confirmation = flags.get("--confirm");
   const now = new Date();
@@ -268,7 +280,7 @@ async function run(args: readonly string[]): Promise<void> {
     publicationTimeZone: planningEnvironment.publicationTimeZone,
   });
   const stateRoot = resolve(flags.get("--state-root") ?? "state");
-  const state = await readCampaignState(stateRoot, parsedAction.localDate);
+  let state = await readCampaignState(stateRoot, parsedAction.localDate);
   if (state.plan.id !== parsedAction.campaignId)
     throw new Error("Action campaign does not match state");
   const action: PublicationAction = {
@@ -279,9 +291,13 @@ async function run(args: readonly string[]): Promise<void> {
         : "publishing",
   };
 
+  const renderRoot = resolve(flags.get("--render-root") ?? ".tmp/render");
   if (phase === "intent") {
     const intended = await persistPublicationIntent({
-      state,
+      state:
+        source.PUBLISHING_SHADOW_ENABLED === "true"
+          ? await capturePlatformMedia({ state, renderRoot })
+          : state,
       action,
       now,
       stateRoot,
@@ -292,14 +308,44 @@ async function run(args: readonly string[]): Promise<void> {
     return;
   }
 
-  const environment = parseEnvironment(process.env, "provider");
+  const environment = parseEnvironment(source, "provider");
+  const activeStage = state.channels[action.channel].stage;
+  if (activeStage !== "scheduling" && activeStage !== "publishing") {
+    throw new Error("Publication execution requires a persisted active intent");
+  }
+  if (source.PUBLISHING_SHADOW_ENABLED === "true" && !state.platformMedia) {
+    throw new Error(
+      "Publication execution requires a persisted platform media checkpoint",
+    );
+  }
+  const shadow = await submitPlatformShadow({
+    state,
+    renderRoot,
+    outboxDirectory: resolve(
+      flags.get("--publishing-outbox-root") ?? ".publishing/shadow",
+    ),
+    environment: source,
+    ...(dependencies.fetchImplementation
+      ? { fetchImplementation: dependencies.fetchImplementation }
+      : {}),
+  });
+  if (shadow.outcome === "retry-later") {
+    throw new Error("Platform shadow deferred; retry this invocation later");
+  }
+  if (shadow.outcome === "accepted" || shadow.outcome === "already-accepted") {
+    state = acknowledgePlatformShadow(state);
+    await writeCampaignState(stateRoot, state);
+  }
   const adapters = providerAdaptersForAction({
     state,
     channel: action.channel,
     mode,
     phase: action.phase,
     environment,
-    renderRoot: resolve(flags.get("--render-root") ?? ".tmp/render"),
+    renderRoot,
+    ...(dependencies.fetchImplementation
+      ? { bufferFetchImplementation: dependencies.fetchImplementation }
+      : {}),
   });
   const completed = await executePublication({
     state,
@@ -317,7 +363,7 @@ async function run(args: readonly string[]): Promise<void> {
 
 const invokedPath = process.argv[1] ? resolve(process.argv[1]) : "";
 if (invokedPath === fileURLToPath(import.meta.url)) {
-  run(process.argv.slice(2)).catch((error: unknown) => {
+  runPublish(process.argv.slice(2)).catch((error: unknown) => {
     process.stderr.write(
       `${JSON.stringify({ ok: false, error: error instanceof Error ? error.message : "Publication failed" })}\n`,
     );
