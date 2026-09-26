@@ -33,6 +33,13 @@ function providerId(value: unknown): string | undefined {
   return typeof candidate === "string" && candidate ? candidate : undefined;
 }
 
+function storedState(value: unknown): string | undefined {
+  if (typeof value !== "object" || value === null || Array.isArray(value))
+    return undefined;
+  const candidate = (value as Record<string, unknown>).state;
+  return typeof candidate === "string" ? candidate : undefined;
+}
+
 export function createStaticProductionRuntime(
   input: Readonly<{
     now(): Date;
@@ -128,9 +135,17 @@ export function createStaticProductionRuntime(
       const loaded = await load(plan);
       const pending: PendingStaticIntent[] = [];
       for (const target of loaded) {
+        const record = await input.store.read(target.intent.logicalKey);
+        const state = storedState(record?.value);
         if (
-          (await input.store.read(target.intent.logicalKey)) ||
-          (await input.store.readHandoff(target.intent.logicalKey))
+          [
+            "intent",
+            "uncertain",
+            "accepted",
+            "scheduled",
+            "processing",
+          ].includes(state ?? "") ||
+          (!record && (await input.store.readHandoff(target.intent.logicalKey)))
         )
           pending.push({ opaqueId: target.opaqueId });
       }
@@ -142,10 +157,17 @@ export function createStaticProductionRuntime(
       const loaded = await load(plan);
       const approved: ApprovedStaticTarget[] = [];
       for (const target of loaded) {
-        if (
-          (await input.store.read(target.intent.logicalKey)) ||
-          (await input.store.readHandoff(target.intent.logicalKey))
-        )
+        const record = await input.store.read(target.intent.logicalKey);
+        const state = storedState(record?.value);
+        if (state === "held") {
+          approved.push({
+            opaqueId: target.opaqueId,
+            accountChannelKey: target.accountChannelKey,
+            decision: "held",
+          });
+          continue;
+        }
+        if (record || (await input.store.readHandoff(target.intent.logicalKey)))
           continue;
         const channelTarget = target.input.entry.channels.find(
           (candidate) => candidate.channel === target.channel,
@@ -158,6 +180,15 @@ export function createStaticProductionRuntime(
           hasProviderId: false,
           hasPlatformId: false,
         });
+        if (decision === "hold") {
+          await input.store.compareAndSwap(target.intent.logicalKey, null, {
+            logicalKey: target.intent.logicalKey,
+            state: "held",
+            publishAt: channelTarget.publishAt,
+            approvalRevision: target.input.approval.mediaRevision,
+            heldReason: "STATIC_SCHEDULE_MISSED",
+          });
+        }
         if (decision === "preflight" || decision === "hold")
           approved.push({
             opaqueId: target.opaqueId,

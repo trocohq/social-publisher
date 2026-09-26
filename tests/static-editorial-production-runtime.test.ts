@@ -150,3 +150,28 @@ test("does not call a provider outside the 24-hour window", async () => {
   });
   assert.equal(calls, 0);
 });
+
+test("durably holds missed work without provider access", async () => {
+  let calls = 0;
+  const runtime = createStaticProductionRuntime({
+    now: () => new Date("2026-10-01T16:00:01Z"),
+    loadManifest: async () => [approvedInput],
+    store: memoryStore(),
+    expectedAccountIds: { instagram: "ig", facebook: "fb" },
+    preflight: async () => {
+      calls += 1;
+    },
+    verifyPublic: async () => undefined,
+    create: async () => ({ providerId: "never" }),
+    reconcile: async () => ({ kind: "missing" }),
+  });
+  for (let run = 0; run < 2; run += 1)
+    assert.deepEqual(await executePlannedStaticEditorial({ plan, runtime }), {
+      reconciled: 0,
+      uncertain: 0,
+      accepted: 0,
+      held: 1,
+      failed: 0,
+    });
+  assert.equal(calls, 0);
+});
