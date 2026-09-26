@@ -18,19 +18,21 @@ test("keeps the scheduled private executor serialized, pinned and disabled by de
     source,
     /STATIC_EXECUTION_MODE: \$\{\{ github\.event_name == 'schedule' && 'scheduled' \|\| 'reconcile-only' \}\}/u,
   );
-  assert.match(
-    source,
-    /uses: actions\/create-github-app-token@[0-9a-f]{40}/u,
-  );
-  assert.match(
-    source,
-    /app-id: \$\{\{ vars\.STATIC_GITHUB_APP_ID \}\}/u,
-  );
+  assert.match(source, /uses: actions\/create-github-app-token@[0-9a-f]{40}/u);
+  assert.match(source, /app-id: \$\{\{ vars\.STATIC_GITHUB_APP_ID \}\}/u);
   assert.match(
     source,
     /private-key: \$\{\{ secrets\.STATIC_GITHUB_APP_PRIVATE_KEY \}\}/u,
   );
   assert.match(source, /repositories: editorial-inputs/u);
+  assert.equal(
+    (
+      source.match(
+        /NODE_AUTH_TOKEN: \$\{\{ secrets\.PACKAGES_READ_TOKEN \}\}/gu,
+      ) ?? []
+    ).length,
+    2,
+  );
   assert.match(
     source,
     /PRIVATE_EDITORIAL_TOKEN: \$\{\{ steps\.private-editorial-token\.outputs\.token \}\}/u,
