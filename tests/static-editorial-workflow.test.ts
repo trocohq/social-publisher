@@ -41,6 +41,14 @@ test("keeps the scheduled private executor serialized, pinned and disabled by de
     source,
     /STATIC_STATE_TOKEN: \$\{\{ steps\.private-editorial-token\.outputs\.token \}\}/u,
   );
+  assert.match(
+    source,
+    /STATIC_EDITORIAL_MANIFEST_PATH: \$\{\{ vars\.STATIC_EDITORIAL_MANIFEST_PATH \}\}/u,
+  );
+  assert.match(
+    source,
+    /STATIC_MEDIA_ORIGIN: \$\{\{ vars\.STATIC_MEDIA_ORIGIN \}\}/u,
+  );
   assert.doesNotMatch(
     source,
     /PRIVATE_EDITORIAL_READ_TOKEN|STATIC_STATE_WRITE_TOKEN/u,
