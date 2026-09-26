@@ -40,6 +40,14 @@ jobs:
           node-version: "24.14.1"
       - name: Install locked dependencies
         run: npm ci
+      - name: Create a scoped private-editorial token
+        id: private-editorial-token
+        uses: actions/create-github-app-token@fee1f7d63c2ff003460e3d139729b119787bc349
+        with:
+          app-id: ${{ vars.STATIC_GITHUB_APP_ID }}
+          private-key: ${{ secrets.STATIC_GITHUB_APP_PRIVATE_KEY }}
+          owner: trocohq
+          repositories: editorial-inputs
       - name: Execute the bounded private calendar
         env:
           STATIC_EXECUTION_MODE: ${{ github.event_name == 'schedule' && 'scheduled' || 'reconcile-only' }}
@@ -48,7 +56,7 @@ jobs:
           STATIC_EDITORIAL_REPOSITORY: ${{ vars.STATIC_EDITORIAL_REPOSITORY }}
           STATIC_EDITORIAL_REPOSITORY_ID: ${{ vars.STATIC_EDITORIAL_REPOSITORY_ID }}
           STATIC_EDITORIAL_REF: ${{ vars.STATIC_EDITORIAL_REF }}
-          PRIVATE_EDITORIAL_TOKEN: ${{ secrets.PRIVATE_EDITORIAL_READ_TOKEN }}
-          STATIC_STATE_TOKEN: ${{ secrets.STATIC_STATE_WRITE_TOKEN }}
+          PRIVATE_EDITORIAL_TOKEN: ${{ steps.private-editorial-token.outputs.token }}
+          STATIC_STATE_TOKEN: ${{ steps.private-editorial-token.outputs.token }}
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
         run: npm run --silent static:execute -- --mode "$STATIC_EXECUTION_MODE"

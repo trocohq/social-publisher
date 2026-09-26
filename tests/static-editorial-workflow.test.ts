@@ -20,11 +20,28 @@ test("keeps the scheduled private executor serialized, pinned and disabled by de
   );
   assert.match(
     source,
-    /PRIVATE_EDITORIAL_TOKEN: \$\{\{ secrets\.PRIVATE_EDITORIAL_READ_TOKEN \}\}/u,
+    /uses: actions\/create-github-app-token@[0-9a-f]{40}/u,
   );
   assert.match(
     source,
-    /STATIC_STATE_TOKEN: \$\{\{ secrets\.STATIC_STATE_WRITE_TOKEN \}\}/u,
+    /app-id: \$\{\{ vars\.STATIC_GITHUB_APP_ID \}\}/u,
+  );
+  assert.match(
+    source,
+    /private-key: \$\{\{ secrets\.STATIC_GITHUB_APP_PRIVATE_KEY \}\}/u,
+  );
+  assert.match(source, /repositories: editorial-inputs/u);
+  assert.match(
+    source,
+    /PRIVATE_EDITORIAL_TOKEN: \$\{\{ steps\.private-editorial-token\.outputs\.token \}\}/u,
+  );
+  assert.match(
+    source,
+    /STATIC_STATE_TOKEN: \$\{\{ steps\.private-editorial-token\.outputs\.token \}\}/u,
+  );
+  assert.doesNotMatch(
+    source,
+    /PRIVATE_EDITORIAL_READ_TOKEN|STATIC_STATE_WRITE_TOKEN/u,
   );
   assert.doesNotMatch(source, /(?:push|pull_request|pull_request_target):/u);
   assert.doesNotMatch(
