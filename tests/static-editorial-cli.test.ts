@@ -3,6 +3,7 @@ import test from "node:test";
 import {
   executePlannedStaticEditorial,
   planStaticEditorialExecution,
+  runStaticEditorialMain,
 } from "../src/cli/execute-static-editorial.js";
 
 const env = {
@@ -104,4 +105,27 @@ test("loads private records and delegates only opaque targets", async () => {
     { reconciled: 1, uncertain: 0, accepted: 1, held: 0, failed: 0 },
   );
   assert.deepEqual(calls, ["reconcile:pending", "schedule:approved"]);
+});
+
+test("production composition fails before network access without an explicit manifest", async () => {
+  let fetched = false;
+  await assert.rejects(
+    runStaticEditorialMain({
+      args: ["--mode", "scheduled"],
+      env: {
+        ...env,
+        BUFFER_ORGANIZATION_ID: "organization",
+        BUFFER_INSTAGRAM_CHANNEL_ID: "instagram",
+        BUFFER_FACEBOOK_CHANNEL_ID: "facebook",
+        STATIC_MEDIA_ORIGIN:
+          "https://trocohq.github.io/social-publisher/static",
+      },
+      fetchImplementation: async () => {
+        fetched = true;
+        throw new Error("network must not run");
+      },
+    }),
+    /STATIC_EXECUTION_CONFIG_MISSING:STATIC_EDITORIAL_MANIFEST_PATH/u,
+  );
+  assert.equal(fetched, false);
 });

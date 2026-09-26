@@ -94,7 +94,12 @@ jobs:
           STATIC_EDITORIAL_REPOSITORY: ${{ vars.STATIC_EDITORIAL_REPOSITORY }}
           STATIC_EDITORIAL_REPOSITORY_ID: ${{ vars.STATIC_EDITORIAL_REPOSITORY_ID }}
           STATIC_EDITORIAL_REF: ${{ vars.STATIC_EDITORIAL_REF }}
+          STATIC_EDITORIAL_MANIFEST_PATH: ${{ vars.STATIC_EDITORIAL_MANIFEST_PATH }}
+          STATIC_MEDIA_ORIGIN: ${{ vars.STATIC_MEDIA_ORIGIN }}
           PRIVATE_EDITORIAL_TOKEN: ${{ steps.private-editorial-token.outputs.token }}
           STATIC_STATE_TOKEN: ${{ steps.private-editorial-token.outputs.token }}
           BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          BUFFER_ORGANIZATION_ID: ${{ vars.BUFFER_ORGANIZATION_ID }}
+          BUFFER_INSTAGRAM_CHANNEL_ID: ${{ vars.BUFFER_INSTAGRAM_CHANNEL_ID }}
+          BUFFER_FACEBOOK_CHANNEL_ID: ${{ vars.BUFFER_FACEBOOK_CHANNEL_ID }}
         run: npm run --silent static:execute -- --mode "$STATIC_EXECUTION_MODE"

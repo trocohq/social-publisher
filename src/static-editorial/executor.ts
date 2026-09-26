@@ -6,7 +6,16 @@ export type StaticIntent = Readonly<{
 }>;
 
 type StoredIntent = StaticIntent &
-  Readonly<{ state: "intent" | "uncertain" | "accepted" }>;
+  Readonly<{
+    state:
+      | "intent"
+      | "uncertain"
+      | "accepted"
+      | "scheduled"
+      | "processing"
+      | "published";
+    providerId?: string;
+  }>;
 type CreateResult = Readonly<{ kind: "accepted"; providerId: string }>;
 type ReconcileResult = Readonly<
   | { kind: "missing" }
@@ -86,9 +95,14 @@ function storedIntent(value: unknown): StoredIntent {
     !(
       record.state === "intent" ||
       record.state === "uncertain" ||
-      record.state === "accepted"
+      record.state === "accepted" ||
+      record.state === "scheduled" ||
+      record.state === "processing" ||
+      record.state === "published"
     )
   )
+    throw new Error("STATIC_EXECUTION_RECORD_INVALID");
+  if (record.providerId !== undefined && !record.providerId)
     throw new Error("STATIC_EXECUTION_RECORD_INVALID");
   return record as StoredIntent;
 }
@@ -129,7 +143,24 @@ export async function executeStaticIntentWithCas(
       throw new Error("STATIC_EXECUTION_NOT_OWNER");
     if (!sameIntent(recorded, input.intent))
       throw new Error("STATIC_EXECUTION_INTENT_MISMATCH");
-    return input.transport.reconcile(recorded);
+    if (recorded.state === "published") {
+      if (!recorded.providerId)
+        throw new Error("STATIC_EXECUTION_RECORD_INVALID");
+      return {
+        kind: "found",
+        providerId: recorded.providerId,
+        status: "published",
+      };
+    }
+    const reconciled = await input.transport.reconcile(recorded);
+    if (reconciled.kind === "found") {
+      await input.store.compareAndSwap(input.intent.logicalKey, saved.version, {
+        ...recorded,
+        state: reconciled.status,
+        providerId: reconciled.providerId,
+      });
+    }
+    return reconciled;
   }
   const persisted = await input.store.compareAndSwap(
     input.intent.logicalKey,

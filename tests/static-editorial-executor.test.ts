@@ -189,6 +189,11 @@ test("reconciles persisted intent and refuses edited recovery input", async () =
     await executeStaticIntentWithCas({ intent, store, transport }),
     { kind: "found", providerId: "buffer-1", status: "scheduled" },
   );
+  assert.equal(
+    (await store.read(intent.logicalKey))?.value &&
+      ((await store.read(intent.logicalKey))!.value as { state: string }).state,
+    "scheduled",
+  );
   assert.equal(creates, 0);
 });
 
@@ -220,4 +225,30 @@ test("treats acceptance before receipt persistence as uncertain without another 
     { kind: "found", providerId: "buffer-1", status: "scheduled" },
   );
   assert.equal(creates, 1);
+});
+
+test("returns a durably published result without another provider read", async () => {
+  const store = casStore();
+  await store.compareAndSwapHandoff(intent.logicalKey, null, intent);
+  await store.compareAndSwap(intent.logicalKey, null, {
+    ...intent,
+    state: "published",
+    providerId: "buffer-1",
+  });
+  let reconciles = 0;
+  assert.deepEqual(
+    await executeStaticIntentWithCas({
+      intent,
+      store,
+      transport: {
+        create: async () => ({ kind: "accepted", providerId: "duplicate" }),
+        reconcile: async () => {
+          reconciles += 1;
+          return { kind: "missing" };
+        },
+      },
+    }),
+    { kind: "found", providerId: "buffer-1", status: "published" },
+  );
+  assert.equal(reconciles, 0);
 });

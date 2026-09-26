@@ -9,9 +9,9 @@ test("hosting and archive gates precede planning, with durable backup before sta
   );
   const steps = [
     "Verify Pages destination",
-    "Restore immutable media archive",
+    "Restore verified media archive",
     "Plan rolling campaigns",
-    "Preserve immutable media archive",
+    "Preserve verified media archive",
     "Commit campaign plans",
     "Deploy Pages media",
   ].map((name) => source.indexOf("- name: " + name));
