@@ -162,6 +162,20 @@ jobs:
           scripts/commit-state.sh "chore(state): recover platform acknowledgements [skip ci]"
           exit "$recovery_status"
 
+      - name: Verify Pages destination
+        if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          expected="${PAGES_ORIGIN%/}/"
+          actual="$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.html_url')"
+          build_type="$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.build_type')"
+          https_enforced="$(gh api "repos/$GITHUB_REPOSITORY/pages" --jq '.https_enforced')"
+          [[ "$actual" == "$expected" ]]
+          [[ "$build_type" == "workflow" ]]
+          [[ "$https_enforced" == "true" ]]
+
       - name: Restore verified media archive
         if: steps.mode.outputs.value == 'controlled' || steps.mode.outputs.value == 'scheduled'
         env:
