@@ -11,6 +11,7 @@ on:
         type: choice
         options:
           - reconcile-only
+          - schedule-approved
 
 permissions:
   contents: read
@@ -60,7 +61,9 @@ jobs:
       vars.STATIC_EDITORIAL_ENABLED == 'true' &&
       vars.ZERO_COST_CONFIRMED == 'true' &&
       (github.event_name == 'schedule' ||
-      (github.event_name == 'workflow_dispatch' && inputs.mode == 'reconcile-only'))
+      (github.event_name == 'workflow_dispatch' &&
+      (inputs.mode == 'reconcile-only' ||
+      (inputs.mode == 'schedule-approved' && github.actor == 'GuilhermeAlbert'))))
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     steps:
@@ -88,7 +91,7 @@ jobs:
           repositories: editorial-inputs
       - name: Execute the bounded private calendar
         env:
-          STATIC_EXECUTION_MODE: ${{ github.event_name == 'schedule' && 'scheduled' || 'reconcile-only' }}
+          STATIC_EXECUTION_MODE: ${{ (github.event_name == 'schedule' || inputs.mode == 'schedule-approved') && 'scheduled' || 'reconcile-only' }}
           STATIC_EDITORIAL_ENABLED: ${{ vars.STATIC_EDITORIAL_ENABLED || 'false' }}
           ZERO_COST_CONFIRMED: ${{ vars.ZERO_COST_CONFIRMED || 'false' }}
           STATIC_EDITORIAL_REPOSITORY: ${{ vars.STATIC_EDITORIAL_REPOSITORY }}

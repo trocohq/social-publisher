@@ -16,7 +16,7 @@ test("keeps the scheduled private executor serialized, pinned and disabled by de
   assert.match(source, /vars\.ZERO_COST_CONFIRMED == 'true'/u);
   assert.match(
     source,
-    /STATIC_EXECUTION_MODE: \$\{\{ github\.event_name == 'schedule' && 'scheduled' \|\| 'reconcile-only' \}\}/u,
+    /STATIC_EXECUTION_MODE: \$\{\{ \(github\.event_name == 'schedule' \|\| inputs\.mode == 'schedule-approved'\) && 'scheduled' \|\| 'reconcile-only' \}\}/u,
   );
   assert.match(source, /uses: actions\/create-github-app-token@[0-9a-f]{40}/u);
   assert.match(source, /app-id: \$\{\{ vars\.STATIC_GITHUB_APP_ID \}\}/u);
@@ -65,7 +65,7 @@ test("keeps the scheduled private executor serialized, pinned and disabled by de
     assert.match(line, /@[0-9a-f]{40}\s*$/u);
 });
 
-test("allows manual execution only in reconcile-only mode", async () => {
+test("allows owner-gated manual scheduling and safe reconciliation", async () => {
   const source = await readFile(
     new URL("../.github/workflows/static-editorial.yml", import.meta.url),
     "utf8",
@@ -75,5 +75,6 @@ test("allows manual execution only in reconcile-only mode", async () => {
     /workflow_dispatch:[\s\S]*options:\s*\n\s*- reconcile-only/u,
   );
   assert.doesNotMatch(source, /options:[\s\S]*- scheduled/u);
+  assert.match(source, /schedule-approved' && github\.actor == 'GuilhermeAlbert'/u);
   assert.match(source, /timeout-minutes: 10/u);
 });
