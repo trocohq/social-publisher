@@ -92,6 +92,7 @@ jobs:
       - name: Execute the bounded private calendar
         env:
           STATIC_EXECUTION_MODE: ${{ (github.event_name == 'schedule' || inputs.mode == 'schedule-approved') && 'scheduled' || 'reconcile-only' }}
+          STATIC_OWNER_SCHEDULE_APPROVED: ${{ github.event_name == 'workflow_dispatch' && inputs.mode == 'schedule-approved' && github.actor == 'GuilhermeAlbert' && 'true' || 'false' }}
           STATIC_EDITORIAL_ENABLED: ${{ vars.STATIC_EDITORIAL_ENABLED || 'false' }}
           ZERO_COST_CONFIRMED: ${{ vars.ZERO_COST_CONFIRMED || 'false' }}
           STATIC_EDITORIAL_REPOSITORY: ${{ vars.STATIC_EDITORIAL_REPOSITORY }}
