@@ -41,8 +41,14 @@ export function planStaticEditorialExecution(
   )
     throw new Error("STATIC_EXECUTION_ARGUMENT_INVALID");
   const mode = input.args[1];
-  const expectedEvent = mode === "scheduled" ? "schedule" : "workflow_dispatch";
-  if (input.env.GITHUB_EVENT_NAME !== expectedEvent)
+  const scheduledEventAllowed = input.env.GITHUB_EVENT_NAME === "schedule" || (
+    input.env.GITHUB_EVENT_NAME === "workflow_dispatch" &&
+    input.env.STATIC_OWNER_SCHEDULE_APPROVED === "true"
+  );
+  const eventAllowed = mode === "scheduled"
+    ? scheduledEventAllowed
+    : input.env.GITHUB_EVENT_NAME === "workflow_dispatch";
+  if (!eventAllowed)
     throw new Error("STATIC_EXECUTION_MODE_FORBIDDEN");
   if (input.env.STATIC_EDITORIAL_ENABLED !== "true")
     throw new Error("STATIC_EXECUTION_DISABLED");
